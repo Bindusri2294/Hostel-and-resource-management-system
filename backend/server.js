@@ -4,6 +4,7 @@ const dotenv = require("dotenv");
 
 const connectDB = require("./config/db");
 const studentRoutes = require("./routes/studentRoutes");
+const roomRoutes = require("./routes/roomRoutes");
 
 dotenv.config();
 
@@ -25,6 +26,9 @@ app.get("/", (req, res) => {
 
 // Student routes
 app.use("/api/students", studentRoutes);
+
+// Room routes
+app.use("/api/rooms", roomRoutes);
 
 const PORT = process.env.PORT || 5000;
 
