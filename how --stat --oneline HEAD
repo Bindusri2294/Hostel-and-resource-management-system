@@ -1,0 +1,47 @@
+[33mcommit d6c997fdca1b2148b9794653e8ef89ec0b2bb078[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/feedback-module[m[33m)[m
+Author: karthik ch <karthikch834@gmail.com>
+Date:   Sun Aug 30 15:59:39 2026 +0530
+
+    Added completed Feedback Module system
+
+ .gitignore                                         |   24 [32m+[m[31m-[m
+ backend/config/db.js                               |   29 [32m+[m[31m-[m
+ backend/config/seed.js                             |   58 [32m+[m
+ backend/controllers/authController.js              |  116 [32m+[m
+ backend/controllers/feedbackController.js          |  214 [32m++[m
+ backend/controllers/studentController.js           |    2 [32m+[m[31m-[m
+ backend/middleware/authMiddleware.js               |   46 [32m+[m
+ backend/middleware/checkDbConnection.js            |   14 [32m+[m
+ backend/middleware/uploadMiddleware.js             |   39 [32m+[m
+ backend/models/Feedback.js                         |   71 [32m+[m
+ backend/models/User.js                             |   36 [32m+[m
+ backend/package-lock.json                          |  800 [32m++++++[m[31m-[m
+ backend/package.json                               |    8 [32m+[m[31m-[m
+ backend/routes/authRoutes.js                       |   10 [32m+[m
+ backend/routes/feedbackRoutes.js                   |   28 [32m+[m
+ backend/server.js                                  |   36 [32m+[m[31m-[m
+ backend/uploads/.gitkeep                           |    1 [32m+[m
+ frontend/.gitignore                                |   24 [32m+[m
+ frontend/.oxlintrc.json                            |    8 [32m+[m
+ frontend/README.md                                 |   16 [32m+[m
+ frontend/index.html                                |   13 [32m+[m
+ frontend/package-lock.json                         | 2216 [32m++++++++++++++++++++[m
+ frontend/package.json                              |   30 [32m+[m
+ frontend/public/favicon.svg                        |    1 [32m+[m
+ frontend/public/icons.svg                          |   24 [32m+[m
+ frontend/src/App.css                               |  184 [32m++[m
+ frontend/src/App.jsx                               |   41 [32m+[m
+ frontend/src/assets/hero.png                       |  Bin [31m0[m -> [32m13057[m bytes
+ frontend/src/assets/react.svg                      |    1 [32m+[m
+ frontend/src/assets/vite.svg                       |    1 [32m+[m
+ frontend/src/components/auth/LoginView.jsx         |  298 [32m+++[m
+ .../components/feedback/AdminFeedbackDashboard.jsx |  436 [32m++++[m
+ .../components/feedback/ResolveFeedbackModal.jsx   |  153 [32m++[m
+ .../feedback/StudentFeedbackDashboard.jsx          |  546 [32m+++++[m
+ frontend/src/context/AuthContext.jsx               |   63 [32m+[m
+ frontend/src/index.css                             |   43 [32m+[m
+ frontend/src/main.jsx                              |   10 [32m+[m
+ frontend/src/services/api.js                       |   18 [32m+[m
+ frontend/src/services/feedbackService.js           |   64 [32m+[m
+ frontend/vite.config.js                            |   21 [32m+[m
+ 40 files changed, 5727 insertions(+), 16 deletions(-)
