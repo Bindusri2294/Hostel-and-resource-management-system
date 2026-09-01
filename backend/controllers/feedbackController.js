@@ -98,7 +98,6 @@ const getAllFeedbacks = async (req, res) => {
       const doc = item.toObject();
       if (doc.isAnonymous) {
         doc.student = {
-          _id: doc.student?._id,
           name: "Anonymous Student",
           rollNo: "PRIVACY MASKED",
           roomNo: "PRIVACY MASKED",
@@ -106,6 +105,7 @@ const getAllFeedbacks = async (req, res) => {
           campus: doc.student?.campus || "N/A",
           year: 0,
         };
+        delete doc.student._id;
       }
       return doc;
     });
@@ -143,12 +143,12 @@ const updateFeedbackStatus = async (req, res) => {
 
     if (doc.isAnonymous) {
       doc.student = {
-        _id: doc.student?._id,
         name: "Anonymous Student",
         rollNo: "PRIVACY MASKED",
         roomNo: "PRIVACY MASKED",
         course: "Confidential",
       };
+      delete doc.student._id;
     }
 
     res.status(200).json(doc);
