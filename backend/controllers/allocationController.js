@@ -1,6 +1,6 @@
 const Allocation = require("../models/Allocation");
 const Room = require("../models/Room");
-const Student = require("../models/Student");
+const Student = require("../models/student");
 
 // Create an allocation
 const createAllocation = async (req, res) => {
