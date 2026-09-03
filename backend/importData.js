@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 const XLSX = require("xlsx");
 const path = require("path");
 
-const Student = require("./models/Student");
+const Student = require("./models/student");
 const Room = require("./models/Room");
 const Allocation = require("./models/Allocation");
 const connectDB = require("./config/db");
