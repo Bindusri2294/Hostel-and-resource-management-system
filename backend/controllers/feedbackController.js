@@ -1,14 +1,16 @@
 const Feedback = require("../models/Feedback");
 const Student = require("../models/Student");
 
-// Create feedback
 const createFeedback = async (req, res) => {
   try {
     const { studentId, message, rating } = req.body;
 
-    const student = await Student.findById(studentId);
+    const student = await Student.findOne({ Rollno: studentId });
+
     if (!student) {
-      return res.status(404).json({ message: "Student not found" });
+      return res.status(404).json({
+        message: "Student with this Rollno not found",
+      });
     }
 
     const feedback = await Feedback.create({
@@ -17,11 +19,7 @@ const createFeedback = async (req, res) => {
       rating,
     });
 
-    const populatedFeedback = await Feedback.findById(feedback._id).populate(
-      "studentId"
-    );
-
-    res.status(201).json(populatedFeedback);
+    res.status(201).json(feedback);
   } catch (error) {
     res.status(500).json({
       message: error.message,
@@ -29,11 +27,10 @@ const createFeedback = async (req, res) => {
   }
 };
 
-// Get all feedback
 const getFeedbacks = async (req, res) => {
   try {
-    const feedbacks = await Feedback.find().populate("studentId");
-    res.status(200).json(feedbacks);
+    const feedbacks = await Feedback.find();
+    res.json(feedbacks);
   } catch (error) {
     res.status(500).json({
       message: error.message,
@@ -41,16 +38,17 @@ const getFeedbacks = async (req, res) => {
   }
 };
 
-// Get feedback by ID
 const getFeedbackById = async (req, res) => {
   try {
-    const feedback = await Feedback.findById(req.params.id).populate(
-      "studentId"
-    );
+    const feedback = await Feedback.findById(req.params.id);
+
     if (!feedback) {
-      return res.status(404).json({ message: "Feedback not found" });
+      return res.status(404).json({
+        message: "Feedback not found",
+      });
     }
-    res.status(200).json(feedback);
+
+    res.json(feedback);
   } catch (error) {
     res.status(500).json({
       message: error.message,
@@ -58,19 +56,21 @@ const getFeedbackById = async (req, res) => {
   }
 };
 
-// Update feedback
 const updateFeedback = async (req, res) => {
   try {
-    const feedback = await Feedback.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    }).populate("studentId");
+    const feedback = await Feedback.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
 
     if (!feedback) {
-      return res.status(404).json({ message: "Feedback not found" });
+      return res.status(404).json({
+        message: "Feedback not found",
+      });
     }
 
-    res.status(200).json(feedback);
+    res.json(feedback);
   } catch (error) {
     res.status(500).json({
       message: error.message,
@@ -78,14 +78,19 @@ const updateFeedback = async (req, res) => {
   }
 };
 
-// Delete feedback
 const deleteFeedback = async (req, res) => {
   try {
     const feedback = await Feedback.findByIdAndDelete(req.params.id);
+
     if (!feedback) {
-      return res.status(404).json({ message: "Feedback not found" });
+      return res.status(404).json({
+        message: "Feedback not found",
+      });
     }
-    res.status(200).json({ message: "Feedback deleted successfully" });
+
+    res.json({
+      message: "Feedback deleted successfully",
+    });
   } catch (error) {
     res.status(500).json({
       message: error.message,

@@ -13,30 +13,18 @@ dotenv.config();
 
 const app = express();
 
-// Connect to MongoDB
 connectDB();
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Test route
 app.get("/", (req, res) => {
-  res.json({
-    message: "Hostel Management System API is running",
-  });
+  res.json({ message: "Hostel Management System API is running" });
 });
 
-// Student routes
 app.use("/api/students", studentRoutes);
-
-// Room routes
 app.use("/api/rooms", roomRoutes);
-
-// Allocation routes
 app.use("/api/allocations", allocationRoutes);
-
-// Feedback routes
 app.use("/api/feedback", feedbackRoutes);
 
 const PORT = process.env.PORT || 5000;
