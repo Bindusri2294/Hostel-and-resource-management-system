@@ -2,37 +2,32 @@ const mongoose = require("mongoose");
 
 const studentSchema = new mongoose.Schema(
   {
-    name: {
+    Name: {
       type: String,
       required: true,
       trim: true,
     },
-
-    rollNo: {
+    Rollno: {
       type: String,
       required: true,
       unique: true,
       trim: true,
     },
-
-    course: {
+    Course: {
       type: String,
       required: true,
       trim: true,
     },
-
-    campus: {
+    Campus: {
       type: String,
       required: true,
       trim: true,
     },
-
-    year: {
+    Year: {
       type: Number,
       required: true,
     },
-
-    roomNo: {
+    Roomno: {
       type: String,
       required: true,
       trim: true,

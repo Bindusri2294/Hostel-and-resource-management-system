@@ -2,39 +2,34 @@ const mongoose = require("mongoose");
 
 const roomSchema = new mongoose.Schema(
   {
-    room: {
-      type: String,
-      required: true,
-      unique: true,
-      trim: true,
-    },
-
-    block: {
+    RoomNo: {
       type: String,
       required: true,
       trim: true,
     },
-
-    floor: {
+    Block: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    Floor: {
       type: Number,
       required: true,
     },
-
-    capacity: {
+    Capacity: {
       type: Number,
       required: true,
+      default: 2,
       min: 1,
     },
-
-    occupied: {
+    OccupiedCount: {
       type: Number,
       default: 0,
       min: 0,
     },
-
-    status: {
+    Status: {
       type: String,
-      enum: ["Available", "Partially Occupied", "Full"],
+      enum: ["Available", "Full"],
       default: "Available",
     },
   },
@@ -42,22 +37,5 @@ const roomSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
-
-// Validate occupied count and automatically update status
-roomSchema.pre("save", function () {
-  if (this.occupied > this.capacity) {
-    throw new Error(
-      `Occupied count (${this.occupied}) cannot exceed capacity (${this.capacity})`
-    );
-  }
-
-  if (this.occupied === 0) {
-    this.status = "Available";
-  } else if (this.occupied === this.capacity) {
-    this.status = "Full";
-  } else {
-    this.status = "Partially Occupied";
-  }
-});
 
 module.exports = mongoose.model("Room", roomSchema);
