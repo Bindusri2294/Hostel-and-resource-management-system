@@ -26,17 +26,17 @@ const registerStudent = async (req, res) => {
     // Link or create Student model record
     let studentRecord;
     if (rollNo) {
-      studentRecord = await Student.findOne({ rollNo: rollNo.trim() });
+      studentRecord = await Student.findOne({ Rollno: rollNo.trim() });
     }
 
     if (!studentRecord && rollNo) {
       studentRecord = await Student.create({
-        name,
-        rollNo: rollNo.trim(),
-        course: course || "General",
-        campus: campus || "Main Campus",
-        year: Number(year) || 1,
-        roomNo: roomNo || "Unassigned",
+        Name: name,
+        Rollno: rollNo.trim(),
+        Course: course || "General",
+        Campus: campus || "Main Campus",
+        Year: Number(year) || 1,
+        Roomno: roomNo || "Unassigned",
       });
     }
 

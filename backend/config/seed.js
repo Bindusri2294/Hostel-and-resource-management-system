@@ -26,15 +26,15 @@ const seedAdminAndDemoUsers = async () => {
     const demoStudentEmail = "student@hostel.com";
     const existingStudentUser = await User.findOne({ email: demoStudentEmail });
     if (!existingStudentUser) {
-      let demoStudent = await Student.findOne({ rollNo: "2026-CS-01" });
+      let demoStudent = await Student.findOne({ Rollno: "2026-CS-01" });
       if (!demoStudent) {
         demoStudent = await Student.create({
-          name: "Rahul Sharma",
-          rollNo: "2026-CS-01",
-          course: "B.Tech Computer Science",
-          campus: "Main Campus",
-          year: 3,
-          roomNo: "B-204",
+          Name: "Rahul Sharma",
+          Rollno: "2026-CS-01",
+          Course: "B.Tech Computer Science",
+          Campus: "Main Campus",
+          Year: 3,
+          Roomno: "B-204",
         });
       }
 
