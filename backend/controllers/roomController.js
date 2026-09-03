@@ -3,43 +3,36 @@ const Room = require("../models/Room");
 // Create a new room
 const createRoom = async (req, res) => {
   try {
-    const { room, block, floor, capacity, occupied } = req.body;
+    const { RoomNo, Block, Floor, Capacity, OccupiedCount } = req.body;
 
-    // Validation
-    if (!room || !block || !floor || capacity === undefined) {
+    if (!RoomNo || !Block || !Floor || Capacity === undefined) {
       return res.status(400).json({
-        message:
-          "Please provide room, block, floor, and capacity fields",
+        message: "Please provide RoomNo, Block, Floor, and Capacity fields",
       });
     }
 
-    if (capacity < 1) {
+    if (Capacity < 1) {
       return res.status(400).json({
         message: "Capacity must be at least 1",
       });
     }
 
-    if (occupied !== undefined && occupied > capacity) {
+    if (OccupiedCount !== undefined && OccupiedCount > Capacity) {
       return res.status(400).json({
-        message: "Occupied count cannot exceed capacity",
+        message: "OccupiedCount cannot exceed Capacity",
       });
     }
 
     const newRoom = await Room.create({
-      room,
-      block,
-      floor,
-      capacity,
-      occupied: occupied || 0,
+      RoomNo,
+      Block,
+      Floor,
+      Capacity,
+      OccupiedCount: OccupiedCount || 0,
     });
 
     res.status(201).json(newRoom);
   } catch (error) {
-    if (error.code === 11000) {
-      return res.status(400).json({
-        message: `Room ${error.keyValue.room} already exists`,
-      });
-    }
     res.status(500).json({
       message: error.message,
     });
@@ -49,7 +42,7 @@ const createRoom = async (req, res) => {
 // Get all rooms
 const getRooms = async (req, res) => {
   try {
-    const rooms = await Room.find().sort({ block: 1, floor: 1, room: 1 });
+    const rooms = await Room.find().sort({ Block: 1, Floor: 1, RoomNo: 1 });
     res.status(200).json(rooms);
   } catch (error) {
     res.status(500).json({
@@ -78,9 +71,8 @@ const getRoomById = async (req, res) => {
 // Update a room
 const updateRoom = async (req, res) => {
   try {
-    const { room, block, floor, capacity, occupied } = req.body;
+    const { RoomNo, Block, Floor, Capacity, OccupiedCount } = req.body;
 
-    // Find the room first
     const existingRoom = await Room.findById(req.params.id);
     if (!existingRoom) {
       return res.status(404).json({
@@ -88,41 +80,29 @@ const updateRoom = async (req, res) => {
       });
     }
 
-    // Validation
-    if (capacity !== undefined && capacity < 1) {
+    if (Capacity !== undefined && Capacity < 1) {
       return res.status(400).json({
         message: "Capacity must be at least 1",
       });
     }
 
-    // Check if occupied count is valid
-    const newCapacity = capacity !== undefined ? capacity : existingRoom.capacity;
-    const newOccupied = occupied !== undefined ? occupied : existingRoom.occupied;
+    const newCapacity = Capacity !== undefined ? Capacity : existingRoom.Capacity;
+    const newOccupied = OccupiedCount !== undefined ? OccupiedCount : existingRoom.OccupiedCount;
 
     if (newOccupied > newCapacity) {
       return res.status(400).json({
-        message: `Occupied count (${newOccupied}) cannot exceed capacity (${newCapacity})`,
+        message: `OccupiedCount (${newOccupied}) cannot exceed Capacity (${newCapacity})`,
       });
-    }
-
-    // Check for duplicate room number if it's being changed
-    if (room && room !== existingRoom.room) {
-      const duplicateRoom = await Room.findOne({ room });
-      if (duplicateRoom) {
-        return res.status(400).json({
-          message: `Room ${room} already exists`,
-        });
-      }
     }
 
     const updatedRoom = await Room.findByIdAndUpdate(
       req.params.id,
       {
-        room: room || existingRoom.room,
-        block: block || existingRoom.block,
-        floor: floor || existingRoom.floor,
-        capacity: newCapacity,
-        occupied: newOccupied,
+        RoomNo: RoomNo || existingRoom.RoomNo,
+        Block: Block || existingRoom.Block,
+        Floor: Floor || existingRoom.Floor,
+        Capacity: newCapacity,
+        OccupiedCount: newOccupied,
       },
       { new: true }
     );
@@ -159,7 +139,7 @@ const deleteRoom = async (req, res) => {
 const getRoomsByStatus = async (req, res) => {
   try {
     const { status } = req.params;
-    const validStatuses = ["Available", "Partially Occupied", "Full"];
+    const validStatuses = ["Available", "Full"];
 
     if (!validStatuses.includes(status)) {
       return res.status(400).json({
@@ -167,7 +147,7 @@ const getRoomsByStatus = async (req, res) => {
       });
     }
 
-    const rooms = await Room.find({ status }).sort({ block: 1, floor: 1, room: 1 });
+    const rooms = await Room.find({ Status: status }).sort({ Block: 1, Floor: 1, RoomNo: 1 });
     res.status(200).json(rooms);
   } catch (error) {
     res.status(500).json({
@@ -182,13 +162,10 @@ const getRoomsStats = async (req, res) => {
     const rooms = await Room.find();
     const stats = {
       totalRooms: rooms.length,
-      availableRooms: rooms.filter((r) => r.status === "Available").length,
-      partiallyOccupiedRooms: rooms.filter(
-        (r) => r.status === "Partially Occupied"
-      ).length,
-      fullRooms: rooms.filter((r) => r.status === "Full").length,
-      totalCapacity: rooms.reduce((sum, r) => sum + r.capacity, 0),
-      totalOccupied: rooms.reduce((sum, r) => sum + r.occupied, 0),
+      availableRooms: rooms.filter((r) => r.Status === "Available").length,
+      fullRooms: rooms.filter((r) => r.Status === "Full").length,
+      totalCapacity: rooms.reduce((sum, r) => sum + r.Capacity, 0),
+      totalOccupied: rooms.reduce((sum, r) => sum + r.OccupiedCount, 0),
     };
     res.status(200).json(stats);
   } catch (error) {
