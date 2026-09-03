@@ -3,7 +3,11 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 
 const connectDB = require("./config/db");
+
 const studentRoutes = require("./routes/studentRoutes");
+const roomRoutes = require("./routes/roomRoutes");
+const allocationRoutes = require("./routes/allocationRoutes");
+const feedbackRoutes = require("./routes/feedbackRoutes");
 
 dotenv.config();
 
@@ -25,6 +29,15 @@ app.get("/", (req, res) => {
 
 // Student routes
 app.use("/api/students", studentRoutes);
+
+// Room routes
+app.use("/api/rooms", roomRoutes);
+
+// Allocation routes
+app.use("/api/allocations", allocationRoutes);
+
+// Feedback routes
+app.use("/api/feedback", feedbackRoutes);
 
 const PORT = process.env.PORT || 5000;
 
