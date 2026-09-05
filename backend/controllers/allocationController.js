@@ -15,38 +15,26 @@ const formatAllocation = (allocation) => {
 };
 
 // Create an allocation
-const createAllocation = async (req, res) => {
+const createAllocation = async (req, res, next) => {
   try {
-    const { studentId, roomId, allocatedDate } = req.body;
+    const { studentId, roomNo, block, allocatedDate } = req.body;
 
-    // Check student
-    const student = await Student.findById(studentId);
-
+    const student = await Student.findOne({ Rollno: studentId });
     if (!student) {
-      return res.status(404).json({
-        message: "Student not found",
-      });
+      return res.status(404).json({ message: "Student not found" });
     }
 
-    // Check room
-    const room = await Room.findById(roomId);
-
+    const room = await Room.findOne({ RoomNo: roomNo, Block: block });
     if (!room) {
-      return res.status(404).json({
-        message: "Room not found",
-      });
+      return res.status(404).json({ message: "Room not found" });
     }
 
-    // Check room capacity
     if (room.OccupiedCount >= room.Capacity) {
-      return res.status(400).json({
-        message: "Room is full",
-      });
+      return res.status(400).json({ message: "Room is full" });
     }
 
-    // Check if student already has an active allocation
     const existingAllocation = await Allocation.findOne({
-      studentId,
+      studentId: student._id,
       status: "Active",
     });
 
@@ -56,42 +44,33 @@ const createAllocation = async (req, res) => {
       });
     }
 
-    // Create allocation
     const allocation = await Allocation.create({
-      studentId,
-      roomId,
+      studentId: student._id,
+      roomId: room._id,
       allocatedDate: allocatedDate || Date.now(),
       status: "Active",
       vacatedDate: null,
     });
 
-    // Increase room occupied count
     room.OccupiedCount += 1;
-
-    // Update room status
-    if (room.OccupiedCount >= room.Capacity) {
-      room.Status = "Full";
-    } else {
-      room.Status = "Available";
-    }
-
+    room.Status = room.OccupiedCount >= room.Capacity ? "Full" : "Available";
     await room.save();
 
-    // Get populated allocation
+    student.Roomno = room.RoomNo;
+    await student.save();
+
     const populatedAllocation = await Allocation.findById(allocation._id)
       .populate("studentId")
       .populate("roomId");
 
     res.status(201).json(formatAllocation(populatedAllocation));
   } catch (error) {
-    res.status(500).json({
-      message: error.message,
-    });
+    next(error);
   }
 };
 
 // Get all allocations
-const getAllocations = async (req, res) => {
+const getAllocations = async (req, res, next) => {
   try {
     const allocations = await Allocation.find()
       .populate("studentId")
@@ -102,78 +81,67 @@ const getAllocations = async (req, res) => {
 
     res.status(200).json(formattedAllocations);
   } catch (error) {
-    res.status(500).json({
-      message: error.message,
-    });
+    next(error);
   }
 };
 
 // Get allocation by ID
-const getAllocationById = async (req, res) => {
+const getAllocationById = async (req, res, next) => {
   try {
     const allocation = await Allocation.findById(req.params.id)
       .populate("studentId")
       .populate("roomId");
 
     if (!allocation) {
-      return res.status(404).json({
-        message: "Allocation not found",
-      });
+      return res.status(404).json({ message: "Allocation not found" });
     }
 
     res.status(200).json(formatAllocation(allocation));
   } catch (error) {
-    res.status(500).json({
-      message: error.message,
-    });
+    next(error);
   }
 };
 
 // Update an allocation
-const updateAllocation = async (req, res) => {
+const updateAllocation = async (req, res, next) => {
   try {
     const allocation = await Allocation.findById(req.params.id);
 
     if (!allocation) {
-      return res.status(404).json({
-        message: "Allocation not found",
-      });
+      return res.status(404).json({ message: "Allocation not found" });
     }
 
     const { status, vacatedDate } = req.body;
 
-    // Validate status
     if (status && !["Active", "Vacated"].includes(status)) {
       return res.status(400).json({
         message: "Status must be either Active or Vacated",
       });
     }
 
-    // Handle status change
     if (status && status !== allocation.status) {
       allocation.status = status;
 
-      // Student is vacating the room
       if (status === "Vacated") {
         allocation.vacatedDate = vacatedDate || Date.now();
 
         const room = await Room.findById(allocation.roomId);
 
         if (room) {
-          room.OccupiedCount = Math.max(
-            0,
-            room.OccupiedCount - 1
-          );
-
+          room.OccupiedCount = Math.max(0, room.OccupiedCount - 1);
           if (room.OccupiedCount < room.Capacity) {
             room.Status = "Available";
           }
-
           await room.save();
+        }
+
+        const student = await Student.findById(allocation.studentId);
+        if (student) {
+          student.Roomno = "Unassigned";
+          await student.save();
         }
       }
 
-      // Re-activate an allocation
       if (status === "Active") {
         const existingActiveAllocation = await Allocation.findOne({
           studentId: allocation.studentId,
@@ -190,90 +158,82 @@ const updateAllocation = async (req, res) => {
         const room = await Room.findById(allocation.roomId);
 
         if (!room) {
-          return res.status(404).json({
-            message: "Room not found",
-          });
+          return res.status(404).json({ message: "Room not found" });
         }
 
         if (room.OccupiedCount >= room.Capacity) {
-          return res.status(400).json({
-            message: "Room is full",
-          });
+          return res.status(400).json({ message: "Room is full" });
         }
 
         room.OccupiedCount += 1;
-
-        if (room.OccupiedCount >= room.Capacity) {
-          room.Status = "Full";
-        } else {
-          room.Status = "Available";
-        }
-
+        room.Status = room.OccupiedCount >= room.Capacity ? "Full" : "Available";
         await room.save();
 
         allocation.vacatedDate = null;
+
+        const student = await Student.findById(allocation.studentId);
+        if (student) {
+          student.Roomno = room.RoomNo;
+          await student.save();
+        }
       }
     }
 
-    // Allow vacated date to be updated
     if (status === "Vacated" && vacatedDate) {
       allocation.vacatedDate = vacatedDate;
     }
 
     await allocation.save();
 
-    const updatedAllocation = await Allocation.findById(
-      allocation._id
-    )
+    const updatedAllocation = await Allocation.findById(allocation._id)
       .populate("studentId")
       .populate("roomId");
 
     res.status(200).json(formatAllocation(updatedAllocation));
   } catch (error) {
-    res.status(500).json({
-      message: error.message,
-    });
+    next(error);
   }
 };
 
 // Delete an allocation
-const deleteAllocation = async (req, res) => {
+const deleteAllocation = async (req, res, next) => {
   try {
     const allocation = await Allocation.findById(req.params.id);
 
     if (!allocation) {
-      return res.status(404).json({
-        message: "Allocation not found",
-      });
+      return res.status(404).json({ message: "Allocation not found" });
     }
 
-    // If active, free the room
     if (allocation.status === "Active") {
       const room = await Room.findById(allocation.roomId);
 
       if (room) {
-        room.OccupiedCount = Math.max(
-          0,
-          room.OccupiedCount - 1
-        );
-
+        room.OccupiedCount = Math.max(0, room.OccupiedCount - 1);
         if (room.OccupiedCount < room.Capacity) {
           room.Status = "Available";
         }
-
         await room.save();
       }
+
+      const student = await Student.findById(allocation.studentId);
+      if (student) {
+        student.Roomno = "Unassigned";
+        await student.save();
+      }
     }
+
+    const populatedAllocation = await Allocation.findById(allocation._id)
+      .populate("studentId")
+      .populate("roomId");
 
     await Allocation.findByIdAndDelete(req.params.id);
 
     res.status(200).json({
       message: "Allocation deleted successfully",
+      allocation: formatAllocation(populatedAllocation),
     });
   } catch (error) {
-    res.status(500).json({
-      message: error.message,
-    });
+    next(error);
   }
 };
 

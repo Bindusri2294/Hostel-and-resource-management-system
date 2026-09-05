@@ -16,8 +16,8 @@ router.post("/", createRoom);
 router.get("/", getRooms);
 router.get("/stats", getRoomsStats);
 router.get("/status/:status", getRoomsByStatus);
-router.get("/:id", getRoomById);
-router.put("/:id", updateRoom);
-router.delete("/:id", deleteRoom);
+router.get("/:block/:roomNo", getRoomById);
+router.put("/:block/:roomNo", updateRoom);
+router.delete("/:block/:roomNo", deleteRoom);
 
 module.exports = router;

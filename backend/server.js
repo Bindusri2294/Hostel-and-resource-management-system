@@ -7,6 +7,7 @@ const roomRoutes = require("./routes/roomRoutes");
 const allocationRoutes = require("./routes/allocationRoutes");
 const feedbackRoutes = require("./routes/feedbackRoutes");
 const authRoutes = require("./routes/authRoutes");
+const errorHandler = require("./middleware/errorHandler");
 
 dotenv.config();
 const app = express();
@@ -24,6 +25,7 @@ app.use("/api/rooms", roomRoutes);
 app.use("/api/allocations", allocationRoutes);
 app.use("/api/feedback", feedbackRoutes);
 app.use("/api/auth", authRoutes);
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

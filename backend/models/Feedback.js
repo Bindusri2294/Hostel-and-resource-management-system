@@ -8,6 +8,18 @@ const feedbackSchema = new mongoose.Schema(
       trim: true,
     },
 
+    RoomNo: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    Block: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
     message: {
       type: String,
       required: true,
