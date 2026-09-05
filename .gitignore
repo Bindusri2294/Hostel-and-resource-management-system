@@ -7,8 +7,6 @@ backend/node_modules/
 *.env
 backend/.env
 
-# Ignore Frontend until team starts frontend phase
-frontend/
 
 # Ignore tech stack documentation
 TECH_STACK.md
