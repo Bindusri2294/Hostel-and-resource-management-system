@@ -5,7 +5,7 @@ const Feedback = require("../models/Feedback");
 // @access  Private (Student Only)
 const createFeedback = async (req, res) => {
   try {
-    const { title, category, description, rating, priority, isAnonymous } = req.body;
+    const { title, category, description, rating, isAnonymous } = req.body;
 
     if (!title || !category || !description) {
       return res.status(400).json({ message: "Title, category, and description are required" });
@@ -29,7 +29,6 @@ const createFeedback = async (req, res) => {
       category,
       description,
       rating: Number(rating) || 5,
-      priority: priority || "Medium",
       imageUrl,
       status: "Pending",
     });
@@ -66,7 +65,7 @@ const getMyFeedbacks = async (req, res) => {
 // @access  Private (Admin Only)
 const getAllFeedbacks = async (req, res) => {
   try {
-    const { category, status, priority, rating, search } = req.query;
+    const { category, status, rating, search } = req.query;
 
     let query = {};
 
@@ -75,9 +74,6 @@ const getAllFeedbacks = async (req, res) => {
     }
     if (status && status !== "All") {
       query.status = status;
-    }
-    if (priority && priority !== "All") {
-      query.priority = priority;
     }
     if (rating && rating !== "All") {
       query.rating = Number(rating);
@@ -125,7 +121,7 @@ const updateFeedbackStatus = async (req, res) => {
 
     const feedback = await Feedback.findById(req.params.id);
     if (!feedback) {
-      return res.status(404).json({ message: "Feedback ticket not found" });
+      return res.status(404).json({ message: "Feedback not found" });
     }
 
     if (status) {
@@ -167,10 +163,6 @@ const getFeedbackStats = async (req, res) => {
     const inProgressCount = await Feedback.countDocuments({ status: "In Progress" });
     const resolvedCount = await Feedback.countDocuments({ status: "Resolved" });
     const rejectedCount = await Feedback.countDocuments({ status: "Rejected" });
-    const urgentPendingCount = await Feedback.countDocuments({
-      status: "Pending",
-      priority: "Urgent",
-    });
 
     // Average rating
     const ratingAggregation = await Feedback.aggregate([
@@ -196,7 +188,6 @@ const getFeedbackStats = async (req, res) => {
       inProgressCount,
       resolvedCount,
       rejectedCount,
-      urgentPendingCount,
       averageRating,
       categoryStats,
     });

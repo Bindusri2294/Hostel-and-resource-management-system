@@ -40,11 +40,6 @@ const feedbackSchema = new mongoose.Schema(
       max: 5,
       default: 5,
     },
-    priority: {
-      type: String,
-      enum: ["Low", "Medium", "High", "Urgent"],
-      default: "Medium",
-    },
     imageUrl: {
       type: String,
       default: "",
