@@ -1,20 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { 
-  LayoutDashboard, 
-  ClipboardList, 
-  Building2, 
-  DoorOpen, 
-  Package, 
-  MessageSquare, 
-  User, 
-  LogOut, 
-  Menu, 
-  Search, 
-  Bell, 
-  Home, 
-  Building, 
-  Layers, 
+import {
+  LayoutDashboard,
+  ClipboardList,
+  Building2,
+  DoorOpen,
+  Package,
+  MessageSquare,
+  User,
+  LogOut,
+  Menu,
+  Search,
+  Bell,
+  Home,
+  Building,
+  Layers,
   Armchair,
   Calendar,
   ChevronRight,
@@ -41,10 +41,6 @@ export default function Dashboard() {
 
   const handleDismiss = () => {
     setShowReminder(false);
-    // Force it to pop back up after 3 seconds to annoy the user into paying
-    setTimeout(() => {
-      setShowReminder(true);
-    }, 3000);
   };
 
   const today = new Date();
@@ -114,13 +110,13 @@ export default function Dashboard() {
               <span>{formattedDate}</span>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-6">
             <div className="relative w-[320px]">
               <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-              <Input 
-                placeholder="Search..." 
-                className="pl-11 bg-gray-50/80 border-transparent shadow-none rounded-xl h-11 focus-visible:ring-1 focus-visible:ring-gray-200" 
+              <Input
+                placeholder="Search..."
+                className="pl-11 bg-gray-50/80 border-transparent shadow-none rounded-xl h-11 focus-visible:ring-1 focus-visible:ring-gray-200"
               />
             </div>
             <button className="relative text-gray-500 hover:text-gray-800 transition-colors">
@@ -138,7 +134,7 @@ export default function Dashboard() {
         {/* Scrollable Content */}
         <div className="flex-1 overflow-auto p-8">
           <div className="max-w-6xl mx-auto space-y-6">
-            
+
 
 
             {/* Top Stat Cards */}
@@ -215,7 +211,7 @@ export default function Dashboard() {
                     <h2 className="text-2xl font-bold text-[#1a1d2d] mb-2 flex items-center gap-2">
                       Room 205 <span className="text-gray-300">•</span> Block A
                     </h2>
-                    
+
                     <p className="text-[14px] text-gray-500 mb-6 font-medium">
                       Allocated 12 Aug 2026 <span className="mx-1.5 font-bold text-gray-300">·</span> 3 of 4 beds occupied
                     </p>
