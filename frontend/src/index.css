@@ -128,3 +128,20 @@
     @apply font-sans;
     }
 }
+
+@keyframes hScroll {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-h-scroll {
+  animation: hScroll 30s linear infinite;
+}
+
+.pause-on-hover:hover {
+  animation-play-state: paused !important;
+}

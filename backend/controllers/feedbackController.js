@@ -4,9 +4,21 @@ const Student = require("../models/student");
 // Create feedback
 const createFeedback = async (req, res, next) => {
   try {
-    const { studentId, RoomNo, Block, message, rating } = req.body;
+    const body = req.body || {};
+    let { studentId, RoomNo, Block, message, rating, category } = body;
 
-    const student = await Student.findOne({ Rollno: studentId });
+    // Enforce authenticated student identity from user token session
+    if (req.user && req.user.role === "Student" && req.user.student) {
+      if (req.user.student?.Rollno) studentId = req.user.student.Rollno;
+      if (req.user.student?.Roomno) RoomNo = req.user.student.Roomno;
+      if (req.user.student?.Campus) Block = req.user.student.Campus;
+    }
+
+    if (!studentId) {
+      return res.status(400).json({ message: "Student Rollno is required" });
+    }
+
+    const student = await Student.findOne({ Rollno: String(studentId).trim().toUpperCase() });
 
     if (!student) {
       return res.status(404).json({
@@ -14,13 +26,17 @@ const createFeedback = async (req, res, next) => {
       });
     }
 
+    const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
+
     const feedback = await Feedback.create({
-      studentId,
-      RoomNo,
-      Block,
-      message,
-      rating,
+      studentId: student.Rollno || String(studentId).trim().toUpperCase(),
+      RoomNo: RoomNo || student.Roomno || "Unassigned",
+      Block: Block || student.Campus || "Main Campus",
+      category: category || "Overall Experience",
+      message: message ? message.trim() : "",
+      rating: Number(rating) || 5,
       status: "Pending",
+      imageUrl,
     });
 
     res.status(201).json(feedback);
@@ -29,10 +45,25 @@ const createFeedback = async (req, res, next) => {
   }
 };
 
-// Get all feedback
+// Get feedback records (Filtered securely by role)
 const getFeedbacks = async (req, res, next) => {
   try {
-    const feedbacks = await Feedback.find().sort({ createdAt: -1 });
+    let filter = {};
+
+    // If logged-in user is a Student, filter strictly by their own Rollno
+    if (req.user && req.user.role === "Student") {
+      const studentRoll = req.user.student?.Rollno;
+      if (studentRoll) {
+        filter.studentId = studentRoll;
+      } else if (req.query.studentId) {
+        filter.studentId = req.query.studentId;
+      }
+    } else if (req.query.studentId) {
+      // Optional query param filter for Warden Admin
+      filter.studentId = req.query.studentId;
+    }
+
+    const feedbacks = await Feedback.find(filter).sort({ createdAt: -1 });
     res.status(200).json(feedbacks);
   } catch (error) {
     next(error);
@@ -46,6 +77,17 @@ const getFeedbackById = async (req, res, next) => {
     if (!feedback) {
       return res.status(404).json({ message: "Feedback not found" });
     }
+
+    // Check authorization for students
+    if (
+      req.user &&
+      req.user.role === "Student" &&
+      req.user.student?.Rollno &&
+      feedback.studentId !== req.user.student.Rollno
+    ) {
+      return res.status(403).json({ message: "Not authorized to view this feedback record" });
+    }
+
     res.status(200).json(feedback);
   } catch (error) {
     next(error);
@@ -55,10 +97,19 @@ const getFeedbackById = async (req, res, next) => {
 // Update feedback status
 const updateFeedback = async (req, res, next) => {
   try {
-    const feedback = await Feedback.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
+    const { status } = req.body || {};
+    if (!status) {
+      return res.status(400).json({ message: "Status field is required for update" });
+    }
+
+    const feedback = await Feedback.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
     if (!feedback) {
       return res.status(404).json({ message: "Feedback not found" });
     }
