@@ -6,9 +6,9 @@ const connectDB = async () => {
   try {
     const connStr = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/hostel_db";
     
-    // Attempt standard connection first
+    // Attempt standard connection first with 10s timeout for Atlas
     const conn = await mongoose.connect(connStr, {
-      serverSelectionTimeoutMS: 3000,
+      serverSelectionTimeoutMS: 10000,
     });
     console.log(`[DB] Connected to MongoDB: ${conn.connection.host}`);
     return true;

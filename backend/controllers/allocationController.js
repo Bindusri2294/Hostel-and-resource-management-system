@@ -17,7 +17,7 @@ const formatAllocation = (allocation) => {
 // Create an allocation
 const createAllocation = async (req, res, next) => {
   try {
-    const { studentId, roomNo, block, allocatedDate } = req.body;
+    const { studentId, roomNo, block, allocatedDate } = req.body || {};
 
     const student = await Student.findOne({ Rollno: studentId });
     if (!student) {
