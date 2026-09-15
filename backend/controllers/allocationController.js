@@ -102,6 +102,32 @@ const getAllocationById = async (req, res, next) => {
   }
 };
 
+// Get allocation for the logged-in student
+const getMyAllocation = async (req, res, next) => {
+  try {
+    const rollno = req.user.student?.Rollno;
+
+    if (!rollno) {
+      return res.status(400).json({ message: "No student record linked to this account" });
+    }
+
+    const myAllocation = await Allocation.findOne({ status: "Active" })
+      .populate({
+        path: "studentId",
+        match: { Rollno: rollno },
+      })
+      .populate("roomId");
+
+    if (!myAllocation || !myAllocation.studentId) {
+      return res.status(404).json({ message: "No allocation found for this student" });
+    }
+
+    res.status(200).json(formatAllocation(myAllocation));
+  } catch (error) {
+    next(error);
+  }
+};
+
 // Update an allocation
 const updateAllocation = async (req, res, next) => {
   try {
@@ -241,6 +267,7 @@ module.exports = {
   createAllocation,
   getAllocations,
   getAllocationById,
+  getMyAllocation,
   updateAllocation,
   deleteAllocation,
 };

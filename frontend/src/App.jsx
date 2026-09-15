@@ -6,6 +6,10 @@ import LoginView from './components/auth/LoginView';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import StudentFeedbackDashboard from './components/feedback/StudentFeedbackDashboard';
 import AdminFeedbackDashboard from './components/feedback/AdminFeedbackDashboard';
+import Dashboard from './pages/student/Dashboard';
+import Profile from './pages/student/Profile';
+import AdminDashboard from './pages/admin/Dashboard';
+import AdminAnalyticsPage from './pages/admin/AdminAnalyticsPage';
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -49,6 +53,10 @@ function AppContent() {
           </ProtectedRoute>
         }
       />
+      <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/profile" element={<Profile />} />
+      <Route path="/admin/dashboard" element={<AdminDashboard />} />
+      <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
       <Route
         path="/"
         element={

@@ -1,5 +1,4 @@
 const express = require("express");
-
 const {
   createFeedback,
   getFeedbacks,
@@ -25,7 +24,7 @@ const handleUpload = (req, res, next) => {
   });
 };
 
-router.post("/", handleUpload, createFeedback);
+router.post("/", authorize("Student"), handleUpload, createFeedback);
 router.get("/", getFeedbacks);
 router.get("/:id", getFeedbackById);
 

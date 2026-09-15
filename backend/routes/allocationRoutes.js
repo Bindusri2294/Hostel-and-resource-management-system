@@ -1,28 +1,32 @@
 const express = require("express");
-
 const {
   createAllocation,
   getAllocations,
   getAllocationById,
+  getMyAllocation,
   updateAllocation,
   deleteAllocation,
 } = require("../controllers/allocationController");
+const { protect, authorize } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
 // Create allocation
-router.post("/", createAllocation);
+router.post("/", protect, authorize("Admin"), createAllocation);
+
+// Get logged-in student's own allocation
+router.get("/mine", protect, authorize("Student"), getMyAllocation);
 
 // Get all allocations
-router.get("/", getAllocations);
+router.get("/", protect, authorize("Admin"), getAllocations);
 
 // Get allocation by ID
-router.get("/:id", getAllocationById);
+router.get("/:id", protect, authorize("Admin"), getAllocationById);
 
 // Update allocation
-router.put("/:id", updateAllocation);
+router.put("/:id", protect, authorize("Admin"), updateAllocation);
 
 // Delete allocation
-router.delete("/:id", deleteAllocation);
+router.delete("/:id", protect, authorize("Admin"), deleteAllocation);
 
 module.exports = router;
