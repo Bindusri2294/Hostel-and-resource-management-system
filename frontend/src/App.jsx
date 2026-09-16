@@ -3,7 +3,7 @@ import { useAuth } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Layout from "./components/Layout";
 import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
+import HomeDashboard from "./pages/HomeDashboard";
 import Students from "./pages/Students";
 import Rooms from "./pages/Rooms";
 import Allocations from "./pages/Allocations";
@@ -15,7 +15,7 @@ export default function App() {
   return <Routes>
     <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
     <Route element={<ProtectedRoute />}><Route element={<Layout />}>
-      <Route index element={<Dashboard />} />
+      <Route index element={<HomeDashboard />} />
       <Route path="profile" element={<Profile />} />
       <Route path="feedback" element={<Feedback />} />
     </Route></Route>

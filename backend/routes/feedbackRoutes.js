@@ -1,4 +1,5 @@
 const express = require("express");
+const { protect, authorize } = require("../middleware/authMiddleware");
 
 const {
   createFeedback,
@@ -10,10 +11,10 @@ const {
 
 const router = express.Router();
 
-router.post("/", createFeedback);
-router.get("/", getFeedbacks);
-router.get("/:id", getFeedbackById);
-router.put("/:id", updateFeedback);
-router.delete("/:id", deleteFeedback);
+router.post("/", protect, createFeedback);
+router.get("/", protect, getFeedbacks);
+router.get("/:id", protect, getFeedbackById);
+router.put("/:id", protect, authorize("Admin"), updateFeedback);
+router.delete("/:id", protect, authorize("Admin"), deleteFeedback);
 
 module.exports = router;

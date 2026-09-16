@@ -1,4 +1,5 @@
 const express = require("express");
+const { protect, authorize } = require("../middleware/authMiddleware");
 
 const {
   createAllocation,
@@ -11,18 +12,18 @@ const {
 const router = express.Router();
 
 // Create allocation
-router.post("/", createAllocation);
+router.post("/", protect, authorize("Admin"), createAllocation);
 
 // Get all allocations
-router.get("/", getAllocations);
+router.get("/", protect, getAllocations);
 
 // Get allocation by ID
-router.get("/:id", getAllocationById);
+router.get("/:id", protect, getAllocationById);
 
 // Update allocation
-router.put("/:id", updateAllocation);
+router.put("/:id", protect, authorize("Admin"), updateAllocation);
 
 // Delete allocation
-router.delete("/:id", deleteAllocation);
+router.delete("/:id", protect, authorize("Admin"), deleteAllocation);
 
 module.exports = router;
