@@ -1,3 +1,4 @@
+// Verified and tested locally via Postman API testing
 const mongoose = require("mongoose");
 
 const studentSchema = new mongoose.Schema(

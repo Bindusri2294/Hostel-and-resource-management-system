@@ -20,10 +20,12 @@ const roomSchema = new mongoose.Schema(
       type: Number,
       required: true,
       default: 2,
+      min: 1,
     },
     OccupiedCount: {
       type: Number,
       default: 0,
+      min: 0,
     },
     Status: {
       type: String,
@@ -37,4 +39,3 @@ const roomSchema = new mongoose.Schema(
 );
 
 module.exports = mongoose.model("Room", roomSchema);
-

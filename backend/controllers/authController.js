@@ -4,7 +4,10 @@ const User = require("../models/User");
 const Student = require("../models/student");
 
 const generateToken = (id, role) => {
-  return jwt.sign({ id, role }, process.env.JWT_SECRET || "fallback_secret", {
+  if (!process.env.JWT_SECRET) {
+    throw new Error("JWT_SECRET is not set in environment variables");
+  }
+  return jwt.sign({ id, role }, process.env.JWT_SECRET, {
     expiresIn: "30d",
   });
 };
@@ -14,42 +17,52 @@ const registerStudent = async (req, res) => {
   try {
     const { name, email, password, rollNo, course, campus, year, roomNo } = req.body;
 
-    if (!name || !email || !password) {
-      return res.status(400).json({ message: "Name, email, and password are required" });
+    if (!name || !email || !password || !rollNo) {
+      return res.status(400).json({ message: "Name, email, password, and Roll Number are required." });
     }
 
-    const userExists = await User.findOne({ email: email.toLowerCase() });
+    const cleanRollNo = rollNo.trim().toUpperCase();
+    const cleanEmail = email.toLowerCase().trim();
+
+    // 1. Check if email already exists in User collection
+    const userExists = await User.findOne({ email: cleanEmail });
     if (userExists) {
-      return res.status(400).json({ message: "User already exists with this email" });
+      return res.status(400).json({ message: "An account already exists with this email address." });
     }
 
-    // Link or create Student model record
-    let studentRecord;
-    if (rollNo) {
-      studentRecord = await Student.findOne({ Rollno: rollNo.trim() });
-    }
+    // 2. Check if Student record exists with this Rollno
+    let studentRecord = await Student.findOne({ Rollno: cleanRollNo });
 
-    if (!studentRecord && rollNo) {
+    if (studentRecord) {
+      // 3. Check if a User account is ALREADY linked to this Student record
+      const existingLinkedUser = await User.findOne({ student: studentRecord._id });
+      if (existingLinkedUser) {
+        return res.status(400).json({
+          message: `A student account with Roll Number "${cleanRollNo}" already exists. Please sign in or contact administration.`,
+        });
+      }
+    } else {
+      // 4. Create new Student record if none exists
       studentRecord = await Student.create({
-        Name: name,
-        Rollno: rollNo.trim(),
-        Course: course || "General",
-        Campus: campus || "Main Campus",
+        Name: name.trim(),
+        Rollno: cleanRollNo,
+        Course: course ? course.trim() : "General",
+        Campus: campus ? campus.trim() : "Main Campus",
         Year: Number(year) || 1,
-        Roomno: roomNo || "Unassigned",
+        Roomno: roomNo ? roomNo.trim() : "Unassigned",
       });
     }
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Force role to 'Student' for public registration
+    // 5. Create User account linked to studentRecord
     const user = await User.create({
-      name,
-      email: email.toLowerCase(),
+      name: name.trim(),
+      email: cleanEmail,
       password: hashedPassword,
       role: "Student",
-      student: studentRecord ? studentRecord._id : null,
+      student: studentRecord._id,
     });
 
     const populatedUser = await User.findById(user._id).select("-password").populate("student");
@@ -63,6 +76,11 @@ const registerStudent = async (req, res) => {
       token: generateToken(user._id, user.role),
     });
   } catch (error) {
+    if (error.code === 11000) {
+      return res.status(400).json({
+        message: "Duplicate entry detected: Email or Roll Number is already registered.",
+      });
+    }
     res.status(500).json({ message: error.message });
   }
 };
