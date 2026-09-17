@@ -1,55 +1,46 @@
-import { createContext, useContext, useState, useEffect } from "react";
-import { getMe, login as loginApi, register as registerApi } from "../services/authService";
+import { createContext, useContext, useEffect, useState } from "react";
+import { authService } from "../services/api";
 
-const AuthContext = createContext();
+const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(() => JSON.parse(localStorage.getItem("hostel_user") || "null"));
+  const [loading, setLoading] = useState(Boolean(localStorage.getItem("hostel_token")));
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      getMe()
-        .then((res) => setUser(res.data))
-        .catch(() => {
-          localStorage.removeItem("token");
-          setUser(null);
-        })
-        .finally(() => setLoading(false));
-    } else {
+    const handleExpired = () => {
+      setUser(null);
       setLoading(false);
+    };
+    window.addEventListener("auth-expired", handleExpired);
+    if (localStorage.getItem("hostel_token")) {
+      authService.me().then(({ data }) => {
+        setUser((current) => ({ ...current, ...data }));
+        localStorage.setItem("hostel_user", JSON.stringify({ ...user, ...data }));
+      }).catch(() => {
+        localStorage.removeItem("hostel_token");
+        localStorage.removeItem("hostel_user");
+        setUser(null);
+      }).finally(() => setLoading(false));
     }
+    return () => window.removeEventListener("auth-expired", handleExpired);
   }, []);
 
-  const login = async (email, password) => {
-    const res = await loginApi(email, password);
-    const { token, ...userData } = res.data;
-    localStorage.setItem("token", token);
-    setUser(userData);
-    return userData;
-  };
-
-  const register = async (signupData) => {
-    const res = await registerApi(signupData);
-    const { token, ...userData } = res.data;
-    localStorage.setItem("token", token);
-    setUser(userData);
-    return userData;
+  const login = async (credentials) => {
+    const { data } = await authService.login(credentials);
+    localStorage.setItem("hostel_token", data.token);
+    localStorage.setItem("hostel_user", JSON.stringify(data));
+    setUser(data);
+    return data;
   };
 
   const logout = () => {
-    localStorage.removeItem("token");
+    localStorage.removeItem("hostel_token");
+    localStorage.removeItem("hostel_user");
     setUser(null);
   };
 
-  return (
-    <AuthContext.Provider value={{ user, login, register, logout, loading }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={{ user, loading, login, logout }}>{children}</AuthContext.Provider>;
 }
 
-export function useAuth() {
-  return useContext(AuthContext);
-}
+export const useAuth = () => useContext(AuthContext);
