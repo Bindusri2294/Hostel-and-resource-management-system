@@ -6,6 +6,10 @@ const Student = require("../models/student");
 const formatAllocation = (allocation) => {
   return {
     id: allocation._id,
+    studentId: allocation.studentId?._id || allocation.studentId || null,
+    roomId: allocation.roomId?._id || allocation.roomId || null,
+    studentName: allocation.studentId?.Name || null,
+    roomNo: allocation.roomId?.RoomNo || null,
     student: allocation.studentId,
     room: allocation.roomId,
     allocationDate: allocation.allocatedDate,
@@ -17,14 +21,16 @@ const formatAllocation = (allocation) => {
 // Create an allocation
 const createAllocation = async (req, res, next) => {
   try {
-    const { studentId, roomNo, block, allocatedDate } = req.body || {};
+    const { studentId, roomId, roomNo, block, allocatedDate } = req.body || {};
 
-    const student = await Student.findOne({ Rollno: studentId });
+    const student = await Student.findById(studentId).catch(() => null) || await Student.findOne({ Rollno: studentId });
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
     }
 
-    const room = await Room.findOne({ RoomNo: roomNo, Block: block });
+    const room = roomId
+      ? await Room.findById(roomId).catch(() => null)
+      : await Room.findOne({ RoomNo: roomNo, Block: block });
     if (!room) {
       return res.status(404).json({ message: "Room not found" });
     }

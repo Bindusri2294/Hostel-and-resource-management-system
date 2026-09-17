@@ -47,10 +47,14 @@ const getRooms = async (req, res, next) => {
     }
 };
 
-// Get a single room by RoomNo + Block
+const roomFilter = (req) => req.params.id
+    ? { _id: req.params.id }
+    : { RoomNo: req.params.roomNo, Block: req.params.block };
+
+// Get a single room by ID, or by RoomNo + Block for older clients
 const getRoomById = async (req, res, next) => {
     try {
-        const room = await Room.findOne({ RoomNo: req.params.roomNo, Block: req.params.block });
+        const room = await Room.findOne(roomFilter(req));
         if (!room) {
             return res.status(404).json({ message: "Room not found" });
         }
@@ -65,7 +69,8 @@ const updateRoom = async (req, res, next) => {
     try {
         const { RoomNo, Block, Floor, Capacity, OccupiedCount } = req.body;
 
-        const existingRoom = await Room.findOne({ RoomNo: req.params.roomNo, Block: req.params.block });
+        const filter = roomFilter(req);
+        const existingRoom = await Room.findOne(filter);
         if (!existingRoom) {
             return res.status(404).json({ message: "Room not found" });
         }
@@ -84,7 +89,7 @@ const updateRoom = async (req, res, next) => {
         }
 
         const updatedRoom = await Room.findOneAndUpdate(
-            { RoomNo: req.params.roomNo, Block: req.params.block },
+            filter,
             {
                 RoomNo: RoomNo || existingRoom.RoomNo,
                 Block: Block || existingRoom.Block,
@@ -104,7 +109,7 @@ const updateRoom = async (req, res, next) => {
 // Delete a room
 const deleteRoom = async (req, res, next) => {
     try {
-        const room = await Room.findOneAndDelete({ RoomNo: req.params.roomNo, Block: req.params.block });
+        const room = await Room.findOneAndDelete(roomFilter(req));
         if (!room) {
             return res.status(404).json({ message: "Room not found" });
         }
