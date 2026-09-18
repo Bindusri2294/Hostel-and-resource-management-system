@@ -128,7 +128,18 @@ const getMyAllocation = async (req, res, next) => {
       return res.status(404).json({ message: "No allocation found for this student" });
     }
 
-    res.status(200).json(formatAllocation(myAllocation));
+    const roommates = await Allocation.find({
+      roomId: myAllocation.roomId._id,
+      status: "Active",
+      _id: { $ne: myAllocation._id },
+    })
+      .populate("studentId")
+      .populate("roomId");
+
+    res.status(200).json({
+      ...formatAllocation(myAllocation),
+      roommates: roommates.map(formatAllocation),
+    });
   } catch (error) {
     next(error);
   }
