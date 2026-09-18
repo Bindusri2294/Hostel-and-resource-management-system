@@ -42,7 +42,7 @@ const seedAdminAndDemoUsers = async () => {
       const hashedPassword = await bcrypt.hash("student123", salt);
 
       await User.create({
-        name: demoStudent.name,
+        name: demoStudent.Name,
         email: demoStudentEmail,
         password: hashedPassword,
         role: "Student",
