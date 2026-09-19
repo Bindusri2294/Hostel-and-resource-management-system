@@ -138,7 +138,7 @@ export default function AdminFeedbackDashboard() {
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className={`w-10 h-10 border rounded-xl flex items-center justify-center ${
-              isBright ? 'bg-indigo-50 border-indigo-200 text-indigo-600' : 'bg-indigo-600/20 border-indigo-500/30 text-indigo-400'
+              isBright ? 'bg-[#f3e5f5] border-[#e1bee7] text-[#673BB7]' : 'bg-[#673BB7]/20 border-[#673BB7]/30 text-[#d1c4e9]'
             }`}>
               <ShieldCheck className="w-5 h-5" />
             </div>
@@ -146,7 +146,7 @@ export default function AdminFeedbackDashboard() {
               <h1 className={`text-base font-bold flex items-center gap-2 ${isBright ? 'text-slate-900' : 'text-white'}`}>
                 Hostel Management Hub
                 <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${
-                  isBright ? 'bg-indigo-100 text-indigo-900 border-indigo-300' : 'bg-indigo-950 text-indigo-300 border-indigo-800'
+                  isBright ? 'bg-[#f3e5f5] text-[#512da8] border-[#e1bee7]' : 'bg-[#673BB7]/30 text-[#d1c4e9] border-[#673BB7]/50'
                 }`}>
                   Warden Admin View
                 </span>
@@ -226,10 +226,10 @@ export default function AdminFeedbackDashboard() {
           </div>
 
           <div className={`border p-4 rounded-2xl ${
-            isBright ? 'bg-indigo-50/80 border-indigo-200 shadow-md' : 'bg-slate-900/60 border-indigo-800/40'
+            isBright ? 'bg-[#f3e5f5]/80 border-[#e1bee7] shadow-md' : 'bg-slate-900/60 border-[#673BB7]/40'
           }`}>
-            <span className={`text-xs font-bold block flex items-center gap-1 ${isBright ? 'text-indigo-900' : 'text-indigo-400'}`}>
-              <TrendingUp className="w-3.5 h-3.5" /> Avg Hostel Rating
+            <span className={`text-xs font-bold block flex items-center gap-1 ${isBright ? 'text-[#512da8]' : 'text-[#d1c4e9]'}`}>
+              <TrendingUp className="w-3.5 h-3.5 text-[#673BB7]" /> Avg Hostel Rating
             </span>
             <div className="flex items-center gap-2 mt-1">
               <span className={`text-2xl font-black ${isBright ? 'text-slate-900' : 'text-white'}`}>{avgRating}</span>
@@ -255,8 +255,8 @@ export default function AdminFeedbackDashboard() {
                 onChange={(e) => setSearch(e.target.value)}
                 className={`w-full border rounded-xl pl-9 pr-3.5 py-2 text-xs font-medium focus:outline-none ${
                   isBright
-                    ? 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-indigo-600 focus:bg-white shadow-sm'
-                    : 'bg-slate-950 border-slate-800 text-white placeholder-slate-500 focus:border-indigo-500'
+                    ? 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-[#673BB7] focus:bg-white shadow-sm'
+                    : 'bg-slate-950 border-slate-800 text-white placeholder-slate-500 focus:border-[#673BB7]'
                 }`}
               />
             </div>
@@ -359,7 +359,7 @@ export default function AdminFeedbackDashboard() {
 
           {loading ? (
             <div className={`p-12 text-center ${isBright ? 'text-slate-600' : 'text-slate-400'}`}>
-              <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+              <div className="w-6 h-6 border-2 border-[#673BB7] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
               Loading feedback records...
             </div>
           ) : filteredFeedbacks.length === 0 ? (
@@ -388,7 +388,7 @@ export default function AdminFeedbackDashboard() {
                       {/* Student ID */}
                       <td className="p-3.5 font-bold">
                         <span className={`px-2 py-1 rounded border font-bold text-xs ${
-                          isBright ? 'bg-blue-50 text-blue-800 border-blue-200' : 'bg-blue-950 text-blue-300 border-blue-800'
+                          isBright ? 'bg-[#f3e5f5] text-[#512da8] border-[#e1bee7]' : 'bg-[#673BB7]/30 text-[#d1c4e9] border-[#673BB7]/50'
                         }`}>
                           {item.studentId}
                         </span>
@@ -404,8 +404,8 @@ export default function AdminFeedbackDashboard() {
                       <td className="p-3.5">
                         <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold border inline-block ${
                           isBright
-                            ? 'bg-indigo-100 text-indigo-900 border-indigo-300'
-                            : 'bg-indigo-950/80 text-indigo-300 border-indigo-800'
+                            ? 'bg-[#f3e5f5] text-[#673BB7] border-[#e1bee7]'
+                            : 'bg-[#673BB7]/30 text-[#d1c4e9] border-[#673BB7]/50'
                         }`}>
                           {item.category || 'Overall Experience'}
                         </span>
@@ -422,7 +422,7 @@ export default function AdminFeedbackDashboard() {
                               href={`http://localhost:5000${item.imageUrl}`}
                               target="_blank"
                               rel="noreferrer"
-                              className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 hover:text-blue-700 underline"
+                              className="inline-flex items-center gap-1 text-[11px] font-bold text-[#673BB7] hover:text-[#5e35b1] underline"
                             >
                               📷 View Attached Photo
                             </a>
@@ -446,7 +446,7 @@ export default function AdminFeedbackDashboard() {
                         <div className="flex items-center justify-end gap-1.5">
                           <button
                             onClick={() => setSelectedFeedback(item)}
-                            className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg text-xs shadow transition-all cursor-pointer"
+                            className="px-3 py-1.5 bg-[#673BB7] hover:bg-[#5e35b1] text-white font-bold rounded-lg text-xs shadow transition-all cursor-pointer"
                           >
                             Update Status
                           </button>

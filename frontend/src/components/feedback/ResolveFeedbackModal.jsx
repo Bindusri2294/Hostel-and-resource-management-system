@@ -46,7 +46,7 @@ export default function ResolveFeedbackModal({ feedback, onClose, onSuccess }) {
         }`}>
           <div className="flex items-center gap-2">
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center border ${
-              isBright ? 'bg-indigo-50 text-indigo-600 border-indigo-200' : 'bg-indigo-600/20 text-indigo-400 border-indigo-500/30'
+              isBright ? 'bg-[#f3e5f5] text-[#673BB7] border-[#e1bee7]' : 'bg-[#673BB7]/20 text-[#d1c4e9] border-[#673BB7]/30'
             }`}>
               <ShieldCheck className="w-4 h-4" />
             </div>
@@ -79,10 +79,10 @@ export default function ResolveFeedbackModal({ feedback, onClose, onSuccess }) {
             isBright ? 'bg-slate-50 border-slate-200' : 'bg-slate-950 border-slate-800'
           }`}>
             <div className={`flex items-center justify-between flex-wrap gap-2 ${isBright ? 'text-slate-600' : 'text-slate-400'}`}>
-              <span className={`font-bold ${isBright ? 'text-blue-700' : 'text-blue-400'}`}>Student ID: {feedback.studentId}</span>
+              <span className={`font-bold ${isBright ? 'text-[#673BB7]' : 'text-[#d1c4e9]'}`}>Student ID: {feedback.studentId}</span>
               <div className="flex items-center gap-2">
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                  isBright ? 'bg-indigo-100 text-indigo-900 border-indigo-300' : 'bg-indigo-950 text-indigo-300 border-indigo-800'
+                  isBright ? 'bg-[#f3e5f5] text-[#512da8] border-[#e1bee7]' : 'bg-[#673BB7]/30 text-[#d1c4e9] border-[#673BB7]/50'
                 }`}>
                   {feedback.category || 'Overall Experience'}
                 </span>
@@ -144,8 +144,8 @@ export default function ResolveFeedbackModal({ feedback, onClose, onSuccess }) {
               onChange={(e) => setStatus(e.target.value)}
               className={`w-full border rounded-xl px-3.5 py-2.5 text-xs font-semibold focus:outline-none ${
                 isBright
-                  ? 'bg-slate-50 border-slate-300 text-slate-900 focus:border-indigo-600 focus:bg-white shadow-sm'
-                  : 'bg-slate-950 border-slate-800 text-white focus:border-blue-500'
+                  ? 'bg-slate-50 border-slate-300 text-slate-900 focus:border-[#673BB7] focus:bg-white shadow-sm'
+                  : 'bg-slate-950 border-slate-800 text-white focus:border-[#673BB7]'
               }`}
             >
               <option value="Pending">⏳ Pending Review</option>
@@ -170,7 +170,7 @@ export default function ResolveFeedbackModal({ feedback, onClose, onSuccess }) {
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+              className="flex-1 py-2.5 bg-[#673BB7] hover:bg-[#5e35b1] text-white text-xs font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
             >
               {loading ? (
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
