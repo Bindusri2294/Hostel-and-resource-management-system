@@ -117,14 +117,19 @@ const getMyAllocation = async (req, res, next) => {
       return res.status(400).json({ message: "No student record linked to this account" });
     }
 
-    const myAllocation = await Allocation.findOne({ status: "Active" })
-      .populate({
-        path: "studentId",
-        match: { Rollno: rollno },
-      })
+    const student = await Student.findOne({ Rollno: rollno });
+    if (!student) {
+      return res.status(404).json({ message: "Student record not found" });
+    }
+
+    const myAllocation = await Allocation.findOne({
+      studentId: student._id,
+      status: "Active",
+    })
+      .populate("studentId")
       .populate("roomId");
 
-    if (!myAllocation || !myAllocation.studentId) {
+    if (!myAllocation) {
       return res.status(404).json({ message: "No allocation found for this student" });
     }
 
