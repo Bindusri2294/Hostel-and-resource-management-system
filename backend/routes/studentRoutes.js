@@ -11,8 +11,8 @@ const {
 const router = express.Router();
 
 router.post("/", protect, authorize("Admin"), createStudent);
-router.get("/", protect, authorize("Admin", "Student"), getStudents);
-router.get("/:id", protect, authorize("Admin", "Student"), getStudentById);
+router.get("/", protect, authorize("Admin"), getStudents);
+router.get("/:id", protect, authorize("Admin"), getStudentById);
 router.put("/:id", protect, authorize("Admin"), updateStudent);
 router.delete("/:id", protect, authorize("Admin"), deleteStudent);
 

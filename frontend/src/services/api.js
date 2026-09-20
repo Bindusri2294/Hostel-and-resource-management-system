@@ -47,6 +47,7 @@ export const roomService = {
 
 export const allocationService = {
   list: () => api.get("/allocations"),
+  mine: () => api.get("/allocations/mine"),
   get: (id) => api.get(`/allocations/${id}`),
   create: (payload) => api.post("/allocations", payload),
   update: (id, payload) => api.put(`/allocations/${id}`, payload),
