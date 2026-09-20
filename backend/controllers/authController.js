@@ -88,20 +88,50 @@ const registerStudent = async (req, res) => {
 // Login User
 const loginUser = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const rawIdentifier = req.body.userId || req.body.email || req.body.rollNo || req.body.identifier || "";
+    const { password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ message: "Please provide email and password" });
+    const identifier = rawIdentifier.trim();
+
+    if (!identifier || !password) {
+      return res.status(400).json({ message: "Please provide User ID / Roll Number and password" });
     }
 
-    const user = await User.findOne({ email: email.toLowerCase() }).populate("student");
+    let user = null;
+
+    // 1. First search if identifier matches a Student Rollno (case-insensitive)
+    const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const studentMatch = await Student.findOne({
+      Rollno: { $regex: new RegExp("^" + escapeRegex(identifier) + "$", "i") },
+    });
+
+    if (studentMatch) {
+      user = await User.findOne({ student: studentMatch._id }).populate("student");
+    }
+
+    // 2. If no student roll number matched, search User collection by email or name (case-insensitive)
     if (!user) {
-      return res.status(401).json({ message: "Invalid email or password" });
+      const cleanLower = identifier.toLowerCase();
+      user = await User.findOne({
+        $or: [
+          { email: cleanLower },
+          { name: { $regex: new RegExp("^" + escapeRegex(identifier) + "$", "i") } },
+        ],
+      }).populate("student");
+    }
+
+    // 3. Fallback: if identifier is 'admin' or 'admin1', find the Admin user account
+    if (!user && (identifier.toLowerCase() === "admin" || identifier.toLowerCase() === "admin1")) {
+      user = await User.findOne({ role: "Admin" }).populate("student");
+    }
+
+    if (!user) {
+      return res.status(401).json({ message: "Invalid User ID / Roll Number or password" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(401).json({ message: "Invalid email or password" });
+      return res.status(401).json({ message: "Invalid User ID / Roll Number or password" });
     }
 
     res.status(200).json({

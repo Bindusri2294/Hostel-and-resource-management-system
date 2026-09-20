@@ -216,7 +216,7 @@ export default function StudentFeedbackDashboard() {
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className={`w-10 h-10 border rounded-xl flex items-center justify-center ${
-              isBright ? 'bg-blue-50 border-blue-200 text-blue-600' : 'bg-blue-600/20 border-blue-500/30 text-blue-400'
+              isBright ? 'bg-[#f3e5f5] border-[#e1bee7] text-[#673BB7]' : 'bg-[#673BB7]/20 border-[#673BB7]/30 text-[#d1c4e9]'
             }`}>
               <Building className="w-5 h-5" />
             </div>
@@ -224,7 +224,7 @@ export default function StudentFeedbackDashboard() {
               <h1 className={`text-base font-bold flex items-center gap-2 ${isBright ? 'text-slate-900' : 'text-white'}`}>
                 Hostel Student Portal
                 <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${
-                  isBright ? 'bg-blue-100 text-blue-800 border-blue-300' : 'bg-blue-950 text-blue-400 border-blue-800'
+                  isBright ? 'bg-[#f3e5f5] text-[#512da8] border-[#e1bee7]' : 'bg-[#673BB7]/30 text-[#d1c4e9] border-[#673BB7]/50'
                 }`}>
                   Student View
                 </span>
@@ -272,7 +272,7 @@ export default function StudentFeedbackDashboard() {
             onClick={() => setActiveTab('submit')}
             className={`pb-3 text-sm font-bold flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
               activeTab === 'submit'
-                ? isBright ? 'border-blue-600 text-blue-700' : 'border-blue-500 text-blue-400'
+                ? isBright ? 'border-[#673BB7] text-[#673BB7]' : 'border-[#673BB7] text-[#d1c4e9]'
                 : isBright ? 'border-transparent text-slate-600 hover:text-slate-900' : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
@@ -283,7 +283,7 @@ export default function StudentFeedbackDashboard() {
             onClick={() => setActiveTab('my-feedbacks')}
             className={`pb-3 text-sm font-bold flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
               activeTab === 'my-feedbacks'
-                ? isBright ? 'border-blue-600 text-blue-700' : 'border-blue-500 text-blue-400'
+                ? isBright ? 'border-[#673BB7] text-[#673BB7]' : 'border-[#673BB7] text-[#d1c4e9]'
                 : isBright ? 'border-transparent text-slate-600 hover:text-slate-900' : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
@@ -300,7 +300,7 @@ export default function StudentFeedbackDashboard() {
             }`}>
               <div className="mb-6">
                 <h2 className={`text-lg font-bold flex items-center gap-2 ${isBright ? 'text-slate-900' : 'text-white'}`}>
-                  <Sparkles className="w-5 h-5 text-blue-500" /> Express Your Feedback
+                  <Sparkles className="w-5 h-5 text-[#673BB7]" /> Express Your Feedback
                 </h2>
                 <p className={`text-xs mt-0.5 ${isBright ? 'text-slate-600' : 'text-slate-400'}`}>
                   Share your suggestions, complaints, or maintenance issues directly with hostel management.
@@ -393,8 +393,8 @@ export default function StudentFeedbackDashboard() {
                     onChange={(e) => setCategory(e.target.value)}
                     className={`w-full border rounded-xl px-3.5 py-2.5 text-xs font-bold focus:outline-none ${
                       isBright
-                        ? 'bg-slate-50 border-slate-300 text-slate-900 focus:border-blue-600 focus:bg-white shadow-sm'
-                        : 'bg-slate-950 border-slate-800 text-white focus:border-blue-500'
+                        ? 'bg-slate-50 border-slate-300 text-slate-900 focus:border-[#673BB7] focus:bg-white shadow-sm'
+                        : 'bg-slate-950 border-slate-800 text-white focus:border-[#673BB7]'
                     }`}
                   >
                     {categoryOptions.map((cat) => (
@@ -452,8 +452,8 @@ export default function StudentFeedbackDashboard() {
                     onChange={(e) => setMessage(e.target.value)}
                     className={`w-full border rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none resize-none ${
                       isBright
-                        ? 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-blue-600 focus:bg-white shadow-sm'
-                        : 'bg-slate-950 border-slate-800 text-white placeholder-slate-500 focus:border-blue-500'
+                        ? 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-[#673BB7] focus:bg-white shadow-sm'
+                        : 'bg-slate-950 border-slate-800 text-white placeholder-slate-500 focus:border-[#673BB7]'
                     }`}
                   />
                 </div>
@@ -466,10 +466,10 @@ export default function StudentFeedbackDashboard() {
                   {!imagePreview ? (
                     <label className={`flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-4 cursor-pointer transition-all ${
                       isBright
-                        ? 'bg-slate-50 border-slate-300 hover:border-blue-500 hover:bg-blue-50/30 text-slate-600'
-                        : 'bg-slate-950 border-slate-800 hover:border-blue-500 hover:bg-slate-900 text-slate-400'
+                        ? 'bg-slate-50 border-slate-300 hover:border-[#673BB7] hover:bg-[#f3e5f5]/30 text-slate-600'
+                        : 'bg-slate-950 border-slate-800 hover:border-[#673BB7] hover:bg-slate-900 text-slate-400'
                     }`}>
-                      <UploadCloud className="w-6 h-6 text-blue-500 mb-1" />
+                      <UploadCloud className="w-6 h-6 text-[#673BB7] mb-1" />
                       <span className="text-xs font-semibold">Click to upload issue photo</span>
                       <span className="text-[10px] opacity-70 mt-0.5">Supports JPG, PNG, WEBP (Max 5MB)</span>
                       <input
@@ -498,7 +498,7 @@ export default function StudentFeedbackDashboard() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3 rounded-xl shadow-lg text-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2"
+                  className="w-full bg-[#673BB7] hover:bg-[#5e35b1] text-white font-bold py-3 rounded-xl shadow-lg text-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2"
                 >
                   {submitting ? (
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -519,7 +519,7 @@ export default function StudentFeedbackDashboard() {
                 <h3 className={`text-xs font-bold uppercase tracking-wider mb-3 flex items-center gap-1.5 ${
                   isBright ? 'text-slate-700' : 'text-slate-300'
                 }`}>
-                  <UserCheck className="w-4 h-4 text-blue-600" /> Student Account Profile
+                  <UserCheck className="w-4 h-4 text-[#673BB7]" /> Student Account Profile
                 </h3>
 
                 <div className="space-y-2 text-xs">
@@ -529,7 +529,7 @@ export default function StudentFeedbackDashboard() {
                   </div>
                   <div className={`p-2.5 rounded-lg border ${isBright ? 'bg-slate-50 border-slate-200' : 'bg-slate-950 border-slate-800'}`}>
                     <span className={`block text-[10px] ${isBright ? 'text-slate-500' : 'text-slate-400'}`}>Roll Number</span>
-                    <span className={`font-bold ${isBright ? 'text-blue-700' : 'text-blue-300'}`}>{user?.student?.Rollno || studentId || 'N/A'}</span>
+                    <span className={`font-bold ${isBright ? 'text-[#673BB7]' : 'text-[#d1c4e9]'}`}>{user?.student?.Rollno || studentId || 'N/A'}</span>
                   </div>
                   <div className={`p-2.5 rounded-lg border ${isBright ? 'bg-slate-50 border-slate-200' : 'bg-slate-950 border-slate-800'}`}>
                     <span className={`block text-[10px] ${isBright ? 'text-slate-500' : 'text-slate-400'}`}>Room & Hostel</span>
@@ -548,11 +548,11 @@ export default function StudentFeedbackDashboard() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className={`text-lg font-bold flex items-center gap-2 ${isBright ? 'text-slate-900' : 'text-white'}`}>
-                <History className="w-5 h-5 text-blue-600" /> Your Submitted Feedback
+                <History className="w-5 h-5 text-[#673BB7]" /> Your Submitted Feedback
               </h2>
               <button
                 onClick={fetchMyFeedbacks}
-                className="text-xs text-blue-600 hover:text-blue-700 font-semibold underline"
+                className="text-xs text-[#673BB7] hover:text-[#5e35b1] font-semibold underline"
               >
                 Refresh List
               </button>
@@ -560,7 +560,7 @@ export default function StudentFeedbackDashboard() {
 
             {loadingFeedbacks ? (
               <div className={`p-12 text-center ${isBright ? 'text-slate-600' : 'text-slate-400'}`}>
-                <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                <div className="w-6 h-6 border-2 border-[#673BB7] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
                 Loading your feedback...
               </div>
             ) : myFeedbacks.length === 0 ? (
@@ -583,12 +583,12 @@ export default function StudentFeedbackDashboard() {
                       <div>
                         <div className="flex items-center gap-2 flex-wrap mb-1">
                           <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${
-                            isBright ? 'bg-blue-100 text-blue-800 border-blue-300' : 'bg-blue-950 text-blue-400 border-blue-800'
+                            isBright ? 'bg-[#f3e5f5] text-[#512da8] border-[#e1bee7]' : 'bg-[#673BB7]/30 text-[#d1c4e9] border-[#673BB7]/50'
                           }`}>
                             Room {item.RoomNo} ({item.Block})
                           </span>
                           <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${
-                            isBright ? 'bg-indigo-100 text-indigo-900 border-indigo-300' : 'bg-indigo-950 text-indigo-300 border-indigo-800'
+                            isBright ? 'bg-[#f3e5f5] text-[#673BB7] border-[#e1bee7]' : 'bg-[#673BB7]/30 text-[#d1c4e9] border-[#673BB7]/50'
                           }`}>
                             {item.category || 'Overall Experience'}
                           </span>
