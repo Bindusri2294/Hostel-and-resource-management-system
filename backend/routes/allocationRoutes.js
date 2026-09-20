@@ -1,4 +1,5 @@
 const express = require("express");
+const { protect, authorize } = require("../middleware/authMiddleware");
 const {
   createAllocation,
   getAllocations,
@@ -7,7 +8,6 @@ const {
   updateAllocation,
   deleteAllocation,
 } = require("../controllers/allocationController");
-const { protect, authorize } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
