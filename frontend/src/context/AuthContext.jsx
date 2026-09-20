@@ -26,8 +26,13 @@ export function AuthProvider({ children }) {
     return () => window.removeEventListener("auth-expired", handleExpired);
   }, []);
 
-  const login = async (credentials) => {
-    const { data } = await authService.login(credentials);
+  const login = async (identifierOrCredentials, password) => {
+    const payload =
+      typeof identifierOrCredentials === "string"
+        ? { userId: identifierOrCredentials, email: identifierOrCredentials, password }
+        : identifierOrCredentials;
+
+    const { data } = await authService.login(payload);
     localStorage.setItem("hostel_token", data.token);
     localStorage.setItem("hostel_user", JSON.stringify(data));
     setUser(data);

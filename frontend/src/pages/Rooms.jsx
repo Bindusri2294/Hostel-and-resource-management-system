@@ -1,16 +1,543 @@
 import { useEffect, useState } from "react";
-import { allocationService, getErrorMessage, roomService, studentService } from "../services/api";
-import { Badge, Empty, ErrorMessage, Loading } from "../components/UI";
+import { roomService, studentService, allocationService, getErrorMessage } from "../services/api";
+import {
+  DoorOpen,
+  Plus,
+  Search,
+  Filter,
+  Layers,
+  Users,
+  ChevronRight,
+  Eye,
+  Edit2,
+  Trash2,
+  X,
+  AlertCircle,
+  Building,
+} from "lucide-react";
 
-const blankRoom = { RoomNo: "", Block: "", Floor: 1, Capacity: 2, OccupiedCount: 0, Status: "Available" };
+const blankRoom = {
+  RoomNo: "",
+  Block: "A",
+  Floor: 1,
+  Capacity: 2,
+  OccupiedCount: 0,
+  Status: "Available",
+};
 
 export default function Rooms() {
-	const [rooms, setRooms] = useState([]); const [students, setStudents] = useState([]); const [allocations, setAllocations] = useState([]); const [query, setQuery] = useState(""); const [status, setStatus] = useState("All"); const [selected, setSelected] = useState(null); const [form, setForm] = useState(blankRoom); const [formOpen, setFormOpen] = useState(false); const [detailsOpen, setDetailsOpen] = useState(false); const [busy, setBusy] = useState(false); const [loading, setLoading] = useState(true); const [error, setError] = useState(""); const [message, setMessage] = useState("");
-	const load = () => { setLoading(true); Promise.all([roomService.list(), studentService.list(), allocationService.list()]).then(([roomsResponse, studentsResponse, allocationResponse]) => { setRooms(roomsResponse.data); setStudents(studentsResponse.data); setAllocations(allocationResponse.data); }).catch((err) => setError(getErrorMessage(err))).finally(() => setLoading(false)); }; useEffect(load, []);
-	const filtered = rooms.filter((room) => (status === "All" || room.Status === status) && [room.RoomNo, room.Block, room.Floor].some((value) => String(value || "").toLowerCase().includes(query.toLowerCase())));
-	const openForm = (room = null) => { setSelected(room); setForm(room ? { ...room } : blankRoom); setFormOpen(true); setError(""); }; const openDetails = (room) => { setSelected(room); setDetailsOpen(true); setError(""); };
-	const save = async (event) => { event.preventDefault(); setBusy(true); setError(""); try { const payload = { ...form, Floor: Number(form.Floor), Capacity: Number(form.Capacity), OccupiedCount: Number(form.OccupiedCount), Status: Number(form.OccupiedCount) >= Number(form.Capacity) ? "Full" : "Available" }; if (selected) await roomService.update(selected._id, payload); else await roomService.create(payload); setMessage(selected ? "Room updated." : "Room added."); setFormOpen(false); setSelected(null); load(); } catch (err) { setError(getErrorMessage(err, "Room could not be saved.")); } finally { setBusy(false); } };
-	const remove = async (room) => { if (!window.confirm(`Delete room ${room.RoomNo}?`)) return; try { await roomService.remove(room._id); setMessage("Room deleted."); load(); } catch (err) { setError(getErrorMessage(err)); } };
-	const residents = selected ? allocations.filter((allocation) => allocation.status === "Active" && (String(allocation.roomId) === String(selected._id) || allocation.roomNo === selected.RoomNo)).map((allocation) => students.find((student) => String(student._id) === String(allocation.studentId)) || { Name: allocation.studentName, Rollno: "—" }) : [];
-	return <div className="page-stack"><div className="page-heading"><div><span className="eyebrow">Residential inventory</span><h2>Rooms</h2><p className="muted">See and manage every room's live capacity.</p></div><button className="primary-button" onClick={() => openForm()}>Add room <span>+</span></button></div>{message && <div className="success-message">{message}</div>}{error && !formOpen && !detailsOpen && <ErrorMessage message={error} />}<section className="panel"><div className="toolbar"><div className="search"><span>⌕</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search room or block" /></div><select value={status} onChange={(event) => setStatus(event.target.value)}><option>All</option><option>Available</option><option>Full</option></select></div>{loading ? <Loading text="Loading rooms..." /> : filtered.length ? <div className="room-cards">{filtered.map((room) => <article className="room-card" key={room._id}><div className="room-card-top"><span className="room-icon">{room.Block}</span><Badge>{room.Status}</Badge></div><h3>{room.RoomNo}</h3><p>Block {room.Block} · Floor {room.Floor}</p><div className="room-card-stats"><span><small>Occupied</small><b>{room.OccupiedCount || 0}</b></span><span><small>Capacity</small><b>{room.Capacity || 0}</b></span><span><small>Available</small><b>{Math.max((room.Capacity || 0) - (room.OccupiedCount || 0), 0)}</b></span></div><div className="card-actions"><button className="text-button" onClick={() => openDetails(room)}>View details</button><button className="text-button" onClick={() => openForm(room)}>Edit</button><button className="text-button danger" onClick={() => remove(room)}>Delete</button></div></article>)}</div> : <Empty title="No rooms found" text="Try adjusting your filters." />}</section>{formOpen && <div className="modal-backdrop"><form className="modal" onSubmit={save}><div className="panel-heading"><div><span className="eyebrow">Residential inventory</span><h3>{selected ? "Edit room" : "Add room"}</h3></div><button type="button" className="close-button" onClick={() => setFormOpen(false)}>×</button></div>{error && <ErrorMessage message={error} />}<div className="form-grid">{["RoomNo", "Block", "Floor", "Capacity", "OccupiedCount"].map((field) => <label key={field}>{field}<input required type={field === "Floor" || field === "Capacity" || field === "OccupiedCount" ? "number" : "text"} min={field === "Floor" ? 0 : 0} value={form[field] ?? ""} onChange={(event) => setForm({ ...form, [field]: field === "RoomNo" || field === "Block" ? event.target.value : Number(event.target.value) })} /></label>)}</div><button className="primary-button full" disabled={busy}>{busy ? "Saving..." : "Save room"}</button></form></div>}{detailsOpen && selected && <div className="modal-backdrop"><div className="modal"><div className="panel-heading"><div><span className="eyebrow">Room details</span><h3>{selected.RoomNo}</h3></div><button type="button" className="close-button" onClick={() => setDetailsOpen(false)}>×</button></div>{error && <ErrorMessage message={error} />}<div className="detail-grid"><span><small>Block</small><b>{selected.Block}</b></span><span><small>Floor</small><b>{selected.Floor}</b></span><span><small>Capacity</small><b>{selected.Capacity}</b></span><span><small>Occupied</small><b>{selected.OccupiedCount}</b></span><span><small>Remaining</small><b>{Math.max(selected.Capacity - selected.OccupiedCount, 0)}</b></span><span><small>Status</small><b><Badge>{selected.Status}</Badge></b></span></div><h4 className="modal-subheading">Active residents</h4>{residents.length ? residents.map((student) => <div className="mate-row" key={student._id || student.Rollno}><span className="avatar small">{student.Name?.slice(0, 1)}</span><span><strong>{student.Name}</strong><small>Roll no. {student.Rollno}</small></span></div>) : <Empty title="No active residents" text="This room currently has no active allocations." />}</div></div>}</div>;
+  const [rooms, setRooms] = useState([]);
+  const [students, setStudents] = useState([]);
+  const [allocations, setAllocations] = useState([]);
+
+  // Filter & Search state
+  const [query, setQuery] = useState("");
+  const [selectedBlock, setSelectedBlock] = useState("All");
+  const [selectedStatus, setSelectedStatus] = useState("All");
+
+  // Modal states
+  const [selected, setSelected] = useState(null);
+  const [form, setForm] = useState(blankRoom);
+  const [formOpen, setFormOpen] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
+
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const [roomsRes, studentsRes, allocationsRes] = await Promise.all([
+        roomService.list(),
+        studentService.list(),
+        allocationService.list(),
+      ]);
+      setRooms(roomsRes.data || []);
+      setStudents(studentsRes.data || []);
+      setAllocations(allocationsRes.data || []);
+      setError("");
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } fontFinally: {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const getCalculatedStatus = (occupied, capacity) => {
+    if (occupied >= capacity) return "Full";
+    if (occupied > 0) return "Partial";
+    return "Available";
+  };
+
+  const filteredRooms = rooms.filter((room) => {
+    const roomStatus = getCalculatedStatus(
+      Number(room.OccupiedCount || 0),
+      Number(room.Capacity || 1)
+    );
+    const matchesStatus =
+      selectedStatus === "All" || roomStatus === selectedStatus || room.Status === selectedStatus;
+    const matchesBlock = selectedBlock === "All" || room.Block === selectedBlock;
+    const matchesQuery =
+      !query ||
+      String(room.RoomNo || "").toLowerCase().includes(query.toLowerCase()) ||
+      String(room.Block || "").toLowerCase().includes(query.toLowerCase());
+
+    return matchesStatus && matchesBlock && matchesQuery;
+  });
+
+  const openForm = (room = null) => {
+    setSelected(room);
+    setForm(room ? { ...room } : blankRoom);
+    setFormOpen(true);
+    setError("");
+  };
+
+  const openDetails = (room) => {
+    setSelected(room);
+    setDetailsOpen(true);
+    setError("");
+  };
+
+  const saveRoom = async (e) => {
+    e.preventDefault();
+    setBusy(true);
+    setError("");
+    setSuccessMsg("");
+
+    try {
+      const occupied = Number(form.OccupiedCount || 0);
+      const capacity = Number(form.Capacity || 1);
+      const statusValue = getCalculatedStatus(occupied, capacity);
+
+      const payload = {
+        ...form,
+        Floor: Number(form.Floor),
+        Capacity: capacity,
+        OccupiedCount: occupied,
+        Status: statusValue,
+      };
+
+      if (selected) {
+        await roomService.update(selected._id, payload);
+        setSuccessMsg("Room updated successfully.");
+      } else {
+        await roomService.create(payload);
+        setSuccessMsg("Room created successfully.");
+      }
+
+      setFormOpen(false);
+      setSelected(null);
+      loadData();
+    } catch (err) {
+      setError(getErrorMessage(err, "Failed to save room."));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const deleteRoom = async (room) => {
+    if (!window.confirm(`Are you sure you want to delete Room ${room.RoomNo}?`)) return;
+    try {
+      await roomService.remove(room._id);
+      setSuccessMsg(`Room ${room.RoomNo} deleted.`);
+      loadData();
+    } catch (err) {
+      setError(getErrorMessage(err, "Failed to delete room."));
+    }
+  };
+
+  const getResidentsForRoom = (room) => {
+    if (!room) return [];
+    return allocations
+      .filter(
+        (a) =>
+          a.status === "Active" &&
+          (String(a.roomId) === String(room._id) || String(a.roomNo) === String(room.RoomNo))
+      )
+      .map((a) => {
+        const found = students.find((s) => String(s._id) === String(a.studentId));
+        return {
+          Name: found?.Name || a.studentName || "Resident",
+          Rollno: found?.Rollno || a.student?.Rollno || "—",
+          Course: found?.Course || "—",
+        };
+      });
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Hierarchy Breadcrumb Banner */}
+      <div className="bg-white p-6 rounded-2xl border border-purple-100/70 shadow-xs space-y-3">
+        <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
+          <span className="text-purple-600">Hostel</span>
+          <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
+          <span>Block {selectedBlock === "All" ? "A / B / C" : selectedBlock}</span>
+          <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
+          <span>Floor 1 - 4</span>
+          <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
+          <span className="bg-purple-100 text-purple-800 px-2.5 py-0.5 rounded-md">
+            Rooms Inventory ({rooms.length})
+          </span>
+        </div>
+
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-extrabold text-slate-900">Room Management</h2>
+            <p className="text-xs text-slate-500">
+              Browse room cards, inspect bed availability, and manage residential space.
+            </p>
+          </div>
+          <button
+            onClick={() => openForm()}
+            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-xs rounded-xl shadow-md hover:from-purple-700 hover:to-indigo-700 transition-all cursor-pointer"
+          >
+            <Plus className="w-4 h-4" /> Add New Room
+          </button>
+        </div>
+      </div>
+
+      {error && (
+        <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-700 text-xs font-semibold flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
+
+      {successMsg && (
+        <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-700 text-xs font-semibold">
+          {successMsg}
+        </div>
+      )}
+
+      {/* Toolbar Filters */}
+      <div className="bg-white p-4 rounded-2xl border border-purple-100/70 shadow-xs flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2 bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 text-xs w-full sm:w-64">
+          <Search className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+          <input
+            type="text"
+            placeholder="Search room no or block..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="bg-transparent outline-none w-full text-slate-800 placeholder-slate-400 font-medium"
+          />
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
+            <Building className="w-3.5 h-3.5 text-purple-600" />
+            <span>Block:</span>
+            <select
+              value={selectedBlock}
+              onChange={(e) => setSelectedBlock(e.target.value)}
+              className="bg-slate-50 border border-slate-200 text-xs font-semibold rounded-xl px-2.5 py-1.5 outline-none"
+            >
+              <option value="All">All Blocks</option>
+              <option value="A">Block A</option>
+              <option value="B">Block B</option>
+              <option value="C">Block C</option>
+            </select>
+          </div>
+
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
+            <Filter className="w-3.5 h-3.5 text-purple-600" />
+            <span>Status:</span>
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="bg-slate-50 border border-slate-200 text-xs font-semibold rounded-xl px-2.5 py-1.5 outline-none"
+            >
+              <option value="All">All Statuses</option>
+              <option value="Available">Available</option>
+              <option value="Partial">Partial</option>
+              <option value="Full">Full</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Room Cards Grid */}
+      {loading ? (
+        <div className="text-center py-12 text-xs font-semibold text-slate-500">
+          Loading room inventory...
+        </div>
+      ) : filteredRooms.length ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          {filteredRooms.map((room) => {
+            const occupied = Number(room.OccupiedCount || 0);
+            const capacity = Number(room.Capacity || 1);
+            const availableBeds = Math.max(0, capacity - occupied);
+            const statusBadge = getCalculatedStatus(occupied, capacity);
+
+            return (
+              <div
+                key={room._id}
+                className="bg-white rounded-2xl border border-purple-100/70 p-5 shadow-xs hover:shadow-md transition-all space-y-4 flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="w-9 h-9 rounded-xl bg-purple-100 text-purple-800 font-extrabold flex items-center justify-center text-sm border border-purple-200">
+                      {room.Block || "A"}
+                    </span>
+                    <span
+                      className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border ${
+                        statusBadge === "Available"
+                          ? "bg-emerald-100 text-emerald-800 border-emerald-200"
+                          : statusBadge === "Partial"
+                          ? "bg-amber-100 text-amber-800 border-amber-200"
+                          : "bg-rose-100 text-rose-800 border-rose-200"
+                      }`}
+                    >
+                      {statusBadge}
+                    </span>
+                  </div>
+
+                  <h3 className="text-xl font-extrabold text-slate-900">Room {room.RoomNo}</h3>
+                  <p className="text-xs font-semibold text-slate-500">
+                    Block {room.Block} · Floor {room.Floor}
+                  </p>
+
+                  <div className="mt-4 pt-3 border-t border-slate-100 grid grid-cols-3 gap-2 text-center text-xs">
+                    <div className="p-2 bg-slate-50 rounded-xl">
+                      <span className="text-[10px] text-slate-400 block font-bold">Capacity</span>
+                      <strong className="text-slate-900 font-extrabold">{capacity}</strong>
+                    </div>
+                    <div className="p-2 bg-slate-50 rounded-xl">
+                      <span className="text-[10px] text-slate-400 block font-bold">Occupied</span>
+                      <strong className="text-purple-700 font-extrabold">{occupied}</strong>
+                    </div>
+                    <div className="p-2 bg-slate-50 rounded-xl">
+                      <span className="text-[10px] text-slate-400 block font-bold">Available</span>
+                      <strong className="text-emerald-700 font-extrabold">{availableBeds}</strong>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                  <button
+                    onClick={() => openDetails(room)}
+                    className="flex-1 py-1.5 px-2 bg-purple-50 text-purple-700 font-bold text-xs rounded-xl hover:bg-purple-100 transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                  >
+                    <Eye className="w-3.5 h-3.5" /> View Room
+                  </button>
+                  <button
+                    onClick={() => openForm(room)}
+                    className="p-2 text-slate-500 hover:text-purple-700 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+                    title="Edit Room"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => deleteRoom(room)}
+                    className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer"
+                    title="Delete Room"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="bg-white p-12 rounded-2xl border border-purple-100/70 text-center space-y-2">
+          <DoorOpen className="w-10 h-10 text-slate-300 mx-auto" />
+          <h3 className="text-base font-bold text-slate-800">No rooms found</h3>
+          <p className="text-xs text-slate-400">Try changing your search query or filters.</p>
+        </div>
+      )}
+
+      {/* Add / Edit Room Modal */}
+      {formOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <form
+            onSubmit={saveRoom}
+            className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden space-y-4 p-6"
+          >
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-base font-extrabold text-slate-900">
+                {selected ? `Edit Room ${selected.RoomNo}` : "Add New Room"}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setFormOpen(false)}
+                className="text-slate-400 hover:text-slate-600 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs font-semibold">
+              <div>
+                <label className="block text-slate-700 mb-1 font-bold">Room Number *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. 101, 204"
+                  value={form.RoomNo || ""}
+                  onChange={(e) => setForm({ ...form, RoomNo: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-700 mb-1 font-bold">Block *</label>
+                  <select
+                    value={form.Block || "A"}
+                    onChange={(e) => setForm({ ...form, Block: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
+                  >
+                    <option value="A">Block A</option>
+                    <option value="B">Block B</option>
+                    <option value="C">Block C</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-slate-700 mb-1 font-bold">Floor *</label>
+                  <input
+                    type="number"
+                    min="0"
+                    required
+                    value={form.Floor ?? 1}
+                    onChange={(e) => setForm({ ...form, Floor: Number(e.target.value) })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-700 mb-1 font-bold">Bed Capacity *</label>
+                  <input
+                    type="number"
+                    min="1"
+                    required
+                    value={form.Capacity ?? 2}
+                    onChange={(e) => setForm({ ...form, Capacity: Number(e.target.value) })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-700 mb-1 font-bold">Occupied Count</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={form.OccupiedCount ?? 0}
+                    onChange={(e) => setForm({ ...form, OccupiedCount: Number(e.target.value) })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setFormOpen(false)}
+                className="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={busy}
+                className="px-5 py-2 rounded-xl text-xs font-bold bg-purple-600 text-white hover:bg-purple-700 cursor-pointer disabled:opacity-50"
+              >
+                {busy ? "Saving..." : "Save Room"}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Room Details Modal */}
+      {detailsOpen && selected && (
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden space-y-4 p-6">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <span className="text-[10px] font-bold text-purple-600 uppercase tracking-wider">
+                  Room Details & Residents
+                </span>
+                <h3 className="text-xl font-extrabold text-slate-900 mt-1">Room {selected.RoomNo}</h3>
+              </div>
+              <button
+                onClick={() => setDetailsOpen(false)}
+                className="text-slate-400 hover:text-slate-600 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3 text-xs text-center font-semibold">
+              <div className="p-3 bg-purple-50 rounded-xl border border-purple-100">
+                <span className="text-slate-400 text-[10px] block font-bold">Block / Floor</span>
+                <strong className="text-purple-900 font-extrabold">
+                  Block {selected.Block} · Floor {selected.Floor}
+                </strong>
+              </div>
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                <span className="text-slate-400 text-[10px] block font-bold">Total Beds</span>
+                <strong className="text-slate-900 font-extrabold">{selected.Capacity}</strong>
+              </div>
+              <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-100">
+                <span className="text-slate-400 text-[10px] block font-bold">Available Beds</span>
+                <strong className="text-emerald-900 font-extrabold">
+                  {Math.max(0, (selected.Capacity || 0) - (selected.OccupiedCount || 0))}
+                </strong>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="text-xs font-extrabold text-slate-800 mb-2">Current Active Residents</h4>
+              {getResidentsForRoom(selected).length ? (
+                <div className="space-y-2">
+                  {getResidentsForRoom(selected).map((res, i) => (
+                    <div
+                      key={i}
+                      className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-full bg-purple-600 text-white font-bold flex items-center justify-center text-xs">
+                          {res.Name?.charAt(0)}
+                        </div>
+                        <div>
+                          <p className="font-bold text-slate-900">{res.Name}</p>
+                          <p className="text-[10px] text-slate-500">{res.Course}</p>
+                        </div>
+                      </div>
+                      <span className="text-[11px] font-semibold text-slate-600 bg-white px-2 py-0.5 rounded-md border border-slate-200">
+                        Roll: {res.Rollno}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-slate-400 italic py-4 text-center">
+                  No active student allocations currently assigned to this room.
+                </p>
+              )}
+            </div>
+
+            <div className="pt-3 border-t border-slate-100 flex justify-end">
+              <button
+                onClick={() => setDetailsOpen(false)}
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }

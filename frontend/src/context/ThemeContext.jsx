@@ -29,4 +29,5 @@ export const ThemeProvider = ({ children }) => {
   );
 };
 
-export const useTheme = () => useContext(ThemeContext);
+const defaultThemeState = { theme: 'light', toggleTheme: () => {}, isBright: true };
+export const useTheme = () => useContext(ThemeContext) || defaultThemeState;

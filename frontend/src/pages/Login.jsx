@@ -1,11 +1,5 @@
-import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import { getErrorMessage } from "../services/api";
+import LoginView from "../components/auth/LoginView";
 
 export default function Login() {
-  const [form, setForm] = useState({ email: "", password: "" }); const [error, setError] = useState(""); const [busy, setBusy] = useState(false);
-  const { login } = useAuth(); const navigate = useNavigate(); const location = useLocation();
-  const submit = async (event) => { event.preventDefault(); setError(""); setBusy(true); try { const account = await login(form); navigate(location.state?.from?.pathname || (account.role === "Admin" ? "/" : "/"), { replace: true }); } catch (err) { setError(getErrorMessage(err, "Unable to sign in with those details.")); } finally { setBusy(false); } };
-  return <div className="auth-page"><div className="auth-visual"><div className="auth-brand"><span className="brand-mark">H</span> HostelHub</div><div className="visual-copy"><span className="eyebrow">A better place to belong</span><h1>Make campus feel like home.</h1><p>One calm place to manage rooms, residents, and the details that keep campus living moving.</p></div><div className="visual-footer">HOSTEL & RESOURCE MANAGEMENT <span>2026</span></div></div><div className="auth-panel"><div className="auth-form"><span className="eyebrow">Welcome back</span><h2>Sign in to your workspace</h2><p className="muted">Use the account issued by your hostel administration.</p>{error && <div className="error-message">{error}</div>}<form onSubmit={submit}><label>Email address<input type="email" required autoComplete="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="you@campus.edu" /></label><label>Password<input type="password" required autoComplete="current-password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="Enter your password" /></label><button className="primary-button full" disabled={busy}>{busy ? "Signing in..." : "Enter workspace"}<span>→</span></button></form><p className="auth-note">Need access? Ask your hostel administrator to create an account.</p></div></div></div>;
+  return <LoginView />;
 }

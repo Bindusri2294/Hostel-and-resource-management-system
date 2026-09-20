@@ -1,62 +1,563 @@
 import { useEffect, useState } from "react";
-import { allocationService, getErrorMessage, roomService, studentService } from "../services/api";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { Badge, Empty, ErrorMessage, formatDate, Loading, StatCard } from "../components/UI";
-
-function useCampusData(role) {
-  const [data, setData] = useState({ students: [], rooms: [], allocations: [], allocation: null });
-  const [state, setState] = useState({ loading: true, error: "" });
-  useEffect(() => {
-    let cancelled = false;
-    setState({ loading: true, error: "" });
-    const request = role === "Admin"
-      ? Promise.all([studentService.list(), roomService.list(), allocationService.list()])
-        .then(([students, rooms, allocations]) => {
-          if (!cancelled) setData({ students: students.data, rooms: rooms.data, allocations: allocations.data, allocation: null });
-        })
-      : allocationService.mine()
-        .then(({ data: allocation }) => {
-          if (!cancelled) setData({ students: [], rooms: [], allocations: [], allocation });
-        })
-        .catch((error) => {
-          if (error.response?.status === 404) {
-            if (!cancelled) setData({ students: [], rooms: [], allocations: [], allocation: null });
-            return;
-          }
-          throw error;
-        });
-    request
-      .catch((error) => {
-        if (!cancelled) setState({ loading: false, error: getErrorMessage(error) });
-      })
-      .finally(() => {
-        if (!cancelled) setState((current) => ({ ...current, loading: false }));
-      });
-    return () => { cancelled = true; };
-  }, [role]);
-  return { ...data, ...state };
-}
+import {
+  studentService,
+  roomService,
+  allocationService,
+  feedbackService,
+  getErrorMessage,
+} from "../services/api";
+import {
+  Users,
+  Building2,
+  DoorOpen,
+  ClipboardList,
+  MessageSquare,
+  TrendingUp,
+  UserPlus,
+  ClipboardPlus,
+  CheckCircle2,
+  AlertCircle,
+  Plus,
+  Star,
+  Sparkles,
+  Layers,
+  Armchair,
+  Utensils,
+  Wrench,
+  Wifi,
+  ChevronRight,
+  X,
+  FileText,
+} from "lucide-react";
 
 export default function HomeDashboard() {
   const { user } = useAuth();
-  const data = useCampusData(user.role);
-  if (data.loading) return <Loading text="Loading your residence..." />;
-  if (data.error) return <ErrorMessage message={data.error} />;
-  return user.role === "Admin" ? <AdminHome {...data} /> : <StudentHome {...data} user={user} />;
+  const [data, setData] = useState({
+    students: [],
+    rooms: [],
+    allocations: [],
+    feedbacks: [],
+    myAllocation: null,
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError("");
+
+    if (user?.role === "Admin") {
+      Promise.all([
+        studentService.list(),
+        roomService.list(),
+        allocationService.list(),
+        feedbackService.list(),
+      ])
+        .then(([studentsRes, roomsRes, allocationsRes, feedbackRes]) => {
+          if (!cancelled) {
+            setData({
+              students: studentsRes.data || [],
+              rooms: roomsRes.data || [],
+              allocations: allocationsRes.data || [],
+              feedbacks: feedbackRes.data || [],
+              myAllocation: null,
+            });
+          }
+        })
+        .catch((err) => {
+          if (!cancelled) setError(getErrorMessage(err));
+        })
+        .finally(() => {
+          if (!cancelled) setLoading(false);
+        });
+    } else {
+      Promise.all([
+        allocationService.mine().catch((err) => {
+          if (err.response?.status === 404) return { data: null };
+          throw err;
+        }),
+        feedbackService.list().catch(() => ({ data: [] })),
+        roomService.list().catch(() => ({ data: [] })),
+      ])
+        .then(([allocRes, feedbackRes, roomsRes]) => {
+          if (!cancelled) {
+            setData({
+              students: [],
+              rooms: roomsRes.data || [],
+              allocations: [],
+              feedbacks: feedbackRes.data || [],
+              myAllocation: allocRes.data || null,
+            });
+          }
+        })
+        .catch((err) => {
+          if (!cancelled) setError(getErrorMessage(err));
+        })
+        .finally(() => {
+          if (!cancelled) setLoading(false);
+        });
+    }
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.role]);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
+        <div className="w-10 h-10 border-4 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-sm font-semibold text-purple-900">Loading campus dashboard...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-700 text-sm font-semibold flex items-center gap-2">
+        <AlertCircle className="w-5 h-5 text-rose-500 shrink-0" />
+        <span>{error}</span>
+      </div>
+    );
+  }
+
+  return user?.role === "Admin" ? (
+    <AdminDashboardView data={data} />
+  ) : (
+    <StudentDashboardView data={data} user={user} />
+  );
 }
 
-function AdminHome({ students, rooms, allocations }) {
-  const active = allocations.filter((allocation) => allocation.status === "Active");
-  const capacity = rooms.reduce((sum, room) => sum + Number(room.Capacity || 0), 0);
-  const occupied = rooms.reduce((sum, room) => sum + Number(room.OccupiedCount || 0), 0);
-  const occupiedRooms = rooms.filter((room) => Number(room.OccupiedCount || 0) > 0).length;
-  const availableRooms = rooms.filter((room) => Number(room.OccupiedCount || 0) < Number(room.Capacity || 0)).length;
-  return <div className="page-stack"><div className="page-heading"><div><span className="eyebrow">{new Date().toLocaleDateString(undefined, { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}</span><h2>Good morning, administrator</h2><p className="muted">Here is the live pulse of your residential campus.</p></div><div className="heading-mark">✦</div></div><div className="stat-grid"><StatCard label="Total students" value={students.length} note="Registered residents" /><StatCard label="Total rooms" value={rooms.length} note="Residential inventory" accent="blue" /><StatCard label="Total capacity" value={capacity} note="Beds across all rooms" accent="green" /><StatCard label="Allocated students" value={active.length} note="Active assignments" accent="orange" /><StatCard label="Occupied rooms" value={occupiedRooms} note="Rooms with residents" /><StatCard label="Available rooms" value={availableRooms} note="Room capacity remains" accent="blue" /><StatCard label="Remaining beds" value={Math.max(capacity - occupied, 0)} note={`${occupied} beds occupied`} accent="green" /></div><div className="content-grid"><section className="panel"><div className="panel-heading"><div><span className="eyebrow">Live occupancy</span><h3>Rooms at a glance</h3></div><span className="panel-count">{rooms.length} rooms</span></div>{rooms.length ? <div className="room-list">{rooms.slice(0, 8).map((room) => <div className="room-row" key={room._id}><div className="room-icon">{room.Block}</div><div className="room-info"><strong>{room.RoomNo}</strong><small>Block {room.Block} · Floor {room.Floor}</small></div><div className="room-meter"><div><span>{room.OccupiedCount || 0} / {room.Capacity || 0}</span><Badge>{room.Status}</Badge></div><div className="meter"><i style={{ width: `${Math.min((Number(room.OccupiedCount || 0) / Number(room.Capacity || 1)) * 100, 100)}%` }} /></div></div></div>)}</div> : <Empty title="No rooms yet" text="Add rooms to see occupancy here." />}</section><section className="panel accent-panel"><span className="eyebrow">Campus occupancy</span><h3>{capacity ? Math.round((occupied / capacity) * 100) : 0}%</h3><p>of available beds are occupied.</p><div className="large-meter"><i style={{ width: `${capacity ? Math.min((occupied / capacity) * 100, 100) : 0}%` }} /></div><div className="accent-stats"><span><b>{occupied}</b>Occupied</span><span><b>{Math.max(capacity - occupied, 0)}</b>Available</span></div></section></div></div>;
+// ADMIN DASHBOARD VIEW
+function AdminDashboardView({ data }) {
+  const navigate = useNavigate();
+  const { students, rooms, allocations, feedbacks } = data;
+
+  const totalCapacity = rooms.reduce((sum, r) => sum + Number(r.Capacity || 0), 0);
+  const occupiedBeds = rooms.reduce((sum, r) => sum + Number(r.OccupiedCount || 0), 0);
+  const availableBeds = Math.max(0, totalCapacity - occupiedBeds);
+  const activeAllocations = allocations.filter((a) => a.status === "Active");
+  const pendingAllocations = allocations.filter((a) => a.status === "Pending");
+
+  // Department distribution
+  const deptCount = students.reduce((acc, s) => {
+    const dept = s.Course || s.Department || "General";
+    acc[dept] = (acc[dept] || 0) + 1;
+    return acc;
+  }, {});
+
+  return (
+    <div className="space-y-6">
+      {/* 6 Stat Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="bg-white p-4 rounded-2xl border border-purple-100/70 shadow-xs">
+          <div className="flex justify-between items-start mb-2">
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Students</p>
+            <div className="w-8 h-8 bg-purple-50 rounded-xl flex items-center justify-center text-purple-600">
+              <Users className="w-4 h-4" />
+            </div>
+          </div>
+          <h3 className="text-2xl font-extrabold text-slate-900">{students.length}</h3>
+          <p className="text-[11px] font-semibold text-emerald-600 flex items-center gap-1 mt-1">
+            <TrendingUp className="w-3 h-3" /> Registered
+          </p>
+        </div>
+
+        <div className="bg-white p-4 rounded-2xl border border-purple-100/70 shadow-xs">
+          <div className="flex justify-between items-start mb-2">
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Rooms</p>
+            <div className="w-8 h-8 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600">
+              <DoorOpen className="w-4 h-4" />
+            </div>
+          </div>
+          <h3 className="text-2xl font-extrabold text-slate-900">{rooms.length}</h3>
+          <p className="text-[11px] font-semibold text-indigo-600 mt-1">Inventory</p>
+        </div>
+
+        <div className="bg-white p-4 rounded-2xl border border-purple-100/70 shadow-xs">
+          <div className="flex justify-between items-start mb-2">
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Occupied Beds</p>
+            <div className="w-8 h-8 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
+              <CheckCircle2 className="w-4 h-4" />
+            </div>
+          </div>
+          <h3 className="text-2xl font-extrabold text-slate-900">{occupiedBeds}</h3>
+          <p className="text-[11px] font-semibold text-emerald-600 mt-1">
+            {totalCapacity ? Math.round((occupiedBeds / totalCapacity) * 100) : 0}% Filled
+          </p>
+        </div>
+
+        <div className="bg-white p-4 rounded-2xl border border-purple-100/70 shadow-xs">
+          <div className="flex justify-between items-start mb-2">
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Available Beds</p>
+            <div className="w-8 h-8 bg-cyan-50 rounded-xl flex items-center justify-center text-cyan-600">
+              <Armchair className="w-4 h-4" />
+            </div>
+          </div>
+          <h3 className="text-2xl font-extrabold text-slate-900">{availableBeds}</h3>
+          <p className="text-[11px] font-semibold text-cyan-600 mt-1">Ready for allocation</p>
+        </div>
+
+        <div className="bg-white p-4 rounded-2xl border border-purple-100/70 shadow-xs">
+          <div className="flex justify-between items-start mb-2">
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Pending Alloc.</p>
+            <div className="w-8 h-8 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600">
+              <ClipboardList className="w-4 h-4" />
+            </div>
+          </div>
+          <h3 className="text-2xl font-extrabold text-slate-900">{pendingAllocations.length}</h3>
+          <p className="text-[11px] font-semibold text-amber-600 mt-1">Awaiting review</p>
+        </div>
+
+        <div className="bg-white p-4 rounded-2xl border border-purple-100/70 shadow-xs">
+          <div className="flex justify-between items-start mb-2">
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Feedback</p>
+            <div className="w-8 h-8 bg-pink-50 rounded-xl flex items-center justify-center text-pink-600">
+              <MessageSquare className="w-4 h-4" />
+            </div>
+          </div>
+          <h3 className="text-2xl font-extrabold text-slate-900">{feedbacks.length}</h3>
+          <p className="text-[11px] font-semibold text-pink-600 mt-1">Notes received</p>
+        </div>
+      </div>
+
+      {/* Middle Section: Occupancy Chart & Recent Feedback */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Room Occupancy Visual Card */}
+        <div className="bg-white p-6 rounded-2xl border border-purple-100/70 shadow-xs flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <span className="text-[10px] font-extrabold text-purple-700 bg-purple-100 px-2.5 py-1 rounded-full uppercase tracking-wider">
+                  Live Analytics
+                </span>
+                <h3 className="text-lg font-extrabold text-slate-900 mt-2">Room Occupancy Statistics</h3>
+              </div>
+              <button onClick={() => navigate("/analytics")} className="text-xs font-bold text-purple-600 hover:underline cursor-pointer">
+                Analytics →
+              </button>
+            </div>
+
+            <div className="my-6">
+              <div className="flex justify-between items-center text-xs font-bold text-slate-700 mb-2">
+                <span>Total Bed Capacity ({totalCapacity} Beds)</span>
+                <span>{totalCapacity ? Math.round((occupiedBeds / totalCapacity) * 100) : 0}% Occupied</span>
+              </div>
+              <div className="w-full bg-slate-100 rounded-full h-4 overflow-hidden p-0.5 border border-slate-200">
+                <div
+                  className="bg-gradient-to-r from-purple-600 to-indigo-600 h-full rounded-full transition-all duration-500"
+                  style={{ width: `${totalCapacity ? Math.min(100, (occupiedBeds / totalCapacity) * 100) : 0}%` }}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 text-xs font-semibold">
+              <div className="p-3 rounded-xl bg-purple-50/70 border border-purple-100">
+                <p className="text-slate-500 text-[11px]">Occupied Beds</p>
+                <p className="text-lg font-extrabold text-purple-900">{occupiedBeds}</p>
+              </div>
+              <div className="p-3 rounded-xl bg-emerald-50/70 border border-emerald-100">
+                <p className="text-slate-500 text-[11px]">Available Beds</p>
+                <p className="text-lg font-extrabold text-emerald-900">{availableBeds}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-4 border-t border-slate-100 mt-4">
+            <p className="text-xs font-bold text-slate-800 mb-2">Student Course Distribution</p>
+            <div className="flex flex-wrap gap-2">
+              {Object.entries(deptCount).map(([dept, count]) => (
+                <span key={dept} className="px-2.5 py-1 bg-slate-100 rounded-lg text-xs font-semibold text-slate-700 border border-slate-200">
+                  {dept}: <strong className="text-purple-700">{count}</strong>
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Recent Feedback Card */}
+        <div className="bg-white p-6 rounded-2xl border border-purple-100/70 shadow-xs flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <span className="text-[10px] font-extrabold text-pink-700 bg-pink-100 px-2.5 py-1 rounded-full uppercase tracking-wider">
+                  Feedback Inbox
+                </span>
+                <h3 className="text-lg font-extrabold text-slate-900 mt-2">Recent Student Feedback</h3>
+              </div>
+              <button onClick={() => navigate("/feedback")} className="text-xs font-bold text-purple-600 hover:underline cursor-pointer">
+                View All →
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {feedbacks.length ? (
+                feedbacks.slice(0, 3).map((item) => (
+                  <div key={item._id || item.id} className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-bold text-slate-900">{item.message}</p>
+                      <p className="text-[11px] text-slate-500 mt-1">
+                        By {item.studentId?.Name || item.studentId?.name || "Resident"} · Rating: {item.rating}/5
+                      </p>
+                    </div>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      item.status === "Resolved" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
+                    }`}>
+                      {item.status || "Pending"}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <p className="text-xs text-slate-400 italic py-6 text-center">No feedback submitted yet.</p>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Recent Allocations Table */}
+      <div className="bg-white p-6 rounded-2xl border border-purple-100/70 shadow-xs">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-base font-extrabold text-slate-900">Recent Allocations</h3>
+          <button onClick={() => navigate("/allocations")} className="text-xs font-bold text-purple-600 hover:underline cursor-pointer">
+            Manage Allocations →
+          </button>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead>
+              <tr className="border-b border-slate-100 text-[11px] font-bold uppercase text-slate-400 tracking-wider">
+                <th className="py-2.5 px-3">Student</th>
+                <th className="py-2.5 px-3">Roll No</th>
+                <th className="py-2.5 px-3">Room</th>
+                <th className="py-2.5 px-3">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+              {allocations.length ? (
+                allocations.slice(0, 5).map((alloc) => (
+                  <tr key={alloc.id || alloc._id}>
+                    <td className="py-3 px-3 font-bold text-slate-900">{alloc.studentName || alloc.student?.Name || "—"}</td>
+                    <td className="py-3 px-3 text-slate-500">{alloc.student?.Rollno || "—"}</td>
+                    <td className="py-3 px-3 font-semibold">{alloc.roomNo || alloc.room?.RoomNo || "—"}</td>
+                    <td className="py-3 px-3">
+                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                        alloc.status === "Active" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
+                      }`}>
+                        {alloc.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="4" className="py-6 text-center text-slate-400 italic">No allocations recorded yet.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="bg-white p-6 rounded-2xl border border-purple-100/70 shadow-xs">
+        <h3 className="text-sm font-extrabold text-slate-900 mb-4">Quick Admin Actions</h3>
+        <div className="flex flex-wrap gap-3">
+          <button
+            onClick={() => navigate("/students")}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-50 text-purple-700 font-bold text-xs border border-purple-200 hover:bg-purple-100 transition-colors cursor-pointer"
+          >
+            <UserPlus className="w-4 h-4" /> Add / Manage Students
+          </button>
+          <button
+            onClick={() => navigate("/rooms")}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-50 text-indigo-700 font-bold text-xs border border-indigo-200 hover:bg-indigo-100 transition-colors cursor-pointer"
+          >
+            <DoorOpen className="w-4 h-4" /> Add / Manage Rooms
+          </button>
+          <button
+            onClick={() => navigate("/allocations")}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-50 text-emerald-700 font-bold text-xs border border-emerald-200 hover:bg-emerald-100 transition-colors cursor-pointer"
+          >
+            <ClipboardPlus className="w-4 h-4" /> Create Allocation
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
-function StudentHome({ allocation, user }) {
-  const student = user.student;
-  const room = allocation?.room;
-  const roommates = allocation?.roommates || [];
-  return <div className="page-stack"><div className="page-heading"><div><span className="eyebrow">Resident portal</span><h2>Welcome home, {student?.Name || user.name}</h2><p className="muted">Everything you need to know about your stay, in one view.</p></div></div><div className="student-hero"><div className="student-profile"><div className="profile-avatar">{(student?.Name || user.name).slice(0, 1)}</div><div><span className="eyebrow">Your profile</span><h3>{student?.Name || user.name}</h3><p>{student?.Course || "Course not provided"} · {student?.Campus || "Campus not provided"}</p></div></div><div className="profile-facts"><span><small>Roll number</small><b>{student?.Rollno || "—"}</b></span><span><small>Year</small><b>{student?.Year || "—"}</b></span></div></div>{!allocation ? <div className="panel"><Empty title="No room allocation found" text="Your hostel team has not assigned a room to you yet." /></div> : <div className="content-grid"><section className="panel"><div className="panel-heading"><div><span className="eyebrow">Current allocation</span><h3>Room {room?.RoomNo || allocation.roomNo}</h3></div><Badge>{allocation.status}</Badge></div><div className="detail-grid"><span><small>Block</small><b>{room?.Block || "—"}</b></span><span><small>Floor</small><b>{room?.Floor || "—"}</b></span><span><small>Capacity</small><b>{room?.Capacity || "—"}</b></span><span><small>Occupied students</small><b>{room?.OccupiedCount ?? "—"}</b></span><span><small>Remaining beds</small><b>{room ? Math.max(room.Capacity - room.OccupiedCount, 0) : "—"}</b></span><span><small>Allocation date</small><b>{formatDate(allocation.allocationDate)}</b></span></div></section><section className="panel"><div className="panel-heading"><div><span className="eyebrow">Shared space</span><h3>Roommates</h3></div><span className="panel-count">{roommates.length}</span></div>{roommates.length ? roommates.map((mate) => <div className="mate-row" key={mate.id}><span className="avatar small">{mate.studentName?.slice(0, 1)}</span><span><strong>{mate.studentName}</strong><small>Active resident</small></span></div>) : <Empty title="No roommates" text="You currently have this room to yourself." />}</section></div>}</div>;
+// STUDENT DASHBOARD VIEW
+function StudentDashboardView({ data, user }) {
+  const navigate = useNavigate();
+  const { myAllocation, feedbacks } = data;
+  const student = user.student || {};
+  const room = myAllocation?.room || {};
+  const roommates = myAllocation?.roommates || [];
+
+  return (
+    <div className="space-y-6">
+      {/* Student Profile Hero Banner */}
+      <div className="bg-gradient-to-r from-purple-700 via-indigo-700 to-purple-900 text-white rounded-3xl p-6 shadow-xl border border-purple-500/30 flex flex-wrap items-center justify-between gap-6">
+        <div className="flex items-center gap-4">
+          <div className="w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white font-extrabold text-2xl shadow-inner">
+            {(student.Name || user.name)?.charAt(0)?.toUpperCase()}
+          </div>
+          <div>
+            <span className="text-[10px] uppercase tracking-wider font-extrabold text-purple-200 bg-white/10 px-2.5 py-0.5 rounded-full border border-white/10">
+              Resident Profile
+            </span>
+            <h2 className="text-2xl font-black mt-1">{student.Name || user.name}</h2>
+            <p className="text-xs text-purple-200 font-medium">
+              {student.Course || "B.Tech Engineering"} · {student.Campus || "Main Campus"}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-4 bg-white/10 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/15">
+          <div>
+            <p className="text-[10px] text-purple-200 font-bold uppercase tracking-wider">Roll Number</p>
+            <p className="text-sm font-extrabold text-white">{student.Rollno || "Unassigned"}</p>
+          </div>
+          <div className="w-px h-8 bg-white/20"></div>
+          <div>
+            <p className="text-[10px] text-purple-200 font-bold uppercase tracking-wider">Academic Year</p>
+            <p className="text-sm font-extrabold text-white">{student.Year ? `${student.Year} Year` : "3rd Year"}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Allocation & Hierarchy Info */}
+      {myAllocation ? (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-purple-100/70 shadow-xs space-y-4">
+            {/* Breadcrumb Hierarchy */}
+            <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
+              <span className="text-slate-400">Hostel</span>
+              <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
+              <span>Block {room.Block || myAllocation.block || "A"}</span>
+              <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
+              <span>Floor {room.Floor || "2"}</span>
+              <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
+              <span className="bg-purple-100 text-purple-800 px-2 py-0.5 rounded-md font-bold">
+                Room {room.RoomNo || myAllocation.roomNo}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="text-xl font-extrabold text-slate-900">
+                  Room {room.RoomNo || myAllocation.roomNo} Details
+                </h3>
+                <p className="text-xs text-slate-500">Occupied by active residents</p>
+              </div>
+              <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-extrabold rounded-full border border-emerald-200">
+                {myAllocation.status} Allocation
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-semibold">
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                <span className="text-slate-400 text-[10px] block font-bold uppercase">Block</span>
+                <span className="text-slate-900 font-extrabold text-sm">{room.Block || "A"}</span>
+              </div>
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                <span className="text-slate-400 text-[10px] block font-bold uppercase">Floor</span>
+                <span className="text-slate-900 font-extrabold text-sm">{room.Floor || "2"}</span>
+              </div>
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                <span className="text-slate-400 text-[10px] block font-bold uppercase">Capacity</span>
+                <span className="text-slate-900 font-extrabold text-sm">{room.Capacity || 4} Beds</span>
+              </div>
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                <span className="text-slate-400 text-[10px] block font-bold uppercase">Occupied</span>
+                <span className="text-slate-900 font-extrabold text-sm">{room.OccupiedCount || 1} Beds</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Roommates Card */}
+          <div className="bg-white p-6 rounded-2xl border border-purple-100/70 shadow-xs">
+            <h3 className="text-base font-extrabold text-slate-900 mb-4">Roommates ({roommates.length})</h3>
+            {roommates.length ? (
+              <div className="space-y-3">
+                {roommates.map((mate) => (
+                  <div key={mate.id || mate._id} className="flex items-center gap-3 p-2.5 rounded-xl bg-purple-50/50 border border-purple-100">
+                    <div className="w-8 h-8 rounded-full bg-purple-600 text-white font-bold text-xs flex items-center justify-center">
+                      {mate.studentName?.charAt(0)?.toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-slate-900">{mate.studentName}</p>
+                      <p className="text-[10px] text-slate-500">Active Resident</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-slate-400 italic py-4 text-center">You have this room to yourself.</p>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="p-6 bg-white rounded-2xl border border-purple-100/70 shadow-xs text-center space-y-2">
+          <AlertCircle className="w-8 h-8 text-amber-500 mx-auto" />
+          <h3 className="text-base font-bold text-slate-900">No Active Room Allocation</h3>
+          <p className="text-xs text-slate-500 max-w-md mx-auto">
+            Your hostel team has not assigned a room allocation to your account yet. Contact hostel administration for support.
+          </p>
+        </div>
+      )}
+
+      {/* Announcements & Available Resources */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-white p-6 rounded-2xl border border-purple-100/70 shadow-xs space-y-3">
+          <h3 className="text-base font-extrabold text-slate-900">Hostel Announcements</h3>
+          <div className="space-y-2.5 text-xs">
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-start gap-3">
+              <Utensils className="w-4 h-4 text-purple-600 mt-0.5 shrink-0" />
+              <div>
+                <p className="font-bold text-slate-800">Mess Timings Update</p>
+                <p className="text-slate-600 text-[11px] mt-0.5">Breakfast: 7:30 AM - 9:00 AM · Lunch: 12:30 PM - 2:00 PM · Dinner: 7:30 PM - 9:00 PM</p>
+              </div>
+            </div>
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-start gap-3">
+              <Wifi className="w-4 h-4 text-purple-600 mt-0.5 shrink-0" />
+              <div>
+                <p className="font-bold text-slate-800">High-Speed Wi-Fi Available</p>
+                <p className="text-slate-600 text-[11px] mt-0.5">Campus Wi-Fi credentials refreshed for the semester.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-2xl border border-purple-100/70 shadow-xs space-y-3">
+          <h3 className="text-base font-extrabold text-slate-900">Quick Student Actions</h3>
+          <div className="flex flex-col gap-2.5">
+            <button
+              onClick={() => navigate("/feedback")}
+              className="w-full text-left p-3 rounded-xl bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-900 font-bold text-xs flex items-center justify-between cursor-pointer"
+            >
+              <span className="flex items-center gap-2">
+                <MessageSquare className="w-4 h-4 text-purple-600" /> Submit Feedback / Issue
+              </span>
+              <ChevronRight className="w-4 h-4 text-purple-400" />
+            </button>
+            <button
+              onClick={() => navigate("/hostel-info")}
+              className="w-full text-left p-3 rounded-xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-900 font-bold text-xs flex items-center justify-between cursor-pointer"
+            >
+              <span className="flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-indigo-600" /> View Hostel Facilities & Rules
+              </span>
+              <ChevronRight className="w-4 h-4 text-indigo-400" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }

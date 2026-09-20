@@ -13,10 +13,10 @@ const {
 const router = express.Router();
 
 router.post("/", protect, authorize("Admin"), createRoom);
-router.get("/", protect, authorize("Admin"), getRooms);
+router.get("/", protect, authorize("Admin", "Student"), getRooms);
 router.get("/stats", protect, authorize("Admin"), getRoomsStats);
-router.get("/status/:status", protect, authorize("Admin"), getRoomsByStatus);
-router.get("/:id", protect, authorize("Admin"), getRoomById);
+router.get("/status/:status", protect, authorize("Admin", "Student"), getRoomsByStatus);
+router.get("/:id", protect, authorize("Admin", "Student"), getRoomById);
 router.put("/:id", protect, authorize("Admin"), updateRoom);
 router.delete("/:id", protect, authorize("Admin"), deleteRoom);
 
