@@ -231,10 +231,7 @@ function AdminDashboardView({ data }) {
           <div>
             <div className="flex items-center justify-between mb-4">
               <div>
-                <span className="text-[10px] font-extrabold text-purple-700 bg-purple-100 px-2.5 py-1 rounded-full uppercase tracking-wider">
-                  Live Analytics
-                </span>
-                <h3 className="text-lg font-extrabold text-slate-900 mt-2">Room Occupancy Statistics</h3>
+                <h3 className="text-lg font-extrabold text-slate-900">Room Occupancy Statistics</h3>
               </div>
               <button onClick={() => navigate("/analytics")} className="text-xs font-bold text-purple-600 hover:underline cursor-pointer">
                 Analytics →
@@ -283,10 +280,7 @@ function AdminDashboardView({ data }) {
           <div>
             <div className="flex items-center justify-between mb-4">
               <div>
-                <span className="text-[10px] font-extrabold text-pink-700 bg-pink-100 px-2.5 py-1 rounded-full uppercase tracking-wider">
-                  Feedback Inbox
-                </span>
-                <h3 className="text-lg font-extrabold text-slate-900 mt-2">Recent Student Feedback</h3>
+                <h3 className="text-lg font-extrabold text-slate-900">Recent Student Feedback</h3>
               </div>
               <button onClick={() => navigate("/feedback")} className="text-xs font-bold text-purple-600 hover:underline cursor-pointer">
                 View All →
@@ -408,10 +402,7 @@ function StudentDashboardView({ data, user }) {
             {(student.Name || user.name)?.charAt(0)?.toUpperCase()}
           </div>
           <div>
-            <span className="text-[10px] uppercase tracking-wider font-extrabold text-purple-200 bg-white/10 px-2.5 py-0.5 rounded-full border border-white/10">
-              Resident Profile
-            </span>
-            <h2 className="text-2xl font-black mt-1">{student.Name || user.name}</h2>
+            <h2 className="text-2xl font-black">{student.Name || user.name}</h2>
             <p className="text-xs text-purple-200 font-medium">
               {student.Course || "B.Tech Engineering"} · {student.Campus || "Main Campus"}
             </p>

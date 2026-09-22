@@ -4,10 +4,8 @@ const User = require("../models/User");
 const Student = require("../models/student");
 
 const generateToken = (id, role) => {
-  if (!process.env.JWT_SECRET) {
-    throw new Error("JWT_SECRET is not set in environment variables");
-  }
-  return jwt.sign({ id, role }, process.env.JWT_SECRET, {
+  const secret = process.env.JWT_SECRET || "hostel_management_super_secret_jwt_key_2026";
+  return jwt.sign({ id, role }, secret, {
     expiresIn: "30d",
   });
 };

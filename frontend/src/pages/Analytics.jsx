@@ -84,10 +84,7 @@ export default function Analytics() {
       {/* Header */}
       <div className="bg-white p-6 rounded-2xl border border-purple-100/70 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <span className="text-[10px] font-extrabold text-purple-700 bg-purple-100 px-2.5 py-1 rounded-full uppercase tracking-wider">
-            Campus Intelligence
-          </span>
-          <h2 className="text-2xl font-extrabold text-slate-900 mt-2">Modern Analytics Dashboard</h2>
+          <h2 className="text-2xl font-extrabold text-slate-900">Modern Analytics Dashboard</h2>
           <p className="text-xs text-slate-500 mt-0.5">
             Real-time occupancy trends, student demographics, allocation statistics, and course distribution.
           </p>
@@ -194,10 +191,7 @@ export default function Analytics() {
         <div className="bg-white p-6 rounded-2xl border border-purple-100/70 shadow-xs space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div>
-              <span className="text-[10px] font-extrabold text-indigo-700 bg-indigo-100 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-                Occupancy Comparison
-              </span>
-              <h3 className="text-lg font-extrabold text-slate-900 mt-1">Block-wise Occupancy Breakdown</h3>
+              <h3 className="text-lg font-extrabold text-slate-900">Block-wise Occupancy Breakdown</h3>
             </div>
           </div>
 
@@ -231,10 +225,7 @@ export default function Analytics() {
         {/* Course / Department Distribution Pie Chart */}
         <div className="bg-white p-6 rounded-2xl border border-purple-100/70 shadow-xs space-y-4">
           <div className="border-b border-slate-100 pb-3">
-            <span className="text-[10px] font-extrabold text-purple-700 bg-purple-100 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-              Demographics
-            </span>
-            <h3 className="text-lg font-extrabold text-slate-900 mt-1">Department & Section Distribution</h3>
+            <h3 className="text-lg font-extrabold text-slate-900">Department & Section Distribution</h3>
           </div>
 
           <div className="space-y-3 pt-2">

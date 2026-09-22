@@ -1,4 +1,12 @@
+const mongoose = require("mongoose");
 const Student = require("../models/student");
+
+const studentFilter = (id) => {
+  if (mongoose.Types.ObjectId.isValid(id)) {
+    return { $or: [{ _id: id }, { Rollno: id }] };
+  }
+  return { Rollno: id };
+};
 
 // Create a student
 const createStudent = async (req, res, next) => {
@@ -20,10 +28,10 @@ const getStudents = async (req, res, next) => {
   }
 };
 
-// Get student by Rollno
+// Get student by Rollno or _id
 const getStudentById = async (req, res, next) => {
   try {
-    const student = await Student.findOne({ Rollno: req.params.id });
+    const student = await Student.findOne(studentFilter(req.params.id));
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
     }
@@ -37,9 +45,9 @@ const getStudentById = async (req, res, next) => {
 const updateStudent = async (req, res, next) => {
   try {
     const student = await Student.findOneAndUpdate(
-      { Rollno: req.params.id },
+      studentFilter(req.params.id),
       req.body,
-      { new: true, runValidators: true }
+      { returnDocument: "after", runValidators: true }
     );
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
@@ -53,7 +61,7 @@ const updateStudent = async (req, res, next) => {
 // Delete a student
 const deleteStudent = async (req, res, next) => {
   try {
-    const student = await Student.findOneAndDelete({ Rollno: req.params.id });
+    const student = await Student.findOneAndDelete(studentFilter(req.params.id));
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
     }

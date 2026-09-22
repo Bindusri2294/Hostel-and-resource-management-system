@@ -5,10 +5,7 @@ export default function HostelInfo() {
     <div className="space-y-6 max-w-5xl">
       {/* Hero */}
       <div className="bg-gradient-to-r from-purple-800 via-indigo-800 to-purple-950 text-white p-6 rounded-3xl shadow-xl border border-purple-500/30">
-        <span className="text-[10px] font-extrabold uppercase tracking-wider bg-white/10 px-3 py-1 rounded-full border border-white/15">
-          Campus Living Guide
-        </span>
-        <h2 className="text-2xl font-black mt-2">KIET Residential Hostel Facilities</h2>
+        <h2 className="text-2xl font-black">KIET Residential Hostel Facilities</h2>
         <p className="text-xs text-purple-200 mt-1 max-w-2xl">
           Everything you need to know about facilities, mess timings, safety regulations, and warden contacts.
         </p>

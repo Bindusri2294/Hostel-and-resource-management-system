@@ -221,13 +221,8 @@ export default function StudentFeedbackDashboard() {
               <Building className="w-5 h-5" />
             </div>
             <div>
-              <h1 className={`text-base font-bold flex items-center gap-2 ${isBright ? 'text-slate-900' : 'text-white'}`}>
+              <h1 className={`text-base font-bold ${isBright ? 'text-slate-900' : 'text-white'}`}>
                 Hostel Student Portal
-                <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${
-                  isBright ? 'bg-[#f3e5f5] text-[#512da8] border-[#e1bee7]' : 'bg-[#673BB7]/30 text-[#d1c4e9] border-[#673BB7]/50'
-                }`}>
-                  Student View
-                </span>
               </h1>
               <p className={`text-xs ${isBright ? 'text-slate-600' : 'text-slate-400'}`}>
                 Logged in as: <strong className={isBright ? 'text-slate-900' : 'text-slate-200'}>{user?.name}</strong> {user?.student?.Rollno && `(${user.student.Rollno})`}
