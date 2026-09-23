@@ -16,7 +16,30 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+const mongoose = require("mongoose");
+
+app.get("/api/images/:filename", async (req, res) => {
+  try {
+    if (!mongoose.connection.db) {
+      return res.status(500).json({ message: "Database not connected yet" });
+    }
+    const db = mongoose.connection.db;
+    const bucket = new mongoose.mongo.GridFSBucket(db, {
+      bucketName: "feedbackImages",
+    });
+
+    const file = await bucket.find({ filename: req.params.filename }).toArray();
+    if (!file || file.length === 0) {
+      return res.status(404).json({ message: "Image not found" });
+    }
+
+    res.set("Content-Type", file[0].contentType);
+    const downloadStream = bucket.openDownloadStreamByName(req.params.filename);
+    downloadStream.pipe(res);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching image", error: error.message });
+  }
+});
 
 app.get("/", (req, res) => {
   res.json({ message: "Hostel Management System API is running" });

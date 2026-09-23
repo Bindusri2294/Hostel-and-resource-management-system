@@ -12,13 +12,14 @@ import {
   CheckCircle2,
   RefreshCw,
   TrendingUp,
-  Trash2,} from 'lucide-react';
-
-export default function AdminFeedbackDashboard() {
+  Trash2,
+  X,
+} from 'lucide-react';export default function AdminFeedbackDashboard() {
   const { user, logout } = useAuth();
 
   const [feedbacks, setFeedbacks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [lightboxImage, setLightboxImage] = useState(null);
 
   // Filters
   const [statusFilter, setStatusFilter] = useState('All');
@@ -294,14 +295,16 @@ export default function AdminFeedbackDashboard() {
                         </div>
                         {item.imageUrl && (
                           <div className="mt-1.5">
-                            <a
-                              href={`http://localhost:5000${item.imageUrl}`}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="inline-flex items-center gap-1 text-[11px] font-bold text-[#673BB7] hover:text-[#5e35b1] underline"
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setLightboxImage(`http://localhost:5000${item.imageUrl}`);
+                              }}
+                              className="inline-flex items-center gap-1 text-[11px] font-bold text-[#673BB7] hover:text-[#5e35b1] cursor-pointer"
                             >
                               📷 View Attached Photo
-                            </a>
+                            </button>
                           </div>
                         )}
                       </td>
@@ -351,6 +354,30 @@ export default function AdminFeedbackDashboard() {
           onClose={() => setSelectedFeedback(null)}
           onSuccess={handleUpdateSuccess}
         />
+      )}
+
+      {/* IMAGE LIGHTBOX MODAL */}
+      {lightboxImage && (
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" 
+          onClick={() => setLightboxImage(null)}
+        >
+          <div className="relative max-w-full max-h-full rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/20">
+            <button 
+              className="absolute top-3 right-3 bg-black/60 hover:bg-black/90 text-white rounded-full p-2 backdrop-blur-md transition-colors cursor-pointer z-10"
+              onClick={(e) => { e.stopPropagation(); setLightboxImage(null); }}
+              title="Close Image"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <img 
+              src={lightboxImage} 
+              alt="Attached Photo" 
+              className="max-w-full max-h-[90vh] object-contain block" 
+              onClick={(e) => e.stopPropagation()} 
+            />
+          </div>
+        </div>
       )}
     </div>
   );

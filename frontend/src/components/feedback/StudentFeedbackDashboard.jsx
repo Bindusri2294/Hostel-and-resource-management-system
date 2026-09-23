@@ -41,6 +41,7 @@ export default function StudentFeedbackDashboard() {
   // Feedbacks State
   const [myFeedbacks, setMyFeedbacks] = useState([]);
   const [loadingFeedbacks, setLoadingFeedbacks] = useState(false);
+  const [lightboxImage, setLightboxImage] = useState(null);
 
   const categoryOptions = [
     { value: 'Overall Experience', label: '⭐ Overall Experience' },
@@ -487,18 +488,17 @@ export default function StudentFeedbackDashboard() {
                         
                         {item.imageUrl && (
                           <div className="mt-2.5">
-                            <a
-                              href={`http://localhost:5000${item.imageUrl}`}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="inline-block border rounded-xl overflow-hidden shadow hover:opacity-90 transition-all"
+                            <button
+                              type="button"
+                              onClick={() => setLightboxImage(`http://localhost:5000${item.imageUrl}`)}
+                              className="inline-block border rounded-xl overflow-hidden shadow hover:opacity-90 transition-all cursor-pointer"
                             >
                               <img
                                 src={`http://localhost:5000${item.imageUrl}`}
                                 alt="Issue attachment"
-                                className="h-32 w-auto object-cover rounded-xl"
+                                className="h-32 w-auto object-cover rounded-xl block"
                               />
-                            </a>
+                            </button>
                           </div>
                         )}
                       </div>
@@ -535,6 +535,30 @@ export default function StudentFeedbackDashboard() {
           </div>
         )}
       </main>
+
+      {/* IMAGE LIGHTBOX MODAL */}
+      {lightboxImage && (
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" 
+          onClick={() => setLightboxImage(null)}
+        >
+          <div className="relative max-w-full max-h-full rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/20">
+            <button 
+              className="absolute top-3 right-3 bg-black/60 hover:bg-black/90 text-white rounded-full p-2 backdrop-blur-md transition-colors cursor-pointer z-10"
+              onClick={(e) => { e.stopPropagation(); setLightboxImage(null); }}
+              title="Close Image"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <img 
+              src={lightboxImage} 
+              alt="Attached Photo" 
+              className="max-w-full max-h-[90vh] object-contain block" 
+              onClick={(e) => e.stopPropagation()} 
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

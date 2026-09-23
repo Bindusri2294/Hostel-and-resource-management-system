@@ -26,7 +26,30 @@ const createFeedback = async (req, res, next) => {
       });
     }
 
-    const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
+    const mongoose = require("mongoose");
+    let imageUrl = null;
+    
+    if (req.file) {
+      const db = mongoose.connection.db;
+      const bucket = new mongoose.mongo.GridFSBucket(db, {
+        bucketName: "feedbackImages",
+      });
+
+      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+      const filename = `feedback-${uniqueSuffix}-${req.file.originalname}`;
+
+      const uploadStream = bucket.openUploadStream(filename, {
+        contentType: req.file.mimetype,
+      });
+
+      await new Promise((resolve, reject) => {
+        uploadStream.on("error", reject);
+        uploadStream.on("finish", resolve);
+        uploadStream.end(req.file.buffer);
+      });
+
+      imageUrl = `/api/images/${filename}`;
+    }
 
     const feedback = await Feedback.create({
       studentId: student.Rollno || String(studentId).trim().toUpperCase(),
