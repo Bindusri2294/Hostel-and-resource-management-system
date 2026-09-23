@@ -23,8 +23,41 @@ const blankStudent = {
   Section: "A",
   Block: "A",
   Roomno: "Unassigned",
-  Status: "Active",
 };
+
+const getDeptFromRollNo = (rollno) => {
+  if (!rollno || rollno.length < 4) return "CSE";
+  const code = rollno.slice(-4, -2);
+  switch (code) {
+    case "42": return "CSM";
+    case "43": return "CAI";
+    case "44": return "CSD";
+    case "45": return "AID";
+    case "46": return "CSC";
+    default: return "CSE";
+  }
+};
+
+const getOrdinalYear = (year) => {
+  const y = parseInt(year) || 1;
+  if (y === 1) return "1st";
+  if (y === 2) return "2nd";
+  if (y === 3) return "3rd";
+  if (y === 4) return "4th";
+  return `${y}th`;
+};
+
+const getCampusFromRollNo = (rollno) => {
+  if (!rollno || rollno.length < 4) return "KIET";
+  const code = rollno.substring(2, 4).toUpperCase();
+  switch (code) {
+    case "B2": return "KIET";
+    case "6Q": return "KIET+";
+    case "JN": return "KIET W";
+    default: return "KIET";
+  }
+};
+
 
 export default function Students() {
   const [students, setStudents] = useState([]);
@@ -237,8 +270,9 @@ export default function Students() {
                 <tr className="border-b border-slate-100 bg-purple-50/50 text-purple-950 text-[11px] font-extrabold uppercase tracking-wider">
                   <th className="py-3 px-4">Student</th>
                   <th className="py-3 px-4">Roll Number</th>
-                  <th className="py-3 px-4">Course / Dept</th>
-                  <th className="py-3 px-4">Year & Sec</th>
+                  <th className="py-3 px-4">Course</th>
+                  <th className="py-3 px-4">Campus</th>
+                  <th className="py-3 px-4">Year & Dept</th>
                   <th className="py-3 px-4">Block</th>
                   <th className="py-3 px-4">Room</th>
                   <th className="py-3 px-4">Status</th>
@@ -255,9 +289,14 @@ export default function Students() {
                       <span>{student.Name}</span>
                     </td>
                     <td className="py-3 px-4 text-slate-600 font-bold">{student.Rollno || "—"}</td>
-                    <td className="py-3 px-4">{student.Course || "Engineering"}</td>
                     <td className="py-3 px-4">
-                      Year {student.Year || 1} · Sec {student.Section || "A"}
+                      {student.Course || "Engineering"}
+                    </td>
+                    <td className="py-3 px-4 font-bold text-slate-700">
+                      {getCampusFromRollNo(student.Rollno)}
+                    </td>
+                    <td className="py-3 px-4">
+                      {getOrdinalYear(student.Year)} . {getDeptFromRollNo(student.Rollno)}
                     </td>
                     <td className="py-3 px-4 font-bold text-purple-700">
                       Block {student.Block || "A"}
@@ -278,7 +317,7 @@ export default function Students() {
                         {student.Status || "Active"}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-right space-x-1">
+                    <td className="py-3 px-4 flex justify-end items-center gap-1">
                       <button
                         onClick={() => openView(student)}
                         className="p-1.5 text-slate-500 hover:text-purple-600 hover:bg-purple-50 rounded-lg cursor-pointer"
@@ -286,13 +325,7 @@ export default function Students() {
                       >
                         <Eye className="w-4 h-4" />
                       </button>
-                      <button
-                        onClick={() => openForm(student)}
-                        className="p-1.5 text-slate-500 hover:text-purple-600 hover:bg-purple-50 rounded-lg cursor-pointer"
-                        title="Edit Student"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </button>
+
                       <button
                         onClick={() => deleteStudent(student)}
                         className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg cursor-pointer"
@@ -483,7 +516,16 @@ export default function Students() {
               </div>
             </div>
 
-            <div className="pt-3 border-t border-slate-100 flex justify-end">
+            <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
+              <button
+                onClick={() => {
+                  setViewOpen(false);
+                  openForm(selected);
+                }}
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-purple-100 text-purple-700 hover:bg-purple-200 cursor-pointer"
+              >
+                Edit Student
+              </button>
               <button
                 onClick={() => setViewOpen(false)}
                 className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer"
