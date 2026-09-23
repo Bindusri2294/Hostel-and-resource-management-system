@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { studentService, getErrorMessage } from "../services/api";
+import { studentService, roomService, getErrorMessage } from "../services/api";
 import {
   Users,
   Search,
@@ -18,16 +18,18 @@ import {
 const blankStudent = {
   Name: "",
   Rollno: "",
-  Course: "B.Tech Computer Science",
+  Course: "B.Tech",
   Year: 3,
-  Section: "A",
-  Block: "A",
+  Department: "CSM",
+  Campus: "KIET",
+  Block: "C",
   Roomno: "Unassigned",
   Status: "Active",
 };
 
 export default function Students() {
   const [students, setStudents] = useState([]);
+  const [allRooms, setAllRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
@@ -48,8 +50,12 @@ export default function Students() {
   const loadStudents = async () => {
     setLoading(true);
     try {
-      const { data } = await studentService.list();
-      setStudents(data || []);
+      const [studentsRes, roomsRes] = await Promise.all([
+        studentService.list(),
+        roomService.list(),
+      ]);
+      setStudents(studentsRes.data || []);
+      setAllRooms(roomsRes.data || []);
       setError("");
     } catch (err) {
       setError(getErrorMessage(err));
@@ -132,6 +138,28 @@ export default function Students() {
     }
   };
 
+  const getYearOrdinal = (year) => {
+    const y = Number(year) || 1;
+    if (y === 1) return "1st";
+    if (y === 2) return "2nd";
+    if (y === 3) return "3rd";
+    return `${y}th`;
+  };
+
+  const getDeptFromRollNo = (rollNo, defaultDept) => {
+    if (!rollNo) return defaultDept || "CSM";
+    const match = String(rollNo).toUpperCase().match(/(42|43|44|45|46)\d{2}$/);
+    if (match && String(rollNo).length >= 10) {
+      const code = match[1];
+      if (code === "42") return "CSM";
+      if (code === "43") return "CAI";
+      if (code === "44") return "CSD";
+      if (code === "45") return "AID";
+      if (code === "46") return "CSC";
+    }
+    return defaultDept || "CSM";
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -188,9 +216,6 @@ export default function Students() {
             >
               <option value="All">All Courses</option>
               <option value="Computer Science">Computer Science</option>
-              <option value="Artificial Intelligence">AI & DS</option>
-              <option value="Electronics">ECE</option>
-              <option value="Information Tech">IT</option>
             </select>
           </div>
 
@@ -238,7 +263,7 @@ export default function Students() {
                   <th className="py-3 px-4">Student</th>
                   <th className="py-3 px-4">Roll Number</th>
                   <th className="py-3 px-4">Course / Dept</th>
-                  <th className="py-3 px-4">Year & Sec</th>
+                  <th className="py-3 px-4">Year</th>
                   <th className="py-3 px-4">Block</th>
                   <th className="py-3 px-4">Room</th>
                   <th className="py-3 px-4">Status</th>
@@ -255,25 +280,26 @@ export default function Students() {
                       <span>{student.Name}</span>
                     </td>
                     <td className="py-3 px-4 text-slate-600 font-bold">{student.Rollno || "—"}</td>
-                    <td className="py-3 px-4">{student.Course || "Engineering"}</td>
+                    <td className="py-3 px-4 text-slate-600 font-bold">
+                      {student.Course || "B.Tech"} / {getDeptFromRollNo(student.Rollno, student.Department)}
+                    </td>
                     <td className="py-3 px-4">
-                      Year {student.Year || 1} · Sec {student.Section || "A"}
+                      {getYearOrdinal(student.Year)}
                     </td>
                     <td className="py-3 px-4 font-bold text-purple-700">
-                      Block {student.Block || "A"}
+                      {student.Block || "C"}
                     </td>
                     <td className="py-3 px-4">
                       <span className="px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 font-bold text-[11px]">
-                        Room {student.Roomno || "Unassigned"}
+                        {student.Roomno || "Unassigned"}
                       </span>
                     </td>
                     <td className="py-3 px-4">
                       <span
-                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${
-                          (student.Status || "Active") === "Active"
+                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${(student.Status || "Active") === "Active"
                             ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
                             : "bg-slate-100 text-slate-600 border border-slate-200"
-                        }`}
+                          }`}
                       >
                         {student.Status || "Active"}
                       </span>
@@ -353,22 +379,42 @@ export default function Students() {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. 2026-CS-01"
+                  placeholder="e.g. 24B25A4367"
                   value={form.Rollno || ""}
-                  onChange={(e) => setForm({ ...form, Rollno: e.target.value })}
+                  onChange={(e) => {
+                    const roll = e.target.value.toUpperCase();
+                    let updatedDept = form.Department;
+                    let updatedBlock = form.Block;
+                    
+                    const match = roll.match(/(42|43|44|45|46)\d{2}$/);
+                    if (match && roll.length >= 10) {
+                      const code = match[1];
+                      if (code === "42") updatedDept = "CSM";
+                      else if (code === "43") updatedDept = "CAI";
+                      else if (code === "44") updatedDept = "CSD";
+                      else if (code === "45") updatedDept = "AID";
+                      else if (code === "46") updatedDept = "CSC";
+                      
+                      if (updatedDept === "CSC" && (updatedBlock === "Womens" || updatedBlock === "Executive")) {
+                        updatedBlock = "C";
+                      }
+                    }
+                    setForm({ ...form, Rollno: roll, Department: updatedDept, Block: updatedBlock });
+                  }}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-700 mb-1 font-bold">Course / Department</label>
-                <input
-                  type="text"
-                  placeholder="e.g. B.Tech Computer Science"
-                  value={form.Course || ""}
+                <label className="block text-slate-700 mb-1 font-bold">Course</label>
+                <select
+                  value={form.Course || "B.Tech"}
                   onChange={(e) => setForm({ ...form, Course: e.target.value })}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
-                />
+                >
+                  <option value="B.Tech">B.Tech</option>
+                  <option value="Diploma">Diploma</option>
+                </select>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
@@ -384,38 +430,70 @@ export default function Students() {
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-700 mb-1 font-bold">Section</label>
-                  <input
-                    type="text"
-                    value={form.Section || "A"}
-                    onChange={(e) => setForm({ ...form, Section: e.target.value })}
+                  <label className="block text-slate-700 mb-1 font-bold">Department</label>
+                  <select
+                    value={form.Department || "CSM"}
+                    onChange={(e) => setForm({ ...form, Department: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
-                  />
+                  >
+                    <option value="CSM">CSM</option>
+                    <option value="CAI">CAI</option>
+                    <option value="CSD">CSD</option>
+                    <option value="AID">AID</option>
+                    {!(form.Block === "Womens" || form.Block === "Executive") && (
+                      <option value="CSC">CSC</option>
+                    )}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-slate-700 mb-1 font-bold">Campus</label>
+                  <select
+                    value={form.Campus || "KIET"}
+                    onChange={(e) => setForm({ ...form, Campus: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
+                  >
+                    <option value="KIET">KIET</option>
+                    <option value="KIET-W">KIET-W</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-slate-700 mb-1 font-bold">Block</label>
+                  <select
+                    value={form.Block || "C"}
+                    onChange={(e) => {
+                      const newBlock = e.target.value;
+                      let updatedDept = form.Department || "CSM";
+                      if ((newBlock === "Womens" || newBlock === "Executive") && updatedDept === "CSC") {
+                        updatedDept = "CSM";
+                      }
+                      setForm({ ...form, Block: newBlock, Roomno: "Unassigned", Department: updatedDept });
+                    }}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
+                  >
+                    <option value="C">Block C</option>
+                    <option value="D">Block D</option>
+                    <option value="E">Block E</option>
+                    <option value="Womens">Womens</option>
+                    <option value="Executive">Executive</option>
+                  </select>
                 </div>
               </div>
 
               <div>
-                <label className="block text-slate-700 mb-1 font-bold">Block</label>
-                <select
-                  value={form.Block || "A"}
-                  onChange={(e) => setForm({ ...form, Block: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
-                >
-                  <option value="A">Block A</option>
-                  <option value="B">Block B</option>
-                  <option value="C">Block C</option>
-                </select>
-              </div>
-
-              <div>
                 <label className="block text-slate-700 mb-1 font-bold">Room Number</label>
-                <input
-                  type="text"
-                  placeholder="e.g. B-204"
+                <select
                   value={form.Roomno || "Unassigned"}
                   onChange={(e) => setForm({ ...form, Roomno: e.target.value })}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
-                />
+                >
+                  <option value="Unassigned">Unassigned</option>
+                  {allRooms.filter(r => r.Block === (form.Block || "C")).map(r => (
+                    <option key={r._id} value={r.RoomNo}>{r.RoomNo}</option>
+                  ))}
+                </select>
               </div>
             </div>
 
@@ -467,15 +545,15 @@ export default function Students() {
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
                 <span className="text-[10px] text-slate-400 font-bold block">Academic Year</span>
-                <span className="font-extrabold text-slate-900">Year {selected.Year || 1}</span>
+                <span className="font-extrabold text-slate-900">{getYearOrdinal(selected.Year)}</span>
               </div>
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                <span className="text-[10px] text-slate-400 font-bold block">Section</span>
-                <span className="font-extrabold text-slate-900">Section {selected.Section || "A"}</span>
+                <span className="text-[10px] text-slate-400 font-bold block">Department</span>
+                <span className="font-extrabold text-slate-900">{getDeptFromRollNo(selected?.Rollno, selected?.Department)}</span>
               </div>
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
                 <span className="text-[10px] text-slate-400 font-bold block">Hostel Block</span>
-                <span className="font-extrabold text-purple-700">Block {selected.Block || "A"}</span>
+                <span className="font-extrabold text-purple-700">Block {selected.Block || "C"}</span>
               </div>
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
                 <span className="text-[10px] text-slate-400 font-bold block">Allocated Room</span>
