@@ -302,7 +302,7 @@ export default function Students() {
                       {getOrdinalYear(student.Year)} . {getDeptFromRollNo(student.Rollno)}
                     </td>
                     <td className="py-3 px-4 font-bold text-purple-700">
-                      Block {student.Block || "D"}
+                      {student.Block === "Executive" ? "Executive Block" : `Block ${student.Block || "D"}`}
                     </td>
                     <td className="py-3 px-4">
                       <span className="px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 font-bold text-[11px]">

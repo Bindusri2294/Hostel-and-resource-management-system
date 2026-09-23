@@ -37,7 +37,7 @@ const studentSchema = new mongoose.Schema(
     Block: {
       type: String,
       trim: true,
-      default: "C",
+      default: "D",
     },
     Roomno: {
       type: String,

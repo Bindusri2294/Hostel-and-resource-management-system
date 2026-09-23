@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { studentService, getErrorMessage } from "../services/api";
+import { studentService, roomService, getErrorMessage } from "../services/api";
 import { ClipboardCheck, Search, CheckCircle2, XCircle, Clock, AlertCircle } from "lucide-react";
 
 export default function Attendance() {
   const [students, setStudents] = useState([]);
+  const [rooms, setRooms] = useState([]);
   const [attendanceMap, setAttendanceMap] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -13,12 +14,13 @@ export default function Attendance() {
   const [savedMsg, setSavedMsg] = useState("");
 
   useEffect(() => {
-    studentService
-      .list()
-      .then(({ data }) => {
-        setStudents(data || []);
+    Promise.all([studentService.list(), roomService.list()])
+      .then(([studentsRes, roomsRes]) => {
+        const studentList = studentsRes.data || [];
+        setStudents(studentList);
+        setRooms(roomsRes.data || []);
         const initial = {};
-        (data || []).forEach((s) => {
+        studentList.forEach((s) => {
           initial[s._id] = "Present";
         });
         setAttendanceMap(initial);
@@ -46,13 +48,17 @@ export default function Attendance() {
     String(a).localeCompare(String(b), undefined, { numeric: true })
   );
 
+  const roomBlockMap = new Map(rooms.map((r) => [String(r.RoomNo), r.Block]));
+  const getStudentBlock = (s) => roomBlockMap.get(String(s.Roomno)) || s.Block || "D";
+
   const filteredStudents = students.filter((s) => {
+    const studentBlock = getStudentBlock(s);
     const matchesQuery =
       !query ||
-      [s.Name, s.Rollno, s.Roomno, s.Block].some((v) =>
+      [s.Name, s.Rollno, s.Roomno, studentBlock].some((v) =>
         String(v || "").toLowerCase().includes(query.toLowerCase())
       );
-    const matchesBlock = !selectedBlock || String(s.Block || "") === selectedBlock;
+    const matchesBlock = !selectedBlock || studentBlock === selectedBlock;
     const matchesRoom = !selectedRoom || String(s.Roomno || "") === selectedRoom;
 
     return matchesQuery && matchesBlock && matchesRoom;
@@ -191,7 +197,7 @@ export default function Attendance() {
                     <td className="py-3 px-4 font-bold text-slate-900">{s.Name}</td>
                     <td className="py-3 px-4 text-slate-500">{s.Rollno}</td>
                     <td className="py-3 px-4">
-                      {s.Block === "Executive" ? "Executive Block" : `Block ${s.Block || "D"}`} · Room {s.Roomno || "Unassigned"}
+                      {getStudentBlock(s) === "Executive" ? "Executive Block" : `Block ${getStudentBlock(s)}`} · Room {s.Roomno || "Unassigned"}
                     </td>
                     <td className="py-3 px-4 text-right">
                       <div className="inline-flex rounded-xl bg-slate-100 p-0.5 border border-slate-200">
