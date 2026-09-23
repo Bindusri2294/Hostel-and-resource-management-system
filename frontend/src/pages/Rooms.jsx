@@ -269,7 +269,11 @@ export default function Rooms() {
                 className="bg-white rounded-2xl border border-purple-100/70 p-5 shadow-xs hover:shadow-md transition-all space-y-4 flex flex-col justify-between"
               >
                 <div>
-                  <div className="flex items-center justify-end mb-2">
+                  <div className="flex items-center justify-between mb-2 gap-2">
+                    <span className="text-[11px] font-bold text-purple-700 bg-purple-50 px-2.5 py-1 rounded-lg border border-purple-100/80 flex items-center gap-1.5 shadow-2xs">
+                      <Building className="w-3.5 h-3.5 text-purple-600" />
+                      {room.Block === "Executive" ? "Executive Block" : `Block ${room.Block || "D"}`}
+                    </span>
                     <span
                       className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border ${
                         statusBadge === "Available"
@@ -283,7 +287,10 @@ export default function Rooms() {
                     </span>
                   </div>
 
-                  <h3 className="text-xl font-extrabold text-slate-900">Room {room.RoomNo}</h3>
+                  <div className="flex items-baseline justify-between mt-1">
+                    <h3 className="text-xl font-extrabold text-slate-900">Room {room.RoomNo}</h3>
+                    <span className="text-xs font-semibold text-slate-500">Floor {room.Floor ?? 1}</span>
+                  </div>
 
 
                   <div className="mt-4 pt-3 border-t border-slate-100 grid grid-cols-3 gap-2 text-center text-xs">
@@ -466,7 +473,7 @@ export default function Rooms() {
               <div className="p-3 bg-purple-50 rounded-xl border border-purple-100">
                 <span className="text-slate-400 text-[10px] block font-bold">Block / Floor</span>
                 <strong className="text-purple-900 font-extrabold">
-                  Block {selected.Block} · Floor {selected.Floor}
+                  {selected.Block === "Executive" ? "Executive Block" : `Block ${selected.Block}`} · Floor {selected.Floor}
                 </strong>
               </div>
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
