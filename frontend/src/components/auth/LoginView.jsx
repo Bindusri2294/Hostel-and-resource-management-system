@@ -1,14 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { useTheme } from '../../context/ThemeContext';
+
 import { useNavigate } from 'react-router-dom';
 import {
   LogIn,
   Building2,
-  AlertCircle,
-  Sun,
-  Moon,
-  Mail,
+  AlertCircle, Mail,
   Phone,
   MapPin,
   Home,
@@ -34,7 +31,7 @@ const hostelRoomImages = [
 
 export default function LoginView() {
   const { login } = useAuth();
-  const { isBright, toggleTheme } = useTheme();
+
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(false);
@@ -46,33 +43,56 @@ export default function LoginView() {
   const [userId, setUserId] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
 
-  // Scroll spy to update active nav based on scroll position
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            if (entry.target.id === 'home') setActiveNav('Home');
-            if (entry.target.id === 'about-us') setActiveNav('About Us');
-            if (entry.target.id === 'institutions') setActiveNav('Institutions');
-            if (entry.target.id === 'contact-us') setActiveNav('Contact Us');
-            if (entry.target.id === 'login-section') setActiveNav('Login');
+    const handleScroll = () => {
+      const sections = [
+        { id: 'home', name: 'Home' },
+        { id: 'about-us', name: 'About Us' },
+        { id: 'institutions', name: 'Institutions' },
+        { id: 'contact-us', name: 'Contact Us' }
+      ];
+
+      let currentSection = '';
+
+      for (const section of sections) {
+        const element = document.getElementById(section.id);
+        if (element) {
+          const rect = element.getBoundingClientRect();
+          // If the section top is above the middle of the viewport, it's considered active
+          if (rect.top <= window.innerHeight / 2) {
+            currentSection = section.name;
           }
+        }
+      }
+
+      // If scrolled to the very bottom, ensure Contact Us is active
+      if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 50) {
+        currentSection = 'Contact Us';
+      }
+
+      if (currentSection) {
+        setActiveNav(prev => {
+          // If they explicitly clicked "Login", keep it active while in the Home section
+          if (prev === 'Login' && currentSection === 'Home') return prev;
+          return currentSection;
         });
-      },
-      { rootMargin: '-30% 0px -70% 0px' }
-    );
+      }
+    };
 
-    ['home', 'about-us', 'institutions', 'contact-us', 'login-section'].forEach((id) => {
-      const el = document.getElementById(id);
-      if (el) observer.observe(el);
-    });
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll(); // Initial check
 
-    return () => observer.disconnect();
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const handleNavClick = (navName) => {
     setActiveNav(navName);
+
+    if (navName === 'Home') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
     let targetId = 'home';
     if (navName === 'About Us') targetId = 'about-us';
     if (navName === 'Institutions') targetId = 'institutions';
@@ -122,15 +142,9 @@ export default function LoginView() {
   };
 
   return (
-    <div className={`min-h-screen flex flex-col font-sans transition-colors duration-200 ${
-      isBright ? 'bg-slate-100 text-slate-900' : 'bg-slate-950 text-slate-100'
-    }`}>
+    <div className={`min-h-screen flex flex-col font-sans transition-colors duration-200 bg-slate-100 text-slate-900`}>
       {/* 1. TOP CONTACT HEADER BAR */}
-      <div className={`border-b text-xs font-semibold py-2 px-4 transition-colors ${
-        isBright
-          ? 'bg-[#311b92] text-[#f3e5f5] border-[#4a148c]'
-          : 'bg-slate-900 text-[#d1c4e9] border-slate-800'
-      }`}>
+      <div className={`border-b text-xs font-semibold py-2 px-4 transition-colors bg-[#311b92] text-[#f3e5f5] border-[#4a148c]`}>
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-4 flex-wrap">
             <a href="https://mail.google.com/mail/?view=cm&fs=1&to=info@kietgroup.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-[#e1bee7] transition-colors">
@@ -160,27 +174,13 @@ export default function LoginView() {
               <span>+91 90908 87777</span>
             </a>
 
-            {/* Bright / Dark Mode Toggle Button */}
-            <button
-              type="button"
-              onClick={toggleTheme}
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold border transition-all cursor-pointer ${
-                isBright
-                  ? 'bg-[#512da8]/60 hover:bg-[#4a148c] text-amber-300 border-[#7e57c2]'
-                  : 'bg-slate-800 hover:bg-slate-700 text-amber-400 border-slate-700'
-              }`}
-            >
-              {isBright ? <Moon className="w-3 h-3 text-indigo-300" /> : <Sun className="w-3 h-3 text-amber-400" />}
-              <span>{isBright ? 'Dark Mode' : 'Bright Mode'}</span>
-            </button>
+            
           </div>
         </div>
       </div>
 
       {/* 2. COLLEGE BRANDING HEADER BAR */}
-      <div className={`border-b py-4 px-4 transition-colors ${
-        isBright ? 'bg-[#f3e5f5]/60 border-[#e1bee7]' : 'bg-slate-900/90 border-slate-800'
-      }`}>
+      <div className={`border-b py-4 px-4 transition-colors bg-[#f3e5f5]/60 border-[#e1bee7]`}>
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center p-1 rounded-2xl bg-white shadow-md border border-slate-200">
@@ -191,19 +191,13 @@ export default function LoginView() {
               />
             </div>
             <div>
-              <h1 className={`text-xl sm:text-3xl font-extrabold tracking-tight uppercase ${
-                isBright ? 'text-slate-900' : 'text-white'
-              }`}>
+              <h1 className={`text-xl sm:text-3xl font-extrabold tracking-tight uppercase text-slate-900`}>
                 KIET GROUP OF INSTITUTIONS
               </h1>
-              <p className={`text-xs sm:text-sm font-semibold tracking-wide ${
-                isBright ? 'text-[#512da8]' : 'text-[#d1c4e9]'
-              }`}>
+              <p className={`text-xs sm:text-sm font-semibold tracking-wide text-[#512da8]`}>
                 KAKINADA INSTITUTE OF ENGINEERING & TECHNOLOGY
               </p>
-              <p className={`text-[11px] mt-0.5 flex items-center gap-1 ${
-                isBright ? 'text-slate-600' : 'text-slate-400'
-              }`}>
+              <p className={`text-[11px] mt-0.5 flex items-center gap-1 text-slate-600`}>
                 <MapPin className="w-3 h-3 text-rose-500 shrink-0" />
                 <span>Yanam Road, Korangi Village, Tallarevu Mandal, Kakinada District (East Godavari), AP – 533461</span>
               </p>
@@ -213,9 +207,7 @@ export default function LoginView() {
       </div>
 
       {/* 3. NAVIGATION BAR (Smooth Scrolling) */}
-      <nav className={`border-b sticky top-0 z-30 shadow-md backdrop-blur-lg ${
-        isBright ? 'bg-white/95 border-slate-200' : 'bg-slate-900/95 border-slate-800'
-      }`}>
+      <nav className={`border-b sticky top-0 z-30 shadow-md backdrop-blur-lg bg-white/95 border-slate-200`}>
         <div className="max-w-7xl mx-auto px-4 flex items-center justify-between overflow-x-auto">
           <div className="flex items-center gap-1 sm:gap-2 text-xs font-bold py-2">
             {[
@@ -235,9 +227,7 @@ export default function LoginView() {
                   className={`px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
                     isActive
                       ? 'bg-[#673BB7] text-white shadow-md font-bold'
-                      : isBright
-                      ? 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
-                      : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                      : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
                   }`}
                 >
                   <Icon className="w-3.5 h-3.5" />
@@ -258,32 +248,22 @@ export default function LoginView() {
             alt="KIET Campus Banner"
             className="w-full h-full object-cover filter blur-[1px]"
           />
-          <div className={`absolute inset-0 ${
-            isBright
-              ? 'bg-gradient-to-r from-slate-100 via-slate-100/90 to-slate-100/80'
-              : 'bg-gradient-to-r from-slate-950 via-slate-950/95 to-slate-950/90'
-          }`} />
+          <div className={`absolute inset-0 bg-gradient-to-r from-slate-100 via-slate-100/90 to-slate-100/80`} />
         </div>
 
         <div className="max-w-7xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-center z-10">
           {/* Left Column: Campus Welcome & Info */}
           <div className="lg:col-span-7 space-y-5">
-            <h2 className={`text-2xl sm:text-4xl font-extrabold tracking-tight leading-tight ${
-              isBright ? 'text-slate-900' : 'text-white'
-            }`}>
+            <h2 className={`text-2xl sm:text-4xl font-extrabold tracking-tight leading-tight text-slate-900`}>
               Welcome to <span className="text-[#673BB7]">KIET Campus</span> Hostel Portal
             </h2>
 
-            <p className={`text-xs sm:text-sm leading-relaxed ${
-              isBright ? 'text-slate-700' : 'text-slate-300'
-            }`}>
+            <p className={`text-xs sm:text-sm leading-relaxed text-slate-700`}>
               Manage your hostel room allocations, submit feedback & maintenance reports, track resolution status, and stay connected with KIET campus hostel administration.
             </p>
 
             {/* Campus Showcase Card - Full Uncropped Campus View */}
-            <div className={`rounded-2xl border p-2.5 shadow-xl overflow-hidden ${
-              isBright ? 'bg-white/90 border-slate-200' : 'bg-slate-900/80 border-slate-800'
-            }`}>
+            <div className={`rounded-2xl border p-2.5 shadow-xl overflow-hidden bg-white/90 border-slate-200`}>
               <div className="relative rounded-xl overflow-hidden bg-slate-900/40 flex flex-col">
                 <img
                   src={kietCollege}
@@ -299,17 +279,15 @@ export default function LoginView() {
 
           {/* Right Column: Sign In Card with Dual Role Login */}
           <div id="login-section" className="lg:col-span-5 scroll-mt-24">
-            <div className={`border rounded-2xl p-6 sm:p-8 shadow-2xl ${
-              isBright ? 'bg-white/95 border-slate-200' : 'bg-slate-900/90 border-slate-800 backdrop-blur-xl'
-            }`}>
+            <div className={`border rounded-2xl p-6 sm:p-8 shadow-2xl bg-white/95 border-slate-200`}>
               <div className="flex flex-col items-center text-center mb-5">
                 <div className="w-14 h-14 bg-gradient-to-tr from-[#673BB7] to-[#512da8] rounded-2xl flex items-center justify-center shadow-lg shadow-[#673BB7]/20 mb-3">
                   <Building2 className="w-8 h-8 text-white" />
                 </div>
-                <h2 className={`text-xl font-extrabold tracking-tight ${isBright ? 'text-slate-900' : 'text-white'}`}>
+                <h2 className={`text-xl font-extrabold tracking-tight text-slate-900`}>
                   KIET Hostel Portal
                 </h2>
-                <p className={`text-xs mt-1 ${isBright ? 'text-slate-600' : 'text-slate-400'}`}>
+                <p className={`text-xs mt-1 text-slate-600`}>
                   Select your role experience to access your workspace
                 </p>
               </div>
@@ -322,9 +300,7 @@ export default function LoginView() {
                   className={`flex-1 py-2.5 px-3 rounded-lg text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                     loginRole === 'Admin'
                       ? 'bg-[#673BB7] text-white shadow-md'
-                      : isBright
-                      ? 'text-slate-600 hover:text-slate-900'
-                      : 'text-slate-400 hover:text-white'
+                      : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
                   <Building2 className="w-3.5 h-3.5" />
@@ -336,9 +312,7 @@ export default function LoginView() {
                   className={`flex-1 py-2.5 px-3 rounded-lg text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                     loginRole === 'Student'
                       ? 'bg-[#673BB7] text-white shadow-md'
-                      : isBright
-                      ? 'text-slate-600 hover:text-slate-900'
-                      : 'text-slate-400 hover:text-white'
+                      : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
                   <GraduationCap className="w-3.5 h-3.5" />
@@ -377,7 +351,7 @@ export default function LoginView() {
               {/* LOGIN FORM */}
               <form onSubmit={handleLoginSubmit} className="space-y-4">
                 <div>
-                  <label className={`block text-xs font-bold mb-1 ${isBright ? 'text-slate-800' : 'text-slate-300'}`}>
+                  <label className={`block text-xs font-bold mb-1 text-slate-800`}>
                     {loginRole === 'Admin' ? 'Admin Email / Username *' : 'Student Roll Number / Email *'}
                   </label>
                   <input
@@ -386,16 +360,12 @@ export default function LoginView() {
                     placeholder={loginRole === 'Admin' ? 'admin@hostel.com' : 'student@hostel.com or Roll No'}
                     value={userId}
                     onChange={(e) => setUserId(e.target.value)}
-                    className={`w-full border rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none ${
-                      isBright
-                        ? 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-[#673BB7] focus:bg-white shadow-sm'
-                        : 'bg-slate-950 border-slate-800 text-white placeholder-slate-500 focus:border-[#673BB7]'
-                    }`}
+                    className={`w-full border rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-[#673BB7] focus:bg-white shadow-sm`}
                   />
                 </div>
 
                 <div>
-                  <label className={`block text-xs font-bold mb-1 ${isBright ? 'text-slate-800' : 'text-slate-300'}`}>
+                  <label className={`block text-xs font-bold mb-1 text-slate-800`}>
                     Password *
                   </label>
                   <input
@@ -404,11 +374,7 @@ export default function LoginView() {
                     placeholder="••••••••"
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
-                    className={`w-full border rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none ${
-                      isBright
-                        ? 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-[#673BB7] focus:bg-white shadow-sm'
-                        : 'bg-slate-950 border-slate-800 text-white placeholder-slate-500 focus:border-[#673BB7]'
-                    }`}
+                    className={`w-full border rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-[#673BB7] focus:bg-white shadow-sm`}
                   />
                 </div>
 
@@ -438,35 +404,35 @@ export default function LoginView() {
             <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-[#f3e5f5] text-[#512da8] border border-[#e1bee7]">
               ABOUT US
             </span>
-            <h2 className={`text-2xl sm:text-3xl font-bold tracking-tight ${isBright ? 'text-slate-900' : 'text-white'}`}>
+            <h2 className={`text-2xl sm:text-3xl font-bold tracking-tight text-slate-900`}>
               Excellence in Technical Education
             </h2>
-            <p className={`text-xs sm:text-sm ${isBright ? 'text-slate-600' : 'text-slate-400'}`}>
+            <p className={`text-xs sm:text-sm text-slate-600`}>
               Kakinada Institute of Engineering & Technology (KIET) is approved by AICTE, Govt of AP & Affiliated to JNTUK.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className={`p-6 rounded-2xl border ${isBright ? 'bg-white border-slate-200 shadow-md' : 'bg-slate-900/60 border-slate-800'}`}>
+            <div className={`p-6 rounded-2xl border bg-white border-slate-200 shadow-md`}>
               <BookOpen className="w-8 h-8 text-[#673BB7] mb-3" />
               <h3 className="text-base font-bold mb-2">Quality Academics</h3>
-              <p className={`text-xs leading-relaxed ${isBright ? 'text-slate-600' : 'text-slate-400'}`}>
+              <p className={`text-xs leading-relaxed text-slate-600`}>
                 Offering state-of-the-art engineering, technology, management, and pharmacy courses with experienced faculty members.
               </p>
             </div>
 
-            <div className={`p-6 rounded-2xl border ${isBright ? 'bg-white border-slate-200 shadow-md' : 'bg-slate-900/60 border-slate-800'}`}>
+            <div className={`p-6 rounded-2xl border bg-white border-slate-200 shadow-md`}>
               <Building2 className="w-8 h-8 text-[#673BB7] mb-3" />
               <h3 className="text-base font-bold mb-2">Modern Hostels</h3>
-              <p className={`text-xs leading-relaxed ${isBright ? 'text-slate-600' : 'text-slate-400'}`}>
+              <p className={`text-xs leading-relaxed text-slate-600`}>
                 Well-equipped residential hostels with 24/7 security, Wi-Fi connectivity, clean sanitation, and nutritious mess facilities.
               </p>
             </div>
 
-            <div className={`p-6 rounded-2xl border ${isBright ? 'bg-white border-slate-200 shadow-md' : 'bg-slate-900/60 border-slate-800'}`}>
+            <div className={`p-6 rounded-2xl border bg-white border-slate-200 shadow-md`}>
               <Award className="w-8 h-8 text-[#673BB7] mb-3" />
               <h3 className="text-base font-bold mb-2">AICTE & JNTUK Approved</h3>
-              <p className={`text-xs leading-relaxed ${isBright ? 'text-slate-600' : 'text-slate-400'}`}>
+              <p className={`text-xs leading-relaxed text-slate-600`}>
                 Recognized for academic standards, research laboratories, industry partnerships, and campus placements.
               </p>
             </div>
@@ -475,7 +441,7 @@ export default function LoginView() {
           {/* Hostel Room Showcase Cards (Static 2-Column Grid) */}
           <div className="pt-6 space-y-4">
             <div className="text-center max-w-3xl mx-auto space-y-1">
-              <h3 className={`text-2xl sm:text-3xl font-bold tracking-tight ${isBright ? 'text-slate-900' : 'text-white'}`}>
+              <h3 className={`text-2xl sm:text-3xl font-bold tracking-tight text-slate-900`}>
                 Our Hostel Rooms
               </h3>
             </div>
@@ -484,9 +450,7 @@ export default function LoginView() {
               {hostelRoomImages.map((item, idx) => (
                 <div
                   key={`hostel-room-${idx}`}
-                  className={`rounded-3xl overflow-hidden shadow-xl border transition-all duration-300 transform hover:scale-[1.02] hover:-translate-y-1 hover:shadow-2xl hover:border-[#673BB7] cursor-pointer flex flex-col ${
-                    isBright ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800'
-                  }`}
+                  className={`rounded-3xl overflow-hidden shadow-xl border transition-all duration-300 transform hover:scale-[1.02] hover:-translate-y-1 hover:shadow-2xl hover:border-[#673BB7] cursor-pointer flex flex-col bg-white border-slate-200`}
                 >
                   <div className="relative w-full h-[280px] sm:h-[320px] overflow-hidden">
                     <img
@@ -495,12 +459,8 @@ export default function LoginView() {
                       className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                     />
                   </div>
-                  <div className={`p-4 border-t ${
-                    isBright ? 'border-slate-100 bg-white' : 'border-slate-800 bg-slate-900'
-                  }`}>
-                    <p className={`text-xs font-semibold ${
-                      isBright ? 'text-slate-700' : 'text-slate-300'
-                    }`}>
+                  <div className={`p-4 border-t border-slate-100 bg-white`}>
+                    <p className={`text-xs font-semibold text-slate-700`}>
                       {item.desc}
                     </p>
                   </div>
@@ -513,10 +473,10 @@ export default function LoginView() {
           <div className="pt-8 space-y-8">
             {/* Tagline */}
             <div className="text-center max-w-3xl mx-auto space-y-2">
-              <h3 className={`text-2xl sm:text-3xl font-extrabold tracking-tight ${isBright ? 'text-slate-900' : 'text-white'}`}>
+              <h3 className={`text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900`}>
                 Hostel Life at <span className="text-[#673BB7]">KIET</span>
               </h3>
-              <p className={`text-xs sm:text-sm leading-relaxed font-medium ${isBright ? 'text-slate-600' : 'text-slate-400'}`}>
+              <p className={`text-xs sm:text-sm leading-relaxed font-medium text-slate-600`}>
                 A Home Away From Home — secure, comfortable, and vibrant living designed to support academic excellence and holistic development.
               </p>
             </div>
@@ -543,27 +503,25 @@ export default function LoginView() {
               ].map((card, idx) => (
                 <div
                   key={`hostel-highlight-${idx}`}
-                  className={`p-5 rounded-2xl border transition-all duration-300 hover:border-[#673BB7] hover:shadow-lg ${
-                    isBright ? 'bg-white border-slate-200 shadow-sm' : 'bg-slate-900/60 border-slate-800'
-                  }`}
+                  className={`p-5 rounded-2xl border transition-all duration-300 hover:border-[#673BB7] hover:shadow-lg bg-white border-slate-200 shadow-sm`}
                 >
-                  <h4 className={`text-sm font-bold mb-1.5 ${isBright ? 'text-slate-900' : 'text-white'}`}>{card.title}</h4>
-                  <p className={`text-xs leading-relaxed ${isBright ? 'text-slate-600' : 'text-slate-400'}`}>{card.desc}</p>
+                  <h4 className={`text-sm font-bold mb-1.5 text-slate-900`}>{card.title}</h4>
+                  <p className={`text-xs leading-relaxed text-slate-600`}>{card.desc}</p>
                 </div>
               ))}
             </div>
 
             {/* Boys & Girls Hostel Info */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className={`p-6 rounded-2xl border ${isBright ? 'bg-white border-slate-200 shadow-md' : 'bg-slate-900/60 border-slate-800'}`}>
-                <h4 className={`text-base font-bold mb-2 ${isBright ? 'text-slate-900' : 'text-white'}`}>Boys' Hostels</h4>
-                <p className={`text-xs leading-relaxed ${isBright ? 'text-slate-600' : 'text-slate-400'}`}>
+              <div className={`p-6 rounded-2xl border bg-white border-slate-200 shadow-md`}>
+                <h4 className={`text-base font-bold mb-2 text-slate-900`}>Boys' Hostels</h4>
+                <p className={`text-xs leading-relaxed text-slate-600`}>
                   A nurturing environment with robust safety measures, quality dining, fitness & sports facilities, and reliable transportation for off-campus residents. More than a place to stay — a community where students live, learn, grow, and succeed.
                 </p>
               </div>
-              <div className={`p-6 rounded-2xl border ${isBright ? 'bg-white border-slate-200 shadow-md' : 'bg-slate-900/60 border-slate-800'}`}>
-                <h4 className={`text-base font-bold mb-2 ${isBright ? 'text-slate-900' : 'text-white'}`}>Girls' Hostels</h4>
-                <p className={`text-xs leading-relaxed ${isBright ? 'text-slate-600' : 'text-slate-400'}`}>
+              <div className={`p-6 rounded-2xl border bg-white border-slate-200 shadow-md`}>
+                <h4 className={`text-base font-bold mb-2 text-slate-900`}>Girls' Hostels</h4>
+                <p className={`text-xs leading-relaxed text-slate-600`}>
                   A safe, peaceful, and comfortable environment with AC mess, AC gym with professional trainer, visitors' room, beauty parlour, 24×7 ambulance service, medical room, laundry services, lift access, and seamless Wi-Fi connectivity.
                 </p>
               </div>
@@ -571,7 +529,7 @@ export default function LoginView() {
 
             {/* Hostel Facilities Grid */}
             <div>
-              <h4 className={`text-base font-bold mb-4 text-center ${isBright ? 'text-slate-900' : 'text-white'}`}>Hostel Facilities</h4>
+              <h4 className={`text-base font-bold mb-4 text-center text-slate-900`}>Hostel Facilities</h4>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                 {[
                   'Fully AC Mess & Dining', 'AC Study Hall', 'High-Speed Wi-Fi', 'Cafeteria & Store',
@@ -580,11 +538,7 @@ export default function LoginView() {
                 ].map((facility) => (
                   <div
                     key={facility}
-                    className={`px-3 py-2.5 rounded-xl text-xs font-semibold text-center border transition-all hover:border-[#673BB7] hover:shadow-sm ${
-                      isBright
-                        ? 'bg-[#f3e5f5]/60 text-[#512da8] border-[#e1bee7]'
-                        : 'bg-[#673BB7]/10 text-[#d1c4e9] border-[#673BB7]/30'
-                    }`}
+                    className={`px-3 py-2.5 rounded-xl text-xs font-semibold text-center border transition-all hover:border-[#673BB7] hover:shadow-sm bg-[#f3e5f5]/60 text-[#512da8] border-[#e1bee7]`}
                   >
                     {facility}
                   </div>
@@ -603,7 +557,7 @@ export default function LoginView() {
             <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-[#f3e5f5] text-[#512da8] border border-[#e1bee7]">
               OUR INSTITUTIONS
             </span>
-            <h2 className={`text-2xl sm:text-3xl font-bold tracking-tight ${isBright ? 'text-slate-900' : 'text-white'}`}>
+            <h2 className={`text-2xl sm:text-3xl font-bold tracking-tight text-slate-900`}>
               KIET Group of Colleges
             </h2>
           </div>
@@ -619,13 +573,11 @@ export default function LoginView() {
               return (
                 <div
                   key={inst.name}
-                  className={`p-5 rounded-2xl border transition-all duration-300 transform hover:scale-[1.03] hover:-translate-y-1 hover:shadow-xl hover:border-[#673BB7] hover:ring-2 hover:ring-[#673BB7]/30 cursor-pointer ${
-                    isBright ? 'bg-white border-slate-200 shadow-sm' : 'bg-slate-900/60 border-slate-800'
-                  }`}
+                  className={`p-5 rounded-2xl border transition-all duration-300 transform hover:scale-[1.03] hover:-translate-y-1 hover:shadow-xl hover:border-[#673BB7] hover:ring-2 hover:ring-[#673BB7]/30 cursor-pointer bg-white border-slate-200 shadow-sm`}
                 >
                   <InstIcon className="w-7 h-7 text-[#673BB7] mb-2" />
                   <h3 className="text-sm font-bold">{inst.name}</h3>
-                  <p className={`text-xs mt-1 ${isBright ? 'text-slate-500' : 'text-slate-400'}`}>{inst.desc}</p>
+                  <p className={`text-xs mt-1 text-slate-500`}>{inst.desc}</p>
                 </div>
               );
             })}
@@ -652,16 +604,14 @@ export default function LoginView() {
           {/* 3 Contact Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Card 1: Campus Address */}
-            <div className={`p-6 rounded-3xl border shadow-xl flex flex-col justify-between space-y-4 ${
-              isBright ? 'bg-white border-slate-200' : 'bg-slate-900/80 border-slate-800'
-            }`}>
+            <div className={`p-6 rounded-3xl border shadow-xl flex flex-col justify-between space-y-4 bg-white border-slate-200`}>
               <div className="space-y-4">
                 <div className="w-12 h-12 rounded-2xl bg-[#f3e5f5] text-[#673BB7] flex items-center justify-center border border-[#e1bee7] shadow-sm">
                   <MapPin className="w-6 h-6" />
                 </div>
                 <div>
                   <h3 className="text-base font-extrabold tracking-tight mb-2">Campus Address</h3>
-                  <p className={`text-xs leading-relaxed font-semibold ${isBright ? 'text-slate-600' : 'text-slate-400'}`}>
+                  <p className={`text-xs leading-relaxed font-semibold text-slate-600`}>
                     KIET Group of Institutions,<br />
                     Kakinada - Yanam Road, Korangi,<br />
                     East Godavari Dist, A.P - 533461.
@@ -683,30 +633,28 @@ export default function LoginView() {
             </div>
 
             {/* Card 2: General Enquiry */}
-            <div className={`p-6 rounded-3xl border shadow-xl flex flex-col justify-between space-y-4 ${
-              isBright ? 'bg-white border-slate-200' : 'bg-slate-900/80 border-slate-800'
-            }`}>
+            <div className={`p-6 rounded-3xl border shadow-xl flex flex-col justify-between space-y-4 bg-white border-slate-200`}>
               <div className="space-y-4">
                 <div className="w-12 h-12 rounded-2xl bg-[#f3e5f5] text-[#673BB7] flex items-center justify-center border border-[#e1bee7] shadow-sm">
                   <Phone className="w-6 h-6" />
                 </div>
                 <div>
                   <h3 className="text-base font-extrabold tracking-tight mb-1">General Enquiry</h3>
-                  <p className={`text-xs font-medium mb-3 ${isBright ? 'text-slate-500' : 'text-slate-400'}`}>
+                  <p className={`text-xs font-medium mb-3 text-slate-500`}>
                     For admissions and general information.
                   </p>
 
                   <div className="space-y-1.5 text-xs font-extrabold">
-                    <a href="tel:+919849495335" className={`block hover:text-[#673BB7] transition-colors ${isBright ? 'text-slate-900' : 'text-white'}`}>
+                    <a href="tel:+919849495335" className={`block hover:text-[#673BB7] transition-colors text-slate-900`}>
                       +91 98494 95335
                     </a>
-                    <a href="tel:+918818988199" className={`block hover:text-[#673BB7] transition-colors ${isBright ? 'text-slate-900' : 'text-white'}`}>
+                    <a href="tel:+918818988199" className={`block hover:text-[#673BB7] transition-colors text-slate-900`}>
                       +91 88189 88199
                     </a>
-                    <a href="tel:+919090887777" className={`block hover:text-[#673BB7] transition-colors ${isBright ? 'text-slate-900' : 'text-white'}`}>
+                    <a href="tel:+919090887777" className={`block hover:text-[#673BB7] transition-colors text-slate-900`}>
                       +91 90908 87777
                     </a>
-                    <a href="tel:08842303400" className={`block hover:text-[#673BB7] transition-colors ${isBright ? 'text-slate-900' : 'text-white'}`}>
+                    <a href="tel:08842303400" className={`block hover:text-[#673BB7] transition-colors text-slate-900`}>
                       0884-2303400
                     </a>
                   </div>
@@ -714,7 +662,7 @@ export default function LoginView() {
               </div>
 
               <div className="pt-3 border-t border-slate-200/60 space-y-1">
-                <span className={`block text-[11px] font-semibold ${isBright ? 'text-slate-500' : 'text-slate-400'}`}>Official Email Contacts:</span>
+                <span className={`block text-[11px] font-semibold text-slate-500`}>Official Email Contacts:</span>
                 <div className="flex flex-col gap-1">
                   <a href="https://mail.google.com/mail/?view=cm&fs=1&to=info@kietgroup.com" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-xs font-bold text-[#673BB7] hover:underline">
                     <Mail className="w-3.5 h-3.5 text-[#673BB7]" />
@@ -733,9 +681,7 @@ export default function LoginView() {
             </div>
 
             {/* Card 3: Connect With Us */}
-            <div className={`p-6 rounded-3xl border shadow-xl flex flex-col justify-between space-y-4 ${
-              isBright ? 'bg-white border-slate-200' : 'bg-slate-900/80 border-slate-800'
-            }`}>
+            <div className={`p-6 rounded-3xl border shadow-xl flex flex-col justify-between space-y-4 bg-white border-slate-200`}>
               <div className="space-y-4">
                 <div className="w-12 h-12 rounded-2xl bg-[#f3e5f5] text-[#673BB7] flex items-center justify-center border border-[#e1bee7] shadow-sm">
                   <Globe className="w-6 h-6" />
@@ -748,7 +694,7 @@ export default function LoginView() {
                       href="https://www.kietgroup.com"
                       target="_blank"
                       rel="noreferrer"
-                      className={`flex items-center gap-2.5 hover:text-[#673BB7] transition-colors ${isBright ? 'text-slate-800' : 'text-slate-200'}`}
+                      className={`flex items-center gap-2.5 hover:text-[#673BB7] transition-colors text-slate-800`}
                     >
                       <Globe className="w-4 h-4 text-[#673BB7] shrink-0" />
                       <span>www.kietgroup.com</span>
@@ -758,7 +704,7 @@ export default function LoginView() {
                       href="https://instagram.com/Kiet.channel"
                       target="_blank"
                       rel="noreferrer"
-                      className={`flex items-center gap-2.5 hover:text-pink-600 transition-colors ${isBright ? 'text-slate-800' : 'text-slate-200'}`}
+                      className={`flex items-center gap-2.5 hover:text-pink-600 transition-colors text-slate-800`}
                     >
                       <svg className="w-4 h-4 text-pink-600 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                         <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
@@ -772,7 +718,7 @@ export default function LoginView() {
                       href="https://www.youtube.com/@kakinadakiet"
                       target="_blank"
                       rel="noreferrer"
-                      className={`flex items-center gap-2.5 hover:text-rose-600 transition-colors ${isBright ? 'text-slate-800' : 'text-slate-200'}`}
+                      className={`flex items-center gap-2.5 hover:text-rose-600 transition-colors text-slate-800`}
                     >
                       <svg className="w-4 h-4 text-rose-600 shrink-0" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
@@ -784,7 +730,7 @@ export default function LoginView() {
               </div>
 
               <div className="pt-3 border-t border-slate-200/60">
-                <span className={`text-[11px] font-semibold ${isBright ? 'text-slate-500' : 'text-slate-400'}`}>
+                <span className={`text-[11px] font-semibold text-slate-500`}>
                   Hostel Administration & Support Office
                 </span>
               </div>
@@ -794,9 +740,7 @@ export default function LoginView() {
       </section>
 
       {/* 5. FOOTER BAR */}
-      <footer className={`border-t py-6 px-4 text-xs transition-colors ${
-        isBright ? 'bg-white border-slate-200 text-slate-600' : 'bg-slate-900 border-slate-800 text-slate-400'
-      }`}>
+      <footer className={`border-t py-6 px-4 text-xs transition-colors bg-white border-slate-200 text-slate-600`}>
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-extrabold">
             {['Home', 'About Us', 'Institutions', 'Contact Us', 'Login'].map((item) => (

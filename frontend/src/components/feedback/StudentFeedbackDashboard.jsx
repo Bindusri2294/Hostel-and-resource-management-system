@@ -13,10 +13,7 @@ import {
   CheckCircle2,
   Clock,
   RefreshCw,
-  Sparkles,
-  Sun,
-  Moon,
-  Lock,
+  Sparkles, Lock,
   UploadCloud,
   ImageIcon,
   X
@@ -24,7 +21,7 @@ import {
 
 export default function StudentFeedbackDashboard() {
   const { user, logout } = useAuth();
-  const { isBright, toggleTheme } = useTheme();
+
   const [activeTab, setActiveTab] = useState('submit'); // 'submit' | 'my-feedbacks'
 
   // Form State derived strictly from authenticated student profile
@@ -174,101 +171,39 @@ export default function StudentFeedbackDashboard() {
   const getStatusBadge = (status) => {
     if (status === 'Completed') {
       return (
-        <span className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full border ${
-          isBright
-            ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
-            : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-        }`}>
+        <span className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full border bg-emerald-100 text-emerald-900 border-emerald-300`}>
           <CheckCircle2 className="w-3.5 h-3.5" /> Completed
         </span>
       );
     }
     if (status === 'In Progress') {
       return (
-        <span className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full border ${
-          isBright
-            ? 'bg-blue-100 text-blue-900 border-blue-300'
-            : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
-        }`}>
+        <span className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full border bg-blue-100 text-blue-900 border-blue-300`}>
           <RefreshCw className="w-3.5 h-3.5" /> In Progress
         </span>
       );
     }
     return (
-      <span className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full border ${
-        isBright
-          ? 'bg-amber-100 text-amber-900 border-amber-300'
-          : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-      }`}>
+      <span className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full border bg-amber-100 text-amber-900 border-amber-300`}>
         <Clock className="w-3.5 h-3.5" /> Pending Review
       </span>
     );
   };
 
   return (
-    <div className={`min-h-screen flex flex-col transition-colors duration-200 ${
-      isBright ? 'bg-slate-50 text-slate-900' : 'bg-slate-950 text-slate-100'
-    }`}>
-      {/* Header Bar */}
-      <header className={`border-b sticky top-0 z-30 backdrop-blur-lg transition-colors ${
-        isBright ? 'bg-white/90 border-slate-200 shadow-sm' : 'bg-slate-900/80 border-slate-800/80'
-      }`}>
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 border rounded-xl flex items-center justify-center ${
-              isBright ? 'bg-[#f3e5f5] border-[#e1bee7] text-[#673BB7]' : 'bg-[#673BB7]/20 border-[#673BB7]/30 text-[#d1c4e9]'
-            }`}>
-              <Building className="w-5 h-5" />
-            </div>
-            <div>
-              <h1 className={`text-base font-bold ${isBright ? 'text-slate-900' : 'text-white'}`}>
-                Hostel Student Portal
-              </h1>
-              <p className={`text-xs ${isBright ? 'text-slate-600' : 'text-slate-400'}`}>
-                Logged in as: <strong className={isBright ? 'text-slate-900' : 'text-slate-200'}>{user?.name}</strong> {user?.student?.Rollno && `(${user.student.Rollno})`}
-              </p>
-            </div>
-          </div>
+    <div className={`min-h-screen flex flex-col transition-colors duration-200 bg-slate-50 text-slate-900`}>
 
-          <div className="flex items-center gap-2">
-            {/* Bright Mode Toggle */}
-            <button
-              type="button"
-              onClick={toggleTheme}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
-                isBright
-                  ? 'bg-amber-100 text-amber-900 border-amber-300 hover:bg-amber-200 shadow-sm'
-                  : 'bg-slate-800/80 hover:bg-slate-800 text-amber-400 border-slate-700/60'
-              }`}
-            >
-              {isBright ? <Moon className="w-3.5 h-3.5 text-indigo-700" /> : <Sun className="w-3.5 h-3.5 text-amber-400" />}
-              <span>{isBright ? 'Dark Mode' : 'Bright Mode'}</span>
-            </button>
-
-            <button
-              onClick={logout}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
-                isBright
-                  ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300'
-                  : 'bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white border-slate-700/60'
-              }`}
-            >
-              <LogOut className="w-3.5 h-3.5" /> Sign Out
-            </button>
-          </div>
-        </div>
-      </header>
 
       {/* Main Container */}
       <main className="flex-1 max-w-6xl w-full mx-auto p-4 md:p-6 space-y-6">
         {/* Navigation Tabs */}
-        <div className={`flex border-b gap-4 ${isBright ? 'border-slate-300' : 'border-slate-800'}`}>
+        <div className={`flex border-b gap-4 border-slate-300`}>
           <button
             onClick={() => setActiveTab('submit')}
             className={`pb-3 text-sm font-bold flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
               activeTab === 'submit'
-                ? isBright ? 'border-[#673BB7] text-[#673BB7]' : 'border-[#673BB7] text-[#d1c4e9]'
-                : isBright ? 'border-transparent text-slate-600 hover:text-slate-900' : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-[#673BB7] text-[#673BB7]'
+                : 'border-transparent text-slate-600 hover:text-slate-900'
             }`}
           >
             <MessageSquarePlus className="w-4 h-4" /> Submit Feedback / Report Issue
@@ -278,8 +213,8 @@ export default function StudentFeedbackDashboard() {
             onClick={() => setActiveTab('my-feedbacks')}
             className={`pb-3 text-sm font-bold flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
               activeTab === 'my-feedbacks'
-                ? isBright ? 'border-[#673BB7] text-[#673BB7]' : 'border-[#673BB7] text-[#d1c4e9]'
-                : isBright ? 'border-transparent text-slate-600 hover:text-slate-900' : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-[#673BB7] text-[#673BB7]'
+                : 'border-transparent text-slate-600 hover:text-slate-900'
             }`}
           >
             <History className="w-4 h-4" /> My Submissions ({myFeedbacks.length})
@@ -290,14 +225,12 @@ export default function StudentFeedbackDashboard() {
         {activeTab === 'submit' && (
           <div className="grid md:grid-cols-3 gap-6">
             {/* Form */}
-            <div className={`md:col-span-2 border rounded-2xl p-6 shadow-xl ${
-              isBright ? 'bg-white border-slate-200' : 'bg-slate-900/60 border-slate-800/80'
-            }`}>
+            <div className={`md:col-span-2 border rounded-2xl p-6 shadow-xl bg-white border-slate-200`}>
               <div className="mb-6">
-                <h2 className={`text-lg font-bold flex items-center gap-2 ${isBright ? 'text-slate-900' : 'text-white'}`}>
+                <h2 className={`text-lg font-bold flex items-center gap-2 text-slate-900`}>
                   <Sparkles className="w-5 h-5 text-[#673BB7]" /> Express Your Feedback
                 </h2>
-                <p className={`text-xs mt-0.5 ${isBright ? 'text-slate-600' : 'text-slate-400'}`}>
+                <p className={`text-xs mt-0.5 text-slate-600`}>
                   Share your suggestions, complaints, or maintenance issues directly with hostel management.
                 </p>
               </div>
@@ -318,7 +251,7 @@ export default function StudentFeedbackDashboard() {
                 {/* Student ID / Roll No & Room & Block (Non-editable, locked to backend auth) */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
-                    <label className={`block text-xs font-semibold mb-1.5 ${isBright ? 'text-slate-800' : 'text-slate-300'}`}>
+                    <label className={`block text-xs font-semibold mb-1.5 text-slate-800`}>
                       Student ID (Roll No)
                     </label>
                     <div className="relative">
@@ -327,18 +260,13 @@ export default function StudentFeedbackDashboard() {
                         readOnly
                         disabled
                         value={user?.student?.Rollno || studentId || 'N/A'}
-                        className={`w-full border rounded-xl pl-3.5 pr-8 py-2.5 text-xs font-bold cursor-not-allowed select-none ${
-                          isBright
-                            ? 'bg-slate-100 border-slate-300 text-slate-800 shadow-inner'
-                            : 'bg-slate-900 border-slate-800 text-slate-300'
-                        }`}
+                        className={`w-full border rounded-xl px-3.5 py-2.5 text-xs font-bold select-none bg-slate-100 border-slate-300 text-slate-800 shadow-inner`}
                       />
-                      <Lock className={`w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 ${isBright ? 'text-slate-400' : 'text-slate-500'}`} />
                     </div>
                   </div>
 
                   <div>
-                    <label className={`block text-xs font-semibold mb-1.5 ${isBright ? 'text-slate-800' : 'text-slate-300'}`}>
+                    <label className={`block text-xs font-semibold mb-1.5 text-slate-800`}>
                       Room Number
                     </label>
                     <div className="relative">
@@ -347,18 +275,13 @@ export default function StudentFeedbackDashboard() {
                         readOnly
                         disabled
                         value={user?.student?.Roomno || roomNo || 'Unassigned'}
-                        className={`w-full border rounded-xl pl-3.5 pr-8 py-2.5 text-xs font-bold cursor-not-allowed select-none ${
-                          isBright
-                            ? 'bg-slate-100 border-slate-300 text-slate-800 shadow-inner'
-                            : 'bg-slate-900 border-slate-800 text-slate-300'
-                        }`}
+                        className={`w-full border rounded-xl px-3.5 py-2.5 text-xs font-bold select-none bg-slate-100 border-slate-300 text-slate-800 shadow-inner`}
                       />
-                      <Lock className={`w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 ${isBright ? 'text-slate-400' : 'text-slate-500'}`} />
                     </div>
                   </div>
 
                   <div>
-                    <label className={`block text-xs font-semibold mb-1.5 ${isBright ? 'text-slate-800' : 'text-slate-300'}`}>
+                    <label className={`block text-xs font-semibold mb-1.5 text-slate-800`}>
                       Hostel Block
                     </label>
                     <div className="relative">
@@ -367,30 +290,21 @@ export default function StudentFeedbackDashboard() {
                         readOnly
                         disabled
                         value={user?.student?.Campus || block || 'Block A'}
-                        className={`w-full border rounded-xl pl-3.5 pr-8 py-2.5 text-xs font-bold cursor-not-allowed select-none ${
-                          isBright
-                            ? 'bg-slate-100 border-slate-300 text-slate-800 shadow-inner'
-                            : 'bg-slate-900 border-slate-800 text-slate-300'
-                        }`}
+                        className={`w-full border rounded-xl px-3.5 py-2.5 text-xs font-bold select-none bg-slate-100 border-slate-300 text-slate-800 shadow-inner`}
                       />
-                      <Lock className={`w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 ${isBright ? 'text-slate-400' : 'text-slate-500'}`} />
                     </div>
                   </div>
                 </div>
 
                 {/* Feedback Category Selection */}
                 <div>
-                  <label className={`block text-xs font-semibold mb-1.5 ${isBright ? 'text-slate-800' : 'text-slate-300'}`}>
+                  <label className={`block text-xs font-semibold mb-1.5 text-slate-800`}>
                     Feedback Category *
                   </label>
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className={`w-full border rounded-xl px-3.5 py-2.5 text-xs font-bold focus:outline-none ${
-                      isBright
-                        ? 'bg-slate-50 border-slate-300 text-slate-900 focus:border-[#673BB7] focus:bg-white shadow-sm'
-                        : 'bg-slate-950 border-slate-800 text-white focus:border-[#673BB7]'
-                    }`}
+                    className={`w-full border rounded-xl px-3.5 py-2.5 text-xs font-bold focus:outline-none bg-slate-50 border-slate-300 text-slate-900 focus:border-[#673BB7] focus:bg-white shadow-sm`}
                   >
                     {categoryOptions.map((cat) => (
                       <option key={cat.value} value={cat.value}>
@@ -402,12 +316,10 @@ export default function StudentFeedbackDashboard() {
 
                 {/* Rating Widget */}
                 <div>
-                  <label className={`block text-xs font-semibold mb-1.5 ${isBright ? 'text-slate-800' : 'text-slate-300'}`}>
+                  <label className={`block text-xs font-semibold mb-1.5 text-slate-800`}>
                     Rating / Overall Satisfaction *
                   </label>
-                  <div className={`flex items-center gap-2 p-3 rounded-xl border ${
-                    isBright ? 'bg-slate-50 border-slate-300' : 'bg-slate-950 border-slate-800'
-                  }`}>
+                  <div className={`flex items-center gap-2 p-3 rounded-xl border bg-slate-50 border-slate-300`}>
                     <div className="flex gap-1">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <button
@@ -422,13 +334,13 @@ export default function StudentFeedbackDashboard() {
                             className={`w-6 h-6 ${
                               star <= (hoverRating || rating)
                                 ? 'fill-amber-400 text-amber-500'
-                                : isBright ? 'text-slate-300 fill-slate-200' : 'text-slate-700'
+                                : 'text-slate-300 fill-slate-200'
                             }`}
                           />
                         </button>
                       ))}
                     </div>
-                    <span className={`text-xs font-bold ml-2 ${isBright ? 'text-amber-800' : 'text-amber-300'}`}>
+                    <span className={`text-xs font-bold ml-2 text-amber-800`}>
                       {ratingLabels[(hoverRating || rating) - 1]}
                     </span>
                   </div>
@@ -436,7 +348,7 @@ export default function StudentFeedbackDashboard() {
 
                 {/* Message */}
                 <div>
-                  <label className={`block text-xs font-semibold mb-1.5 ${isBright ? 'text-slate-800' : 'text-slate-300'}`}>
+                  <label className={`block text-xs font-semibold mb-1.5 text-slate-800`}>
                     Feedback Message *
                   </label>
                   <textarea
@@ -445,25 +357,17 @@ export default function StudentFeedbackDashboard() {
                     placeholder="Explain the problem or suggestion clearly..."
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
-                    className={`w-full border rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none resize-none ${
-                      isBright
-                        ? 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-[#673BB7] focus:bg-white shadow-sm'
-                        : 'bg-slate-950 border-slate-800 text-white placeholder-slate-500 focus:border-[#673BB7]'
-                    }`}
+                    className={`w-full border rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none resize-none bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-[#673BB7] focus:bg-white shadow-sm`}
                   />
                 </div>
 
                 {/* Optional Image Attachment */}
                 <div>
-                  <label className={`block text-xs font-semibold mb-1.5 ${isBright ? 'text-slate-800' : 'text-slate-300'}`}>
+                  <label className={`block text-xs font-semibold mb-1.5 text-slate-800`}>
                     Attach Photo / Proof (Optional)
                   </label>
                   {!imagePreview ? (
-                    <label className={`flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-4 cursor-pointer transition-all ${
-                      isBright
-                        ? 'bg-slate-50 border-slate-300 hover:border-[#673BB7] hover:bg-[#f3e5f5]/30 text-slate-600'
-                        : 'bg-slate-950 border-slate-800 hover:border-[#673BB7] hover:bg-slate-900 text-slate-400'
-                    }`}>
+                    <label className={`flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-4 cursor-pointer transition-all bg-slate-50 border-slate-300 hover:border-[#673BB7] hover:bg-[#f3e5f5]/30 text-slate-600`}>
                       <UploadCloud className="w-6 h-6 text-[#673BB7] mb-1" />
                       <span className="text-xs font-semibold">Click to upload issue photo</span>
                       <span className="text-[10px] opacity-70 mt-0.5">Supports JPG, PNG, WEBP (Max 5MB)</span>
@@ -508,27 +412,23 @@ export default function StudentFeedbackDashboard() {
 
             {/* Sidebar Student Profile Card */}
             <div className="space-y-4">
-              <div className={`border rounded-2xl p-5 shadow-xl ${
-                isBright ? 'bg-white border-slate-200' : 'bg-slate-900/60 border-slate-800/80'
-              }`}>
-                <h3 className={`text-xs font-bold uppercase tracking-wider mb-3 flex items-center gap-1.5 ${
-                  isBright ? 'text-slate-700' : 'text-slate-300'
-                }`}>
+              <div className={`border rounded-2xl p-5 shadow-xl bg-white border-slate-200`}>
+                <h3 className={`text-xs font-bold uppercase tracking-wider mb-3 flex items-center gap-1.5 text-slate-700`}>
                   <UserCheck className="w-4 h-4 text-[#673BB7]" /> Student Account Profile
                 </h3>
 
                 <div className="space-y-2 text-xs">
-                  <div className={`p-2.5 rounded-lg border ${isBright ? 'bg-slate-50 border-slate-200' : 'bg-slate-950 border-slate-800'}`}>
-                    <span className={`block text-[10px] ${isBright ? 'text-slate-500' : 'text-slate-400'}`}>Name</span>
-                    <span className={`font-bold ${isBright ? 'text-slate-900' : 'text-white'}`}>{user?.name || 'Student'}</span>
+                  <div className={`p-2.5 rounded-lg border bg-slate-50 border-slate-200`}>
+                    <span className={`block text-[10px] text-slate-500`}>Name</span>
+                    <span className={`font-bold text-slate-900`}>{user?.name || 'Student'}</span>
                   </div>
-                  <div className={`p-2.5 rounded-lg border ${isBright ? 'bg-slate-50 border-slate-200' : 'bg-slate-950 border-slate-800'}`}>
-                    <span className={`block text-[10px] ${isBright ? 'text-slate-500' : 'text-slate-400'}`}>Roll Number</span>
-                    <span className={`font-bold ${isBright ? 'text-[#673BB7]' : 'text-[#d1c4e9]'}`}>{user?.student?.Rollno || studentId || 'N/A'}</span>
+                  <div className={`p-2.5 rounded-lg border bg-slate-50 border-slate-200`}>
+                    <span className={`block text-[10px] text-slate-500`}>Roll Number</span>
+                    <span className={`font-bold text-[#673BB7]`}>{user?.student?.Rollno || studentId || 'N/A'}</span>
                   </div>
-                  <div className={`p-2.5 rounded-lg border ${isBright ? 'bg-slate-50 border-slate-200' : 'bg-slate-950 border-slate-800'}`}>
-                    <span className={`block text-[10px] ${isBright ? 'text-slate-500' : 'text-slate-400'}`}>Room & Hostel</span>
-                    <span className={`font-bold ${isBright ? 'text-emerald-700' : 'text-emerald-400'}`}>
+                  <div className={`p-2.5 rounded-lg border bg-slate-50 border-slate-200`}>
+                    <span className={`block text-[10px] text-slate-500`}>Room & Hostel</span>
+                    <span className={`font-bold text-emerald-700`}>
                       {user?.student?.Roomno ? `Room ${user.student.Roomno}` : roomNo ? `Room ${roomNo}` : 'General'} ({user?.student?.Campus || 'Main Campus'})
                     </span>
                   </div>
@@ -542,7 +442,7 @@ export default function StudentFeedbackDashboard() {
         {activeTab === 'my-feedbacks' && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className={`text-lg font-bold flex items-center gap-2 ${isBright ? 'text-slate-900' : 'text-white'}`}>
+              <h2 className={`text-lg font-bold flex items-center gap-2 text-slate-900`}>
                 <History className="w-5 h-5 text-[#673BB7]" /> Your Submitted Feedback
               </h2>
               <button
@@ -554,46 +454,36 @@ export default function StudentFeedbackDashboard() {
             </div>
 
             {loadingFeedbacks ? (
-              <div className={`p-12 text-center ${isBright ? 'text-slate-600' : 'text-slate-400'}`}>
+              <div className={`p-12 text-center text-slate-600`}>
                 <div className="w-6 h-6 border-2 border-[#673BB7] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
                 Loading your feedback...
               </div>
             ) : myFeedbacks.length === 0 ? (
-              <div className={`p-12 text-center border rounded-2xl ${
-                isBright ? 'bg-white border-slate-200' : 'bg-slate-900/40 border-slate-800'
-              }`}>
-                <p className={`text-sm font-bold ${isBright ? 'text-slate-800' : 'text-slate-300'}`}>No Feedback Submitted Yet</p>
-                <p className={`text-xs mt-1 ${isBright ? 'text-slate-500' : 'text-slate-500'}`}>You haven't submitted any feedback yet.</p>
+              <div className={`p-12 text-center border rounded-2xl bg-white border-slate-200`}>
+                <p className={`text-sm font-bold text-slate-800`}>No Feedback Submitted Yet</p>
+                <p className={`text-xs mt-1 text-slate-500`}>You haven't submitted any feedback yet.</p>
               </div>
             ) : (
               <div className="grid gap-4">
                 {myFeedbacks.map((item) => (
                   <div
                     key={item._id}
-                    className={`border rounded-2xl p-5 shadow-lg space-y-3 transition-all ${
-                      isBright ? 'bg-white border-slate-200 hover:border-slate-300' : 'bg-slate-900/60 border-slate-800/80 hover:border-slate-700'
-                    }`}
+                    className={`border rounded-2xl p-5 shadow-lg space-y-3 transition-all bg-white border-slate-200 hover:border-slate-300`}
                   >
                     <div className="flex flex-wrap items-start justify-between gap-2">
                       <div>
                         <div className="flex items-center gap-2 flex-wrap mb-1">
-                          <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${
-                            isBright ? 'bg-[#f3e5f5] text-[#512da8] border-[#e1bee7]' : 'bg-[#673BB7]/30 text-[#d1c4e9] border-[#673BB7]/50'
-                          }`}>
+                          <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border bg-[#f3e5f5] text-[#512da8] border-[#e1bee7]`}>
                             Room {item.RoomNo} ({item.Block})
                           </span>
-                          <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${
-                            isBright ? 'bg-[#f3e5f5] text-[#673BB7] border-[#e1bee7]' : 'bg-[#673BB7]/30 text-[#d1c4e9] border-[#673BB7]/50'
-                          }`}>
+                          <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border bg-[#f3e5f5] text-[#673BB7] border-[#e1bee7]`}>
                             {item.category || 'Overall Experience'}
                           </span>
-                          <span className={`text-xs font-semibold px-2 py-0.5 rounded ${
-                            isBright ? 'bg-slate-100 text-slate-700' : 'bg-slate-800 text-slate-300'
-                          }`}>
+                          <span className={`text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700`}>
                             ID: {item.studentId}
                           </span>
                         </div>
-                        <p className={`text-sm font-bold mt-1 ${isBright ? 'text-slate-900' : 'text-white'}`}>{item.message}</p>
+                        <p className={`text-sm font-bold mt-1 text-slate-900`}>{item.message}</p>
                         
                         {item.imageUrl && (
                           <div className="mt-2.5">
@@ -617,9 +507,7 @@ export default function StudentFeedbackDashboard() {
                     </div>
 
                     {/* Rating & Submission Date */}
-                    <div className={`flex flex-wrap items-center justify-between gap-4 pt-2 border-t text-xs ${
-                      isBright ? 'border-slate-200 text-slate-600' : 'border-slate-800/60 text-slate-400'
-                    }`}>
+                    <div className={`flex flex-wrap items-center justify-between gap-4 pt-2 border-t text-xs border-slate-200 text-slate-600`}>
                       <div className="flex items-center gap-1">
                         <span className="font-medium">Rating:</span>
                         <div className="flex gap-0.5">
@@ -629,7 +517,7 @@ export default function StudentFeedbackDashboard() {
                               className={`w-3.5 h-3.5 ${
                                 star <= item.rating
                                   ? 'fill-amber-400 text-amber-500'
-                                  : isBright ? 'text-slate-300 fill-slate-200' : 'text-slate-700'
+                                  : 'text-slate-300 fill-slate-200'
                               }`}
                             />
                           ))}
