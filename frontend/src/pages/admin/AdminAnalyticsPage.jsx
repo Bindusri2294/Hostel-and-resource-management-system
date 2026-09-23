@@ -65,6 +65,10 @@ export default function AdminAnalyticsPage() {
   const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
   const formattedDate = today.toLocaleDateString('en-US', dateOptions);
 
+  const downloadPDF = () => {
+    window.print();
+  };
+
   return (
     <div className="flex h-screen bg-[#f4f7f9] font-sans">
       {/* Sidebar */}
@@ -154,7 +158,7 @@ export default function AdminAnalyticsPage() {
         </header>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-auto p-8">
+        <div className="flex-1 overflow-auto p-8" id="analytics-dashboard">
           <div className="max-w-[1400px] mx-auto space-y-6">
             
             {/* College Analytics Card */}
@@ -166,7 +170,7 @@ export default function AdminAnalyticsPage() {
                     <p className="text-[14px] text-gray-500 font-medium">Students, occupancy and allocations by college</p>
                   </div>
                   <div className="flex items-center gap-4">
-                    <Button onClick={() => alert("Downloading PDF Report...")} variant="outline" className="h-9 px-4 rounded-lg border-gray-200 text-gray-600 font-semibold text-xs hover:bg-gray-50 flex items-center gap-2">
+                    <Button onClick={downloadPDF} variant="outline" className="h-9 px-4 rounded-lg border-gray-200 text-gray-600 font-semibold text-xs hover:bg-gray-50 flex items-center gap-2">
                       <Download className="w-3.5 h-3.5" /> Export PDF
                     </Button>
                     <div className="flex bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
