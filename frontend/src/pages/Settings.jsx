@@ -21,10 +21,7 @@ export default function Settings() {
     <div className="space-y-6 max-w-4xl">
       <div className="bg-white p-6 rounded-2xl border border-purple-100/70 shadow-xs flex items-center justify-between">
         <div>
-          <span className="text-[10px] font-extrabold text-purple-700 bg-purple-100 px-2.5 py-1 rounded-full uppercase tracking-wider">
-            Configuration
-          </span>
-          <h2 className="text-2xl font-extrabold text-slate-900 mt-2">Hostel System Settings</h2>
+          <h2 className="text-2xl font-extrabold text-slate-900">Hostel System Settings</h2>
           <p className="text-xs text-slate-500 mt-0.5">
             Configure hostel operational rules, notification triggers, and campus parameters.
           </p>

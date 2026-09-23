@@ -134,7 +134,7 @@ export default function Layout() {
             <SidebarTrigger className="hover:bg-purple-50 text-slate-700" />
             <div>
               <p className="text-sm font-extrabold text-slate-900 tracking-tight">
-                {user?.role === "Admin" ? "Good morning, Administrator" : `Welcome home, ${user?.name?.split(" ")[0] || "Resident"}`} 👋
+                {user?.role === "Admin" ? "Good morning, Administrator" : "Resident Portal"}
               </p>
               <p className="text-[11px] text-slate-500 font-medium">{today}</p>
             </div>

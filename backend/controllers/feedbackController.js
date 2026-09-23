@@ -106,7 +106,7 @@ const updateFeedback = async (req, res, next) => {
       req.params.id,
       { status },
       {
-        new: true,
+        returnDocument: "after",
         runValidators: true,
       }
     );

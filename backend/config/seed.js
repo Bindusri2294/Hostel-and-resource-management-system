@@ -1,6 +1,8 @@
 const bcrypt = require("bcryptjs");
 const User = require("../models/User");
 const Student = require("../models/student");
+const Room = require("../models/Room");
+const Allocation = require("../models/Allocation");
 
 const seedAdminAndDemoUsers = async () => {
   try {
@@ -24,20 +26,22 @@ const seedAdminAndDemoUsers = async () => {
 
     // 2. Check/Seed Demo Student Account
     const demoStudentEmail = "student@hostel.com";
+
+    // Find or create the Student record first (shared across both checks below)
+    let demoStudent = await Student.findOne({ Rollno: "2026-CS-01" });
+    if (!demoStudent) {
+      demoStudent = await Student.create({
+        Name: "Rahul Sharma",
+        Rollno: "2026-CS-01",
+        Course: "B.Tech Computer Science",
+        Campus: "Main Campus",
+        Year: 3,
+        Roomno: "B-204",
+      });
+    }
+
     const existingStudentUser = await User.findOne({ email: demoStudentEmail });
     if (!existingStudentUser) {
-      let demoStudent = await Student.findOne({ Rollno: "2026-CS-01" });
-      if (!demoStudent) {
-        demoStudent = await Student.create({
-          Name: "Rahul Sharma",
-          Rollno: "2026-CS-01",
-          Course: "B.Tech Computer Science",
-          Campus: "Main Campus",
-          Year: 3,
-          Roomno: "B-204",
-        });
-      }
-
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash("student123", salt);
 
@@ -49,6 +53,31 @@ const seedAdminAndDemoUsers = async () => {
         student: demoStudent._id,
       });
       console.log(`[SEED] Demo Student account created (${demoStudentEmail})`);
+    }
+
+    // 3. Ensure Demo Student has an active room allocation
+    const existingAlloc = await Allocation.findOne({
+      studentId: demoStudent._id,
+      status: "Active",
+    });
+
+    if (!existingAlloc) {
+      const targetRoom =
+        (await Room.findOne({ RoomNo: demoStudent.Roomno })) ||
+        (await Room.findOne());
+
+      if (targetRoom) {
+        demoStudent.Roomno = targetRoom.RoomNo;
+        await demoStudent.save();
+
+        await Allocation.create({
+          studentId: demoStudent._id,
+          roomId: targetRoom._id,
+          status: "Active",
+          allocatedDate: new Date(),
+        });
+        console.log(`[SEED] Demo Student allocated to room ${targetRoom.RoomNo}`);
+      }
     }
   } catch (error) {
     console.error("[SEED] Error seeding default admin/student:", error.message);

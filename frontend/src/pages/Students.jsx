@@ -137,10 +137,7 @@ export default function Students() {
       {/* Header */}
       <div className="bg-white p-6 rounded-2xl border border-purple-100/70 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <span className="text-[10px] font-extrabold text-purple-700 bg-purple-100 px-2.5 py-1 rounded-full uppercase tracking-wider">
-            Resident Directory
-          </span>
-          <h2 className="text-2xl font-extrabold text-slate-900 mt-2">Student Management</h2>
+          <h2 className="text-2xl font-extrabold text-slate-900">Student Management</h2>
           <p className="text-xs text-slate-500 mt-0.5">
             Search, filter, edit, and manage registered hostel residents.
           </p>

@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Room = require("../models/Room");
 
 // Create a new room
@@ -47,9 +48,15 @@ const getRooms = async (req, res, next) => {
     }
 };
 
-const roomFilter = (req) => req.params.id
-    ? { _id: req.params.id }
-    : { RoomNo: req.params.roomNo, Block: req.params.block };
+const roomFilter = (req) => {
+  if (req.params.id) {
+    if (mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return { $or: [{ _id: req.params.id }, { RoomNo: req.params.id }] };
+    }
+    return { RoomNo: req.params.id };
+  }
+  return { RoomNo: req.params.roomNo, Block: req.params.block };
+};
 
 // Get a single room by ID, or by RoomNo + Block for older clients
 const getRoomById = async (req, res, next) => {
@@ -97,7 +104,7 @@ const updateRoom = async (req, res, next) => {
                 Capacity: newCapacity,
                 OccupiedCount: newOccupied,
             },
-            { new: true }
+            { returnDocument: "after" }
         );
 
         res.status(200).json(updatedRoom);

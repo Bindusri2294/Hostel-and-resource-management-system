@@ -37,10 +37,7 @@ export default function MyAllocation() {
     <div className="space-y-6 max-w-4xl">
       <div className="bg-white p-6 rounded-2xl border border-purple-100/70 shadow-xs flex items-center justify-between">
         <div>
-          <span className="text-[10px] font-extrabold text-purple-700 bg-purple-100 px-2.5 py-1 rounded-full uppercase tracking-wider">
-            Resident Portal
-          </span>
-          <h2 className="text-2xl font-extrabold text-slate-900 mt-2">My Room Allocation</h2>
+          <h2 className="text-2xl font-extrabold text-slate-900">My Room Allocation</h2>
           <p className="text-xs text-slate-500 mt-0.5">
             Detailed overview of your current active hostel room assignment.
           </p>
