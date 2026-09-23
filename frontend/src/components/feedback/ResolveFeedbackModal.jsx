@@ -8,6 +8,7 @@ export default function ResolveFeedbackModal({ feedback, onClose, onSuccess }) {
   const [status, setStatus] = useState(feedback?.status || 'Pending');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [lightboxImage, setLightboxImage] = useState(null);
 
   useEffect(() => {
     if (feedback) {
@@ -34,7 +35,8 @@ export default function ResolveFeedbackModal({ feedback, onClose, onSuccess }) {
   };
 
   return (
-    <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto backdrop-blur-md bg-slate-900/40`}>
+    <>
+      <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto backdrop-blur-md bg-slate-900/40`}>
       <div className={`border rounded-2xl w-full max-w-md shadow-2xl overflow-hidden relative animate-in fade-in zoom-in-95 duration-150 bg-white border-slate-300 text-slate-900`}>
         {/* Header */}
         <div className={`p-5 border-b flex items-center justify-between bg-slate-50 border-slate-200`}>
@@ -85,18 +87,17 @@ export default function ResolveFeedbackModal({ feedback, onClose, onSuccess }) {
               const fullUrl = feedback.imageUrl.startsWith("http") ? feedback.imageUrl : `${serverBase}${feedback.imageUrl}`;
               return (
                 <div className="pt-1">
-                  <a
-                    href={fullUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-block border rounded-lg overflow-hidden shadow-sm hover:opacity-90 transition-all"
+                  <button
+                    type="button"
+                    onClick={() => setLightboxImage(fullUrl)}
+                    className="inline-block border rounded-lg overflow-hidden shadow-sm hover:opacity-90 transition-all cursor-pointer"
                   >
                     <img
                       src={fullUrl}
                       alt="Issue photo"
-                      className="h-28 w-auto object-cover rounded-lg"
+                      className="h-28 w-auto object-cover rounded-lg block"
                     />
-                  </a>
+                  </button>
                 </div>
               );
             })()}
@@ -160,5 +161,30 @@ export default function ResolveFeedbackModal({ feedback, onClose, onSuccess }) {
         </form>
       </div>
     </div>
+
+      {/* IMAGE LIGHTBOX MODAL */}
+      {lightboxImage && (
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" 
+          onClick={() => setLightboxImage(null)}
+        >
+          <div className="relative max-w-full max-h-full rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/20">
+            <button 
+              className="absolute top-3 right-3 bg-black/60 hover:bg-black/90 text-white rounded-full p-2 backdrop-blur-md transition-colors cursor-pointer z-10"
+              onClick={(e) => { e.stopPropagation(); setLightboxImage(null); }}
+              title="Close Image"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <img 
+              src={lightboxImage} 
+              alt="Attached Photo" 
+              className="max-w-full max-h-[90vh] object-contain block" 
+              onClick={(e) => e.stopPropagation()} 
+            />
+          </div>
+        </div>
+      )}
+    </>
   );
 }
