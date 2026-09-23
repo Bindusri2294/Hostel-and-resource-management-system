@@ -11,6 +11,7 @@ import Feedback from "./pages/Feedback";
 import Profile from "./pages/Profile";
 import MyAllocation from "./pages/MyAllocation";
 import HostelInfo from "./pages/HostelInfo";
+import RoomInfo from "./pages/RoomInfo";
 import Attendance from "./pages/Attendance";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
@@ -28,6 +29,7 @@ export default function App() {
           <Route index element={<HomeDashboard />} />
           <Route path="profile" element={<Profile />} />
           <Route path="feedback" element={<Feedback />} />
+          <Route path="room-info" element={<RoomInfo />} />
           <Route path="my-allocation" element={<MyAllocation />} />
           <Route path="hostel-info" element={<HostelInfo />} />
         </Route>
