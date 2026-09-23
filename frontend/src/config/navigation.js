@@ -27,5 +27,6 @@ export const studentNavItems = [
     { label: "My Allocation", icon: ClipboardList, path: "/my-allocation" },
     { label: "Hostel Info", icon: Home, path: "/hostel-info" },
     { label: "Feedback", icon: MessageSquare, path: "/feedback" },
+    { label: "Room Info", icon: Building2, path: "/room-info" },
     { label: "Profile", icon: User, path: "/profile" },
 ];
