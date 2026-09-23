@@ -16,7 +16,7 @@ import {
   Calendar,
   Sparkles,
   ShieldCheck,
-  Camera,
+  Plus,
   Lock
 } from "lucide-react";
 import { Card, CardContent } from "../../components/ui/card";
@@ -25,13 +25,21 @@ import { Input } from "../../components/ui/input";
 import { Button } from "../../components/ui/button";
 
 export default function Profile() {
-  const [profileImage, setProfileImage] = useState(null);
+  const [profileImage, setProfileImage] = useState(() => {
+    return localStorage.getItem("profile_image_current") || null;
+  });
   const fileInputRef = useRef(null);
 
   const handleImageUpload = (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
     if (file) {
-      setProfileImage(URL.createObjectURL(file));
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64 = reader.result;
+        setProfileImage(base64);
+        localStorage.setItem("profile_image_current", base64);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -138,7 +146,7 @@ export default function Profile() {
                         )}
                       </Avatar>
                       <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Camera className="w-6 h-6 text-white" />
+                        <Plus className="w-6 h-6 text-white" />
                       </div>
                       <input 
                         type="file" 
