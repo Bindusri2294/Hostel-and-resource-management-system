@@ -80,8 +80,7 @@ export default function Rooms() {
       Number(room.OccupiedCount || 0),
       Number(room.Capacity || 1)
     );
-    const matchesStatus =
-      selectedStatus === "All" || roomStatus === selectedStatus || room.Status === selectedStatus;
+    const matchesStatus = selectedStatus === "All" || roomStatus === selectedStatus;
     const matchesBlock = selectedBlock === "All" || room.Block === selectedBlock;
     const matchesQuery =
       !query ||
@@ -174,17 +173,6 @@ export default function Rooms() {
     <div className="space-y-6">
       {/* Hierarchy Breadcrumb Banner */}
       <div className="bg-white p-6 rounded-2xl border border-purple-100/70 shadow-xs space-y-3">
-        <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
-          <span className="text-purple-600">Hostel</span>
-          <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
-          <span>Block {selectedBlock === "All" ? "A / B / C" : selectedBlock}</span>
-          <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
-          <span>Floor 1 - 4</span>
-          <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
-          <span className="bg-purple-100 text-purple-800 px-2.5 py-0.5 rounded-md">
-            Rooms Inventory ({rooms.length})
-          </span>
-        </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
@@ -280,10 +268,7 @@ export default function Rooms() {
                 className="bg-white rounded-2xl border border-purple-100/70 p-5 shadow-xs hover:shadow-md transition-all space-y-4 flex flex-col justify-between"
               >
                 <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="w-9 h-9 rounded-xl bg-purple-100 text-purple-800 font-extrabold flex items-center justify-center text-sm border border-purple-200">
-                      {room.Block || "A"}
-                    </span>
+                  <div className="flex items-center justify-end mb-2">
                     <span
                       className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border ${
                         statusBadge === "Available"
@@ -298,9 +283,7 @@ export default function Rooms() {
                   </div>
 
                   <h3 className="text-xl font-extrabold text-slate-900">Room {room.RoomNo}</h3>
-                  <p className="text-xs font-semibold text-slate-500">
-                    Block {room.Block} · Floor {room.Floor}
-                  </p>
+
 
                   <div className="mt-4 pt-3 border-t border-slate-100 grid grid-cols-3 gap-2 text-center text-xs">
                     <div className="p-2 bg-slate-50 rounded-xl">
