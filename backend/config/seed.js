@@ -26,6 +26,8 @@ const seedAdminAndDemoUsers = async () => {
 
     // 2. Check/Seed Demo Student Account
     const demoStudentEmail = "student@hostel.com";
+
+    // Find or create the Student record first (shared across both checks below)
     let demoStudent = await Student.findOne({ Rollno: "2026-CS-01" });
     if (!demoStudent) {
       demoStudent = await Student.create({
@@ -54,9 +56,16 @@ const seedAdminAndDemoUsers = async () => {
     }
 
     // 3. Ensure Demo Student has an active room allocation
-    const existingAlloc = await Allocation.findOne({ studentId: demoStudent._id, status: "Active" });
+    const existingAlloc = await Allocation.findOne({
+      studentId: demoStudent._id,
+      status: "Active",
+    });
+
     if (!existingAlloc) {
-      let targetRoom = (await Room.findOne({ RoomNo: demoStudent.Roomno })) || (await Room.findOne());
+      const targetRoom =
+        (await Room.findOne({ RoomNo: demoStudent.Roomno })) ||
+        (await Room.findOne());
+
       if (targetRoom) {
         demoStudent.Roomno = targetRoom.RoomNo;
         await demoStudent.save();
