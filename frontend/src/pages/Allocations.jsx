@@ -241,7 +241,7 @@ export default function Allocations() {
                 {filteredAllocations.map((alloc) => {
                   const studentName = alloc.studentName || alloc.student?.Name || "Resident";
                   const rollNo = alloc.student?.Rollno || "—";
-                  const blockName = alloc.room?.Block || alloc.block || "A";
+                  const blockName = alloc.room?.Block || alloc.block || "D";
                   const roomNum = alloc.roomNo || alloc.room?.RoomNo || "—";
                   const allocDate = alloc.allocationDate
                     ? new Date(alloc.allocationDate).toLocaleDateString()

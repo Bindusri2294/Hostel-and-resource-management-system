@@ -18,7 +18,7 @@ import {
 
 const blankRoom = {
   RoomNo: "",
-  Block: "A",
+  Block: "D",
   Floor: 1,
   Capacity: 2,
   OccupiedCount: 0,
@@ -226,9 +226,10 @@ export default function Rooms() {
               className="bg-slate-50 border border-slate-200 text-xs font-semibold rounded-xl px-2.5 py-1.5 outline-none"
             >
               <option value="All">All Blocks</option>
-              <option value="A">Block A</option>
-              <option value="B">Block B</option>
-              <option value="C">Block C</option>
+              <option value="D">Block D</option>
+              <option value="E">Block E</option>
+              <option value="KW">Block KW</option>
+              <option value="Executive">Executive Block</option>
             </select>
           </div>
 
@@ -372,13 +373,14 @@ export default function Rooms() {
                 <div>
                   <label className="block text-slate-700 mb-1 font-bold">Block *</label>
                   <select
-                    value={form.Block || "A"}
+                    value={form.Block || "D"}
                     onChange={(e) => setForm({ ...form, Block: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
                   >
-                    <option value="A">Block A</option>
-                    <option value="B">Block B</option>
-                    <option value="C">Block C</option>
+                    <option value="D">Block D</option>
+                    <option value="E">Block E</option>
+                    <option value="KW">Block KW</option>
+                    <option value="Executive">Executive Block</option>
                   </select>
                 </div>
 
