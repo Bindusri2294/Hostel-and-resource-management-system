@@ -46,6 +46,31 @@ export default function LoginView() {
   const [userId, setUserId] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
 
+  // Scroll spy to update active nav based on scroll position
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            if (entry.target.id === 'home') setActiveNav('Home');
+            if (entry.target.id === 'about-us') setActiveNav('About Us');
+            if (entry.target.id === 'institutions') setActiveNav('Institutions');
+            if (entry.target.id === 'contact-us') setActiveNav('Contact Us');
+            if (entry.target.id === 'login-section') setActiveNav('Login');
+          }
+        });
+      },
+      { rootMargin: '-30% 0px -70% 0px' }
+    );
+
+    ['home', 'about-us', 'institutions', 'contact-us', 'login-section'].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
   const handleNavClick = (navName) => {
     setActiveNav(navName);
     let targetId = 'home';
