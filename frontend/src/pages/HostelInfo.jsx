@@ -1,4 +1,4 @@
-import { Building, ShieldCheck, Utensils, Wifi, Dumbbell, PhoneCall, BookOpen, Clock } from "lucide-react";
+import { Building, ShieldCheck, Utensils, Wifi, PhoneCall, BookOpen, Clock } from "lucide-react";
 
 export default function HostelInfo() {
   return (
@@ -29,9 +29,9 @@ export default function HostelInfo() {
           <p className="text-xs text-slate-500">Controlled biometric entry, CCTV surveillance & round-the-clock wardens.</p>
         </div>
         <div className="p-4 bg-white rounded-2xl border border-purple-100/70 shadow-xs space-y-2">
-          <Dumbbell className="w-6 h-6 text-purple-600" />
-          <h3 className="text-sm font-extrabold text-slate-900">AC Gym & Sports</h3>
-          <p className="text-xs text-slate-500">Equipped gymnasium, indoor games, basketball & cricket grounds.</p>
+          <span className="text-2xl leading-6 text-purple-600" role="img" aria-label="Sports trophy">🏆︎</span>
+          <h3 className="text-sm font-extrabold text-slate-900">Sports</h3>
+          <p className="text-xs text-slate-500">Facilities and spaces available for students to enjoy sports and recreational activities.</p>
         </div>
       </div>
 
