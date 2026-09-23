@@ -1,18 +1,26 @@
 import React, { useState, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
-import { Camera, ShieldCheck, Lock } from "lucide-react";
+import { Plus, ShieldCheck, Lock } from "lucide-react";
 
 export default function Profile() {
   const { user } = useAuth();
   const student = user?.student || {};
 
-  const [profileImage, setProfileImage] = useState(null);
+  const [profileImage, setProfileImage] = useState(() => {
+    return localStorage.getItem(`profile_image_${user?._id || user?.id || user?.email || "current"}`) || null;
+  });
   const fileInputRef = useRef(null);
 
   const handleImageUpload = (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
     if (file) {
-      setProfileImage(URL.createObjectURL(file));
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64 = reader.result;
+        setProfileImage(base64);
+        localStorage.setItem(`profile_image_${user?._id || user?.id || user?.email || "current"}`, base64);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -31,8 +39,8 @@ export default function Profile() {
                   (student?.Name || user?.name || "U").charAt(0).toUpperCase()
                 )}
               </div>
-              <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
-                <Camera className="w-6 h-6 text-white" />
+              <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <Plus className="w-6 h-6 text-white" />
               </div>
               <input 
                 type="file" 
