@@ -18,11 +18,12 @@ import {
 const blankStudent = {
   Name: "",
   Rollno: "",
-  Course: "B.Tech Computer Science",
+  Course: "B.Tech",
   Year: 3,
   Section: "A",
-  Block: "A",
+  Block: "D",
   Roomno: "Unassigned",
+  Status: "Active",
 };
 
 const getDeptFromRollNo = (rollno) => {
@@ -132,6 +133,8 @@ export default function Students() {
     try {
       const payload = {
         ...form,
+        Campus: form.Campus || getCampusFromRollNo(form.Rollno),
+        Department: form.Department || getDeptFromRollNo(form.Rollno),
         Year: Number(form.Year),
         Status: form.Status || "Active",
       };
@@ -299,7 +302,7 @@ export default function Students() {
                       {getOrdinalYear(student.Year)} . {getDeptFromRollNo(student.Rollno)}
                     </td>
                     <td className="py-3 px-4 font-bold text-purple-700">
-                      Block {student.Block || "A"}
+                      Block {student.Block || "D"}
                     </td>
                     <td className="py-3 px-4">
                       <span className="px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 font-bold text-[11px]">
@@ -430,13 +433,14 @@ export default function Students() {
               <div>
                 <label className="block text-slate-700 mb-1 font-bold">Block</label>
                 <select
-                  value={form.Block || "A"}
+                  value={form.Block || "D"}
                   onChange={(e) => setForm({ ...form, Block: e.target.value })}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
                 >
-                  <option value="A">Block A</option>
-                  <option value="B">Block B</option>
-                  <option value="C">Block C</option>
+                  <option value="D">Block D</option>
+                  <option value="E">Block E</option>
+                  <option value="KW">Block KW</option>
+                  <option value="Executive">Executive Block</option>
                 </select>
               </div>
 
@@ -508,7 +512,7 @@ export default function Students() {
               </div>
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
                 <span className="text-[10px] text-slate-400 font-bold block">Hostel Block</span>
-                <span className="font-extrabold text-purple-700">Block {selected.Block || "A"}</span>
+                <span className="font-extrabold text-purple-700">Block {selected.Block || "D"}</span>
               </div>
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
                 <span className="text-[10px] text-slate-400 font-bold block">Allocated Room</span>

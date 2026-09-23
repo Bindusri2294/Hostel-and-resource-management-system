@@ -18,7 +18,7 @@ import {
 
 const blankRoom = {
   RoomNo: "",
-  Block: "A",
+  Block: "D",
   Floor: 1,
   Capacity: 2,
   OccupiedCount: 0,
@@ -80,8 +80,7 @@ export default function Rooms() {
       Number(room.OccupiedCount || 0),
       Number(room.Capacity || 1)
     );
-    const matchesStatus =
-      selectedStatus === "All" || roomStatus === selectedStatus || room.Status === selectedStatus;
+    const matchesStatus = selectedStatus === "All" || roomStatus === selectedStatus;
     const matchesBlock = selectedBlock === "All" || room.Block === selectedBlock;
     const matchesQuery =
       !query ||
@@ -174,17 +173,6 @@ export default function Rooms() {
     <div className="space-y-6">
       {/* Hierarchy Breadcrumb Banner */}
       <div className="bg-white p-6 rounded-2xl border border-purple-100/70 shadow-xs space-y-3">
-        <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
-          <span className="text-purple-600">Hostel</span>
-          <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
-          <span>Block {selectedBlock === "All" ? "A / B / C" : selectedBlock}</span>
-          <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
-          <span>Floor 1 - 4</span>
-          <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
-          <span className="bg-purple-100 text-purple-800 px-2.5 py-0.5 rounded-md">
-            Rooms Inventory ({rooms.length})
-          </span>
-        </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
@@ -238,9 +226,10 @@ export default function Rooms() {
               className="bg-slate-50 border border-slate-200 text-xs font-semibold rounded-xl px-2.5 py-1.5 outline-none"
             >
               <option value="All">All Blocks</option>
-              <option value="A">Block A</option>
-              <option value="B">Block B</option>
-              <option value="C">Block C</option>
+              <option value="D">Block D</option>
+              <option value="E">Block E</option>
+              <option value="KW">Block KW</option>
+              <option value="Executive">Executive Block</option>
             </select>
           </div>
 
@@ -280,9 +269,10 @@ export default function Rooms() {
                 className="bg-white rounded-2xl border border-purple-100/70 p-5 shadow-xs hover:shadow-md transition-all space-y-4 flex flex-col justify-between"
               >
                 <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="w-9 h-9 rounded-xl bg-purple-100 text-purple-800 font-extrabold flex items-center justify-center text-sm border border-purple-200">
-                      {room.Block || "A"}
+                  <div className="flex items-center justify-between mb-2 gap-2">
+                    <span className="text-[11px] font-bold text-purple-700 bg-purple-50 px-2.5 py-1 rounded-lg border border-purple-100/80 flex items-center gap-1.5 shadow-2xs">
+                      <Building className="w-3.5 h-3.5 text-purple-600" />
+                      {room.Block === "Executive" ? "Executive Block" : `Block ${room.Block || "D"}`}
                     </span>
                     <span
                       className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border ${
@@ -297,10 +287,11 @@ export default function Rooms() {
                     </span>
                   </div>
 
-                  <h3 className="text-xl font-extrabold text-slate-900">Room {room.RoomNo}</h3>
-                  <p className="text-xs font-semibold text-slate-500">
-                    Block {room.Block} · Floor {room.Floor}
-                  </p>
+                  <div className="flex items-baseline justify-between mt-1">
+                    <h3 className="text-xl font-extrabold text-slate-900">Room {room.RoomNo}</h3>
+                    <span className="text-xs font-semibold text-slate-500">Floor {room.Floor ?? 1}</span>
+                  </div>
+
 
                   <div className="mt-4 pt-3 border-t border-slate-100 grid grid-cols-3 gap-2 text-center text-xs">
                     <div className="p-2 bg-slate-50 rounded-xl">
@@ -389,13 +380,14 @@ export default function Rooms() {
                 <div>
                   <label className="block text-slate-700 mb-1 font-bold">Block *</label>
                   <select
-                    value={form.Block || "A"}
+                    value={form.Block || "D"}
                     onChange={(e) => setForm({ ...form, Block: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
                   >
-                    <option value="A">Block A</option>
-                    <option value="B">Block B</option>
-                    <option value="C">Block C</option>
+                    <option value="D">Block D</option>
+                    <option value="E">Block E</option>
+                    <option value="KW">Block KW</option>
+                    <option value="Executive">Executive Block</option>
                   </select>
                 </div>
 
@@ -481,7 +473,7 @@ export default function Rooms() {
               <div className="p-3 bg-purple-50 rounded-xl border border-purple-100">
                 <span className="text-slate-400 text-[10px] block font-bold">Block / Floor</span>
                 <strong className="text-purple-900 font-extrabold">
-                  Block {selected.Block} · Floor {selected.Floor}
+                  {selected.Block === "Executive" ? "Executive Block" : `Block ${selected.Block}`} · Floor {selected.Floor}
                 </strong>
               </div>
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">

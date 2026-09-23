@@ -22,6 +22,7 @@ export default function Analytics() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const [courseFilter, setCourseFilter] = useState("All");
   const [yearFilter, setYearFilter] = useState("All");
   const [activeTab, setActiveTab] = useState("KIET");
 
@@ -49,9 +50,17 @@ export default function Analytics() {
     };
   }, []);
 
+  const yearOptions =
+    courseFilter === "B.Tech"
+      ? ["1", "2", "3", "4"]
+      : courseFilter === "Diploma"
+        ? ["1", "2", "3"]
+        : [];
+
   const filteredStudents = students.filter((s) => {
-    if (yearFilter === "All") return true;
-    return String(s.Year || "") === String(yearFilter);
+    const matchesCourse = courseFilter === "All" || String(s.Course || "") === courseFilter;
+    const matchesYear = yearFilter === "All" || String(s.Year || "") === yearFilter;
+    return matchesCourse && matchesYear;
   });
 
   // Calculate Key Stats
@@ -107,26 +116,39 @@ export default function Analytics() {
         </div>
       )}
 
-      {/* Year Filter Controls */}
+      {/* Course and Year Filter Controls */}
       <div className="bg-white p-4 rounded-2xl border border-purple-100/70 shadow-xs flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2 text-xs font-extrabold text-slate-700">
           <Filter className="w-4 h-4 text-purple-600" />
-          <span>Filter by Academic Year:</span>
-          <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
-            {["All", "1", "2", "3", "4"].map((y) => (
-              <button
-                key={y}
-                onClick={() => setYearFilter(y)}
-                className={`px-3 py-1 rounded-lg text-xs font-extrabold transition-all cursor-pointer ${
-                  yearFilter === y
-                    ? "bg-purple-600 text-white shadow-xs"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                {y === "All" ? "All Years" : `${y}st/rd Year`}
-              </button>
-            ))}
-          </div>
+          <span>Filter by Course:</span>
+          <select
+            value={courseFilter}
+            onChange={(e) => {
+              setCourseFilter(e.target.value);
+              setYearFilter("All");
+            }}
+            className="bg-slate-100 border border-slate-200 text-xs font-extrabold text-slate-700 rounded-xl px-3 py-2 outline-none"
+          >
+            <option value="All">All Courses</option>
+            <option value="B.Tech">B.Tech</option>
+            <option value="Diploma">Diploma</option>
+          </select>
+
+          {yearOptions.length > 0 && (
+            <select
+              aria-label="Select Year"
+              value={yearFilter}
+              onChange={(e) => setYearFilter(e.target.value)}
+              className="bg-slate-100 border border-slate-200 text-xs font-extrabold text-slate-700 rounded-xl px-3 py-2 outline-none"
+            >
+              <option value="All">All Years</option>
+              {yearOptions.map((year) => (
+                <option key={year} value={year}>
+                  {year}{year === "1" ? "st" : year === "2" ? "nd" : year === "3" ? "rd" : "th"} Year
+                </option>
+              ))}
+            </select>
+          )}
         </div>
 
         <div className="text-xs font-bold text-slate-500">

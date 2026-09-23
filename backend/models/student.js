@@ -19,19 +19,34 @@ const studentSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    Department: {
+      type: String,
+      trim: true,
+      default: "CSM",
+    },
     Campus: {
       type: String,
       required: true,
       trim: true,
+      default: "Main Campus",
     },
     Year: {
       type: Number,
       required: true,
     },
+    Block: {
+      type: String,
+      trim: true,
+      default: "C",
+    },
     Roomno: {
       type: String,
       required: true,
       trim: true,
+    },
+    Status: {
+      type: String,
+      default: "Active",
     },
   },
   {

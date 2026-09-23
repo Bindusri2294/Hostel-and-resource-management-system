@@ -8,6 +8,8 @@ export default function Attendance() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
+  const [selectedBlock, setSelectedBlock] = useState("");
+  const [selectedRoom, setSelectedRoom] = useState("");
   const [savedMsg, setSavedMsg] = useState("");
 
   useEffect(() => {
@@ -34,13 +36,28 @@ export default function Attendance() {
     setTimeout(() => setSavedMsg(""), 4000);
   };
 
-  const filteredStudents = students.filter(
-    (s) =>
+  const blockOptions = ["1", "2", "3"];
+  const roomOptions = [...new Set(students.map((s) => s.Roomno).filter(Boolean))].sort((a, b) =>
+    String(a).localeCompare(String(b), undefined, { numeric: true })
+  );
+
+  const filteredStudents = students.filter((s) => {
+    const matchesQuery =
       !query ||
       [s.Name, s.Rollno, s.Roomno, s.Block].some((v) =>
         String(v || "").toLowerCase().includes(query.toLowerCase())
-      )
-  );
+      );
+    const matchesBlock = !selectedBlock || String(s.Block || "") === selectedBlock;
+    const matchesRoom = !selectedRoom || String(s.Roomno || "") === selectedRoom;
+
+    return matchesQuery && matchesBlock && matchesRoom;
+  });
+
+  const clearFilters = () => {
+    setQuery("");
+    setSelectedBlock("");
+    setSelectedRoom("");
+  };
 
   const presentCount = Object.values(attendanceMap).filter((v) => v === "Present").length;
   const absentCount = Object.values(attendanceMap).filter((v) => v === "Absent").length;
@@ -95,15 +112,57 @@ export default function Attendance() {
 
       {/* Table */}
       <div className="bg-white rounded-2xl border border-purple-100/70 shadow-xs overflow-hidden">
-        <div className="p-4 border-b border-slate-100 flex items-center gap-2 bg-slate-50">
-          <Search className="w-3.5 h-3.5 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Search student or room..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="bg-transparent text-xs font-medium text-slate-800 outline-none w-full"
-          />
+        <div className="p-4 border-b border-slate-100 bg-slate-50 flex flex-col lg:flex-row lg:items-center gap-3">
+          <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs flex-1 min-w-0">
+            <Search className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+            <input
+              type="text"
+              placeholder="Search student or room..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="bg-transparent text-xs font-medium text-slate-800 outline-none w-full"
+            />
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-2">
+            <select
+              aria-label="Select Block"
+              value={selectedBlock}
+              onChange={(e) => setSelectedBlock(e.target.value)}
+              className="bg-white border border-slate-200 text-xs font-semibold text-slate-700 rounded-xl px-3 py-2 outline-none min-w-36"
+            >
+              <option value="">Select Block</option>
+              {blockOptions.map((block) => (
+                <option key={block} value={block}>
+                  Block {block}
+                </option>
+              ))}
+            </select>
+
+            <select
+              aria-label="Select Room Number"
+              value={selectedRoom}
+              onChange={(e) => setSelectedRoom(e.target.value)}
+              className="bg-white border border-slate-200 text-xs font-semibold text-slate-700 rounded-xl px-3 py-2 outline-none min-w-40"
+            >
+              <option value="">Select Room Number</option>
+              {roomOptions.map((room) => (
+                <option key={room} value={room}>
+                  Room {room}
+                </option>
+              ))}
+            </select>
+
+            {(query || selectedBlock || selectedRoom) && (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="px-3 py-2 border border-slate-200 bg-white text-slate-600 hover:text-slate-900 rounded-xl text-xs font-bold cursor-pointer"
+              >
+                Clear Filter
+              </button>
+            )}
+          </div>
         </div>
 
         {loading ? (

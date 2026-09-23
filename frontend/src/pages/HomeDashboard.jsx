@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import {
@@ -142,12 +142,20 @@ function AdminDashboardView({ data }) {
   const activeAllocations = allocations.filter((a) => a.status === "Active");
   const pendingAllocations = allocations.filter((a) => a.status === "Pending");
 
-  // Department distribution
-  const deptCount = students.reduce((acc, s) => {
-    const dept = s.Course || s.Department || "General";
-    acc[dept] = (acc[dept] || 0) + 1;
-    return acc;
-  }, {});
+  // Course distribution (only B.Tech and Diploma)
+  const courseCount = {
+    "B.Tech": 0,
+    "Diploma": 0,
+  };
+
+  students.forEach((s) => {
+    const course = (s.Course || s.Department || "").toLowerCase();
+    if (course.includes("diploma") || course.includes("polytechnic")) {
+      courseCount["Diploma"] += 1;
+    } else {
+      courseCount["B.Tech"] += 1;
+    }
+  });
 
   return (
     <div className="space-y-6">
@@ -266,11 +274,12 @@ function AdminDashboardView({ data }) {
           <div className="pt-4 border-t border-slate-100 mt-4">
             <p className="text-xs font-bold text-slate-800 mb-2">Student Course Distribution</p>
             <div className="flex flex-wrap gap-2">
-              {Object.entries(deptCount).map(([dept, count]) => (
-                <span key={dept} className="px-2.5 py-1 bg-slate-100 rounded-lg text-xs font-semibold text-slate-700 border border-slate-200">
-                  {dept}: <strong className="text-purple-700">{count}</strong>
-                </span>
-              ))}
+              <span className="px-2.5 py-1 bg-slate-100 rounded-lg text-xs font-semibold text-slate-700 border border-slate-200">
+                B.Tech: <strong className="text-purple-700">{courseCount["B.Tech"]}</strong>
+              </span>
+              <span className="px-2.5 py-1 bg-slate-100 rounded-lg text-xs font-semibold text-slate-700 border border-slate-200">
+                Diploma: <strong className="text-purple-700">{courseCount["Diploma"]}</strong>
+              </span>
             </div>
           </div>
         </div>
@@ -356,31 +365,6 @@ function AdminDashboardView({ data }) {
           </table>
         </div>
       </div>
-
-      {/* Quick Actions */}
-      <div className="bg-white p-6 rounded-2xl border border-purple-100/70 shadow-xs">
-        <h3 className="text-sm font-extrabold text-slate-900 mb-4">Quick Admin Actions</h3>
-        <div className="flex flex-wrap gap-3">
-          <button
-            onClick={() => navigate("/students")}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-50 text-purple-700 font-bold text-xs border border-purple-200 hover:bg-purple-100 transition-colors cursor-pointer"
-          >
-            <UserPlus className="w-4 h-4" /> Add / Manage Students
-          </button>
-          <button
-            onClick={() => navigate("/rooms")}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-50 text-indigo-700 font-bold text-xs border border-indigo-200 hover:bg-indigo-100 transition-colors cursor-pointer"
-          >
-            <DoorOpen className="w-4 h-4" /> Add / Manage Rooms
-          </button>
-          <button
-            onClick={() => navigate("/allocations")}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-50 text-emerald-700 font-bold text-xs border border-emerald-200 hover:bg-emerald-100 transition-colors cursor-pointer"
-          >
-            <ClipboardPlus className="w-4 h-4" /> Create Allocation
-          </button>
-        </div>
-      </div>
     </div>
   );
 }
@@ -393,13 +377,54 @@ function StudentDashboardView({ data, user }) {
   const room = myAllocation?.room || {};
   const roommates = myAllocation?.roommates || [];
 
+  const [profileImage, setProfileImage] = useState(() => {
+    return localStorage.getItem(`profile_image_${user?._id || user?.id || user?.email || "current"}`) || null;
+  });
+  const fileInputRef = useRef(null);
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64 = reader.result;
+        setProfileImage(base64);
+        localStorage.setItem(`profile_image_${user?._id || user?.id || user?.email || "current"}`, base64);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Student Profile Hero Banner */}
       <div className="bg-gradient-to-r from-purple-700 via-indigo-700 to-purple-900 text-white rounded-3xl p-6 shadow-xl border border-purple-500/30 flex flex-wrap items-center justify-between gap-6">
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white font-extrabold text-2xl shadow-inner">
-            {(student.Name || user.name)?.charAt(0)?.toUpperCase()}
+          <div
+            className="relative group cursor-pointer"
+            onClick={() => fileInputRef.current?.click()}
+            title="Upload profile photo"
+          >
+            <div className="w-16 h-16 rounded-full bg-white/10 backdrop-blur-md border-2 border-white/30 flex items-center justify-center text-white font-extrabold text-2xl shadow-inner overflow-hidden ring-2 ring-white/20">
+              {profileImage ? (
+                <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                (student.Name || user.name)?.charAt(0)?.toUpperCase()
+              )}
+            </div>
+            <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <Plus className="w-6 h-6 text-white" />
+            </div>
+            <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-white text-purple-700 rounded-full flex items-center justify-center shadow-md border-2 border-purple-800 group-hover:scale-110 transition-transform">
+              <Plus className="w-3.5 h-3.5 stroke-[3]" />
+            </div>
+            <input
+              type="file"
+              ref={fileInputRef}
+              className="hidden"
+              accept="image/*"
+              onChange={handleImageUpload}
+            />
           </div>
           <div>
             <h2 className="text-2xl font-black">{student.Name || user.name}</h2>

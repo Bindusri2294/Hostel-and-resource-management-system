@@ -5,13 +5,11 @@ import {
   Plus,
   Search,
   CheckCircle2,
-  Clock,
   LogOut,
   Trash2,
   AlertCircle,
   X,
   Building,
-  UserCheck,
 } from "lucide-react";
 
 export default function Allocations() {
@@ -55,7 +53,7 @@ export default function Allocations() {
   }, []);
 
   const activeAllocations = allocations.filter((a) => a.status === "Active");
-  const pendingAllocations = allocations.filter((a) => a.status === "Pending");
+  const vacatedAllocations = allocations.filter((a) => a.status === "Vacated");
   const availableRooms = rooms.filter(
     (r) => r.Status !== "Full" && Number(r.OccupiedCount || 0) < Number(r.Capacity || 1)
   );
@@ -173,11 +171,11 @@ export default function Allocations() {
 
         <div className="p-4 bg-white rounded-2xl border border-purple-100/70 shadow-xs flex items-center justify-between">
           <div>
-            <p className="text-xs font-bold text-slate-400 uppercase">Pending Requests</p>
-            <p className="text-2xl font-extrabold text-slate-900">{pendingAllocations.length}</p>
+            <p className="text-xs font-bold text-slate-400 uppercase">Vacated Rooms</p>
+            <p className="text-2xl font-extrabold text-slate-900">{vacatedAllocations.length}</p>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
-            <Clock className="w-5 h-5" />
+          <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center font-bold">
+            <LogOut className="w-5 h-5" />
           </div>
         </div>
 
@@ -191,33 +189,6 @@ export default function Allocations() {
           </div>
         </div>
       </div>
-
-      {/* PENDING ALLOCATIONS SECTION */}
-      {pendingAllocations.length > 0 && (
-        <div className="bg-amber-50/70 border border-amber-200 p-5 rounded-2xl space-y-3">
-          <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-amber-600" />
-            <h3 className="text-sm font-extrabold text-amber-900">Pending Allocations ({pendingAllocations.length})</h3>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {pendingAllocations.map((pending) => (
-              <div key={pending.id || pending._id} className="bg-white p-3.5 rounded-xl border border-amber-200 flex items-center justify-between text-xs">
-                <div>
-                  <p className="font-bold text-slate-900">{pending.studentName || pending.student?.Name}</p>
-                  <p className="text-slate-500 text-[11px]">Requested Room {pending.roomNo || pending.room?.RoomNo}</p>
-                </div>
-                <button
-                  onClick={() => allocationService.update(pending.id || pending._id, { status: "Active" }).then(loadData)}
-                  className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg text-xs cursor-pointer shadow-xs"
-                >
-                  Approve Allocation
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Toolbar Filters */}
       <div className="bg-white p-4 rounded-2xl border border-purple-100/70 shadow-xs flex flex-wrap items-center justify-between gap-3">
@@ -239,10 +210,9 @@ export default function Allocations() {
             onChange={(e) => setStatusFilter(e.target.value)}
             className="bg-slate-50 border border-slate-200 text-xs font-semibold rounded-xl px-3 py-1.5 outline-none"
           >
-            <option value="All">All Statuses</option>
+            <option value="All">All</option>
             <option value="Active">Active</option>
             <option value="Vacated">Vacated</option>
-            <option value="Pending">Pending</option>
           </select>
         </div>
       </div>
@@ -271,7 +241,7 @@ export default function Allocations() {
                 {filteredAllocations.map((alloc) => {
                   const studentName = alloc.studentName || alloc.student?.Name || "Resident";
                   const rollNo = alloc.student?.Rollno || "—";
-                  const blockName = alloc.room?.Block || alloc.block || "A";
+                  const blockName = alloc.room?.Block || alloc.block || "D";
                   const roomNum = alloc.roomNo || alloc.room?.RoomNo || "—";
                   const allocDate = alloc.allocationDate
                     ? new Date(alloc.allocationDate).toLocaleDateString()
