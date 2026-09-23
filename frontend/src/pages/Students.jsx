@@ -21,7 +21,7 @@ const blankStudent = {
   Course: "B.Tech Computer Science",
   Year: 3,
   Section: "A",
-  Block: "A",
+  Block: "C",
   Roomno: "Unassigned",
 };
 
