@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
 const Student = require("../models/student");
+const User = require("../models/User");
 
 const studentFilter = (id) => {
   if (mongoose.Types.ObjectId.isValid(id)) {
@@ -8,10 +10,26 @@ const studentFilter = (id) => {
   return { Rollno: id };
 };
 
-// Create a student
+// Create a student (Admin only)
+// Auto-creates a linked User account with default password = roll number
 const createStudent = async (req, res, next) => {
   try {
     const student = await Student.create(req.body);
+
+    // Auto-create User login account with roll number as default password
+    const existingUser = await User.findOne({ student: student._id });
+    if (!existingUser) {
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(student.Rollno, salt);
+      await User.create({
+        name: student.Name,
+        email: `${student.Rollno.toLowerCase().replace(/[^a-z0-9]/g, "")}@hostel.local`,
+        password: hashedPassword,
+        role: "Student",
+        student: student._id,
+      });
+    }
+
     res.status(201).json(student);
   } catch (error) {
     next(error);

@@ -43,7 +43,8 @@ const seedAdminAndDemoUsers = async () => {
     const existingStudentUser = await User.findOne({ email: demoStudentEmail });
     if (!existingStudentUser) {
       const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash("student123", salt);
+      // Default password = roll number (student logs in with rollno as both username & password)
+      const hashedPassword = await bcrypt.hash(demoStudent.Rollno, salt);
 
       await User.create({
         name: demoStudent.Name,
@@ -52,7 +53,7 @@ const seedAdminAndDemoUsers = async () => {
         role: "Student",
         student: demoStudent._id,
       });
-      console.log(`[SEED] Demo Student account created (${demoStudentEmail})`);
+      console.log(`[SEED] Demo Student account created (${demoStudentEmail}) — default password: roll number`);
     }
 
     // 3. Ensure Demo Student has an active room allocation
