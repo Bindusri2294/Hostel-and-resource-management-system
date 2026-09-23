@@ -36,7 +36,12 @@ export default function Attendance() {
     setTimeout(() => setSavedMsg(""), 4000);
   };
 
-  const blockOptions = ["1", "2", "3"];
+  const blockOptions = [
+    { value: "D", label: "Block D" },
+    { value: "E", label: "Block E" },
+    { value: "KW", label: "Block KW" },
+    { value: "Executive", label: "Executive Block" },
+  ];
   const roomOptions = [...new Set(students.map((s) => s.Roomno).filter(Boolean))].sort((a, b) =>
     String(a).localeCompare(String(b), undefined, { numeric: true })
   );
@@ -131,10 +136,10 @@ export default function Attendance() {
               onChange={(e) => setSelectedBlock(e.target.value)}
               className="bg-white border border-slate-200 text-xs font-semibold text-slate-700 rounded-xl px-3 py-2 outline-none min-w-36"
             >
-              <option value="">Select Block</option>
+              <option value="">All Blocks</option>
               {blockOptions.map((block) => (
-                <option key={block} value={block}>
-                  Block {block}
+                <option key={block.value} value={block.value}>
+                  {block.label}
                 </option>
               ))}
             </select>
@@ -186,7 +191,7 @@ export default function Attendance() {
                     <td className="py-3 px-4 font-bold text-slate-900">{s.Name}</td>
                     <td className="py-3 px-4 text-slate-500">{s.Rollno}</td>
                     <td className="py-3 px-4">
-                      Block {s.Block || "A"} · Room {s.Roomno || "Unassigned"}
+                      {s.Block === "Executive" ? "Executive Block" : `Block ${s.Block || "D"}`} · Room {s.Roomno || "Unassigned"}
                     </td>
                     <td className="py-3 px-4 text-right">
                       <div className="inline-flex rounded-xl bg-slate-100 p-0.5 border border-slate-200">

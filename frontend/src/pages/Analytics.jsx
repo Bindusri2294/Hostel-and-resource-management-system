@@ -218,16 +218,16 @@ export default function Analytics() {
           </div>
 
           <div className="space-y-4 pt-2">
-            {["A", "B", "C"].map((block) => {
+            {["D", "E", "KW", "Executive"].map((block) => {
               const blockRooms = rooms.filter((r) => r.Block === block);
-              const cap = blockRooms.reduce((sum, r) => sum + Number(r.Capacity || 0), 0) || 10;
+              const cap = blockRooms.reduce((sum, r) => sum + Number(r.Capacity || 0), 0) || 0;
               const occ = blockRooms.reduce((sum, r) => sum + Number(r.OccupiedCount || 0), 0) || 0;
-              const pct = Math.round((occ / cap) * 100);
+              const pct = cap > 0 ? Math.round((occ / cap) * 100) : 0;
 
               return (
                 <div key={block} className="space-y-1.5 text-xs font-bold">
                   <div className="flex justify-between text-slate-700">
-                    <span>Block {block} Residential Rooms</span>
+                    <span>{block === "Executive" ? "Executive Block" : `Block ${block}`} Residential Rooms</span>
                     <span>
                       {occ} / {cap} Beds ({pct}%)
                     </span>
