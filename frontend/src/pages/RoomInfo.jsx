@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { roomService, getErrorMessage } from "../services/api";
-import { DoorOpen, Search, ChevronRight } from "lucide-react";
+import { DoorOpen, Search, ChevronRight, Building } from "lucide-react";
 
 export default function RoomInfo() {
   const [rooms, setRooms] = useState([]);
@@ -28,7 +28,8 @@ export default function RoomInfo() {
   const filteredRooms = rooms.filter((room) => {
     return (
       !query ||
-      String(room.RoomNo || "").toLowerCase().includes(query.toLowerCase())
+      String(room.RoomNo || "").toLowerCase().includes(query.toLowerCase()) ||
+      String(room.Block || "").toLowerCase().includes(query.toLowerCase())
     );
   });
 
@@ -111,7 +112,7 @@ export default function RoomInfo() {
           <Search className="w-3.5 h-3.5 text-slate-400 shrink-0" />
           <input
             type="text"
-            placeholder="Search room number..."
+            placeholder="Search room number or block..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="bg-transparent outline-none w-full text-slate-800 placeholder-slate-400 font-medium"
@@ -137,6 +138,15 @@ export default function RoomInfo() {
                 className="bg-white rounded-2xl border border-purple-100/70 p-5 shadow-xs hover:shadow-md transition-all space-y-4"
               >
                 <div className="mb-2">
+                  <div className="flex items-center justify-between mb-2 gap-2">
+                    <span className="text-[11px] font-bold text-purple-700 bg-purple-50 px-2.5 py-1 rounded-lg border border-purple-100/80 flex items-center gap-1.5 shadow-2xs">
+                      <Building className="w-3.5 h-3.5 text-purple-600" />
+                      {room.Block === "Executive" ? "Executive Block" : `Block ${room.Block || "D"}`}
+                    </span>
+                    <span className="text-xs font-semibold text-slate-500">
+                      Floor {room.Floor ?? 1}
+                    </span>
+                  </div>
                   <h3 className="text-xl font-extrabold text-slate-900">
                     Room {room.RoomNo}
                   </h3>
