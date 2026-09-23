@@ -17,6 +17,13 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Bell, Search, LogOut, ChevronDown, User, Settings, ShieldCheck, Home } from "lucide-react";
 
+const getGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 18) return "Good afternoon";
+  return "Good evening";
+};
+
 export default function Layout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -134,7 +141,7 @@ export default function Layout() {
             <SidebarTrigger className="hover:bg-purple-50 text-slate-700" />
             <div>
               <p className="text-sm font-extrabold text-slate-900 tracking-tight">
-                {user?.role === "Admin" ? "Good morning, Administrator" : "Resident Portal"}
+                {user?.role === "Admin" ? `${getGreeting()}, Administrator` : `${getGreeting()}, ${user?.name?.split(' ')?.[0] || 'Resident'}`}
               </p>
               <p className="text-[11px] text-slate-500 font-medium">{today}</p>
             </div>

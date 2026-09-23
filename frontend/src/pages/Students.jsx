@@ -223,10 +223,8 @@ export default function Students() {
               className="bg-slate-50 border border-slate-200 text-xs font-semibold rounded-xl px-2.5 py-1.5 outline-none"
             >
               <option value="All">All Courses</option>
-              <option value="Computer Science">Computer Science</option>
-              <option value="Artificial Intelligence">AI & DS</option>
-              <option value="Electronics">ECE</option>
-              <option value="Information Tech">IT</option>
+              <option value="B.TECH">B.TECH</option>
+              <option value="DIPLOMA">DIPLOMA</option>
             </select>
           </div>
 
@@ -306,7 +304,7 @@ export default function Students() {
                     </td>
                     <td className="py-3 px-4">
                       <span className="px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 font-bold text-[11px]">
-                        Room {student.Roomno || "Unassigned"}
+                        {student.Roomno || "Unassigned"}
                       </span>
                     </td>
                     <td className="py-3 px-4">
@@ -437,10 +435,11 @@ export default function Students() {
                   onChange={(e) => setForm({ ...form, Block: e.target.value })}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
                 >
-                  <option value="D">Block D</option>
-                  <option value="E">Block E</option>
-                  <option value="KW">Block KW</option>
-                  <option value="Executive">Executive Block</option>
+                  <option value="C">C</option>
+                  <option value="D">D</option>
+                  <option value="E">E</option>
+                  <option value="KW">KW</option>
+                  <option value="Executive">Executive</option>
                 </select>
               </div>
 
@@ -512,11 +511,11 @@ export default function Students() {
               </div>
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
                 <span className="text-[10px] text-slate-400 font-bold block">Hostel Block</span>
-                <span className="font-extrabold text-purple-700">Block {selected.Block || "D"}</span>
+                <span className="font-extrabold text-purple-700">{selected.Block || "D"}</span>
               </div>
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
                 <span className="text-[10px] text-slate-400 font-bold block">Allocated Room</span>
-                <span className="font-extrabold text-slate-900">Room {selected.Roomno || "Unassigned"}</span>
+                <span className="font-extrabold text-slate-900">{selected.Roomno || "Unassigned"}</span>
               </div>
             </div>
 

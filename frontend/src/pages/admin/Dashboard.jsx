@@ -37,6 +37,13 @@ const occupancyData = [
   { name: "Available", value: 58, color: "#eef2f6" },
 ];
 
+const getGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 18) return "Good afternoon";
+  return "Good evening";
+};
+
 export default function AdminDashboard() {
   const [showAddStudent, setShowAddStudent] = useState(false);
 
@@ -106,7 +113,7 @@ export default function AdminDashboard() {
         <header className="flex items-center justify-between px-8 py-5 bg-white border-b border-gray-100 shrink-0">
           <div>
             <h1 className="text-2xl font-bold text-[#1a1d2d] flex items-center gap-2">
-              Good afternoon, Meera
+              {getGreeting()}, Meera
             </h1>
             <div className="flex items-center gap-1.5 text-sm text-gray-500 mt-1 font-medium">
               <Calendar className="w-4 h-4" />
