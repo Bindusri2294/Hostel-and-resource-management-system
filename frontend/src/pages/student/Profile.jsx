@@ -38,6 +38,7 @@ export default function Profile() {
         const base64 = reader.result;
         setProfileImage(base64);
         localStorage.setItem("profile_image_current", base64);
+        window.dispatchEvent(new Event("storage"));
       };
       reader.readAsDataURL(file);
     }
@@ -137,7 +138,11 @@ export default function Profile() {
                 {/* Profile Header */}
                 <div className="flex items-start justify-between mb-8">
                   <div className="flex items-center gap-6">
-                    <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                    <div 
+                      className="relative group cursor-pointer" 
+                      onClick={() => fileInputRef.current?.click()}
+                      title="Upload profile photo"
+                    >
                       <Avatar className="w-20 h-20 bg-[#6348f9] text-white font-bold text-2xl shadow-sm border-2 border-white ring-2 ring-gray-100">
                         {profileImage ? (
                           <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
@@ -147,6 +152,9 @@ export default function Profile() {
                       </Avatar>
                       <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                         <Plus className="w-6 h-6 text-white" />
+                      </div>
+                      <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-white text-purple-700 rounded-full flex items-center justify-center shadow-md border-2 border-white group-hover:scale-110 transition-transform">
+                        <Plus className="w-3.5 h-3.5 stroke-[3]" />
                       </div>
                       <input 
                         type="file" 
