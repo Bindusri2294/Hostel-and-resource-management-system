@@ -453,11 +453,10 @@ export default function Students() {
                   onChange={(e) => setForm({ ...form, Block: e.target.value })}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
                 >
-                  <option value="C">C</option>
-                  <option value="D">D</option>
-                  <option value="E">E</option>
-                  <option value="KW">KW</option>
-                  <option value="Executive">Executive</option>
+                  <option value="D">Block D</option>
+                  <option value="E">Block E</option>
+                  <option value="KW">Block KW</option>
+                  <option value="Executive">Executive Block</option>
                 </select>
               </div>
 
