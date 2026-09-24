@@ -49,13 +49,6 @@ export default function RoomInfo() {
       {/* Header Banner */}
       <div className="bg-white p-6 rounded-2xl border border-purple-100/70 shadow-xs space-y-3">
         <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
-          <span className="text-purple-600">Student Portal</span>
-          <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
-          <span>Hostel Directory</span>
-          <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
-          <span className="bg-purple-100 text-purple-800 px-2.5 py-0.5 rounded-md font-extrabold">
-            Room Info ({rooms.length})
-          </span>
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
