@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { studentService, getErrorMessage } from "../services/api";
+import { studentService, roomService, getErrorMessage } from "../services/api";
 import {
   Users,
   Search,
@@ -20,7 +20,8 @@ const blankStudent = {
   Rollno: "",
   Course: "B.Tech",
   Year: 3,
-  Section: "A",
+  Department: "CSM",
+  Campus: "KIET",
   Block: "D",
   Roomno: "Unassigned",
   Status: "Active",
@@ -62,6 +63,7 @@ const getCampusFromRollNo = (rollno) => {
 
 export default function Students() {
   const [students, setStudents] = useState([]);
+  const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
@@ -92,8 +94,18 @@ export default function Students() {
     }
   };
 
+  const loadRooms = async () => {
+    try {
+      const { data } = await roomService.list();
+      setRooms(data || []);
+    } catch (err) {
+      console.error("Failed to load rooms", err);
+    }
+  };
+
   useEffect(() => {
     loadStudents();
+    loadRooms();
   }, []);
 
   const filteredStudents = students.filter((student) => {
@@ -300,7 +312,7 @@ export default function Students() {
                       {getOrdinalYear(student.Year)} . {getDeptFromRollNo(student.Rollno)}
                     </td>
                     <td className="py-3 px-4 font-bold text-purple-700">
-                      {student.Block === "Executive" ? "Executive Block" : `Block ${student.Block || "D"}`}
+                      {student.Block === "Executive" ? "Executive" : (student.Block || "D")}
                     </td>
                     <td className="py-3 px-4">
                       <span className="px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 font-bold text-[11px]">
@@ -395,14 +407,15 @@ export default function Students() {
               </div>
 
               <div>
-                <label className="block text-slate-700 mb-1 font-bold">Course / Department</label>
-                <input
-                  type="text"
-                  placeholder="e.g. B.Tech Computer Science"
-                  value={form.Course || ""}
+                <label className="block text-slate-700 mb-1 font-bold">Course</label>
+                <select
+                  value={form.Course || "B.Tech"}
                   onChange={(e) => setForm({ ...form, Course: e.target.value })}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
-                />
+                >
+                  <option value="B.Tech">B.Tech</option>
+                  <option value="Diploma">Diploma</option>
+                </select>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
@@ -418,13 +431,18 @@ export default function Students() {
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-700 mb-1 font-bold">Section</label>
-                  <input
-                    type="text"
-                    value={form.Section || "A"}
-                    onChange={(e) => setForm({ ...form, Section: e.target.value })}
+                  <label className="block text-slate-700 mb-1 font-bold">Department</label>
+                  <select
+                    value={form.Department || "CSM"}
+                    onChange={(e) => setForm({ ...form, Department: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
-                  />
+                  >
+                    <option value="CSM">CSM</option>
+                    <option value="CAI">CAI</option>
+                    <option value="CSD">CSD</option>
+                    <option value="AID">AID</option>
+                    {form.Campus !== "KIET-W" && <option value="CSC">CSC</option>}
+                  </select>
                 </div>
               </div>
 
@@ -444,14 +462,37 @@ export default function Students() {
               </div>
 
               <div>
+                <label className="block text-slate-700 mb-1 font-bold">Campus</label>
+                <select
+                  value={form.Campus || "KIET"}
+                  onChange={(e) => {
+                    const newCampus = e.target.value;
+                    const newDept = (newCampus === "KIET-W" && form.Department === "CSC") ? "CSM" : form.Department;
+                    setForm({ ...form, Campus: newCampus, Department: newDept });
+                  }}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
+                >
+                  <option value="KIET">KIET</option>
+                  <option value="KIET-W">KIET-W</option>
+                </select>
+              </div>
+
+              <div className="col-span-2">
                 <label className="block text-slate-700 mb-1 font-bold">Room Number</label>
-                <input
-                  type="text"
-                  placeholder="e.g. B-204"
+                <select
                   value={form.Roomno || "Unassigned"}
                   onChange={(e) => setForm({ ...form, Roomno: e.target.value })}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
-                />
+                >
+                  <option value="Unassigned">Unassigned</option>
+                  {rooms
+                    .filter(room => !form.Block || room.Block === form.Block)
+                    .map((room) => (
+                      <option key={room._id} value={room.RoomNo}>
+                        {room.RoomNo}
+                      </option>
+                  ))}
+                </select>
               </div>
             </div>
 
@@ -506,8 +547,8 @@ export default function Students() {
                 <span className="font-extrabold text-slate-900">Year {selected.Year || 1}</span>
               </div>
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                <span className="text-[10px] text-slate-400 font-bold block">Section</span>
-                <span className="font-extrabold text-slate-900">Section {selected.Section || "A"}</span>
+                <span className="text-[10px] text-slate-400 font-bold block">Department</span>
+                <span className="font-extrabold text-slate-900">{selected.Department || "CSM"}</span>
               </div>
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
                 <span className="text-[10px] text-slate-400 font-bold block">Hostel Block</span>
