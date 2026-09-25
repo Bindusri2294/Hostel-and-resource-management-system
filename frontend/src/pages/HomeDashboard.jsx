@@ -19,7 +19,6 @@ import {
   ClipboardPlus,
   CheckCircle2,
   AlertCircle,
-  Plus,
   Star,
   Sparkles,
   Layers,
@@ -380,52 +379,29 @@ function StudentDashboardView({ data, user }) {
   const [profileImage, setProfileImage] = useState(() => {
     return localStorage.getItem(`profile_image_${user?._id || user?.id || user?.email || "current"}`) || null;
   });
-  const fileInputRef = useRef(null);
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const base64 = reader.result;
-        setProfileImage(base64);
-        localStorage.setItem(`profile_image_${user?._id || user?.id || user?.email || "current"}`, base64);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+  useEffect(() => {
+    const handleStorage = () => {
+      setProfileImage(localStorage.getItem(`profile_image_${user?._id || user?.id || user?.email || "current"}`) || null);
+    };
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, [user]);
 
   return (
     <div className="space-y-6">
       {/* Student Profile Hero Banner */}
       <div className="bg-gradient-to-r from-purple-700 via-indigo-700 to-purple-900 text-white rounded-3xl p-6 shadow-xl border border-purple-500/30 flex flex-wrap items-center justify-between gap-6">
         <div className="flex items-center gap-4">
-          <div
-            className="relative group cursor-pointer"
-            onClick={() => fileInputRef.current?.click()}
-            title="Upload profile photo"
-          >
-            <div className="w-16 h-16 rounded-full bg-white/10 backdrop-blur-md border-2 border-white/30 flex items-center justify-center text-white font-extrabold text-2xl shadow-inner overflow-hidden ring-2 ring-white/20">
+          <Link to="/profile" title="View Profile" className="focus:outline-none">
+            <div className="w-16 h-16 rounded-full bg-white/10 backdrop-blur-md border-2 border-white/30 flex items-center justify-center text-white font-extrabold text-2xl shadow-inner overflow-hidden ring-2 ring-white/20 hover:ring-white/50 transition-all">
               {profileImage ? (
                 <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
               ) : (
                 (student.Name || user.name)?.charAt(0)?.toUpperCase()
               )}
             </div>
-            <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-              <Plus className="w-6 h-6 text-white" />
-            </div>
-            <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-white text-purple-700 rounded-full flex items-center justify-center shadow-md border-2 border-purple-800 group-hover:scale-110 transition-transform">
-              <Plus className="w-3.5 h-3.5 stroke-[3]" />
-            </div>
-            <input
-              type="file"
-              ref={fileInputRef}
-              className="hidden"
-              accept="image/*"
-              onChange={handleImageUpload}
-            />
-          </div>
+          </Link>
           <div>
             <h2 className="text-2xl font-black">{student.Name || user.name}</h2>
             <p className="text-xs text-purple-200 font-medium">

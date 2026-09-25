@@ -88,8 +88,12 @@ export default function Analytics() {
     };
   });
 
+  const downloadPDF = () => {
+    window.print();
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" id="analytics-dashboard">
       {/* Header */}
       <div className="bg-white p-6 rounded-2xl border border-purple-100/70 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -101,7 +105,7 @@ export default function Analytics() {
 
         <div className="flex items-center gap-3">
           <button
-            onClick={() => alert("Downloading Analytics PDF Report...")}
+            onClick={downloadPDF}
             className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 text-slate-800 font-bold text-xs rounded-xl hover:bg-slate-200 transition-all cursor-pointer border border-slate-200"
           >
             <Download className="w-4 h-4 text-purple-600" /> Export PDF
@@ -218,16 +222,16 @@ export default function Analytics() {
           </div>
 
           <div className="space-y-4 pt-2">
-            {["A", "B", "C"].map((block) => {
+            {["D", "E", "KW", "Executive"].map((block) => {
               const blockRooms = rooms.filter((r) => r.Block === block);
-              const cap = blockRooms.reduce((sum, r) => sum + Number(r.Capacity || 0), 0) || 10;
+              const cap = blockRooms.reduce((sum, r) => sum + Number(r.Capacity || 0), 0) || 0;
               const occ = blockRooms.reduce((sum, r) => sum + Number(r.OccupiedCount || 0), 0) || 0;
-              const pct = Math.round((occ / cap) * 100);
+              const pct = cap > 0 ? Math.round((occ / cap) * 100) : 0;
 
               return (
                 <div key={block} className="space-y-1.5 text-xs font-bold">
                   <div className="flex justify-between text-slate-700">
-                    <span>Block {block} Residential Rooms</span>
+                    <span>{block === "Executive" ? "Executive Block" : `Block ${block}`} Residential Rooms</span>
                     <span>
                       {occ} / {cap} Beds ({pct}%)
                     </span>

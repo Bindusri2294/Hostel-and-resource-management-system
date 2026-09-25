@@ -63,6 +63,7 @@ const createAllocation = async (req, res, next) => {
     await room.save();
 
     student.Roomno = room.RoomNo;
+    student.Block = room.Block;
     await student.save();
 
     const populatedAllocation = await Allocation.findById(allocation._id)
