@@ -27,6 +27,7 @@ const userSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Student",
     },
+    refreshTokens: [String],
   },
   {
     timestamps: true,
