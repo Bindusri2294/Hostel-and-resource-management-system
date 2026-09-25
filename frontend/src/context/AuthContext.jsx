@@ -39,7 +39,12 @@ export function AuthProvider({ children }) {
     return data;
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await authService.logout();
+    } catch (e) {
+      console.error("Logout failed on backend", e);
+    }
     localStorage.removeItem("hostel_token");
     localStorage.removeItem("hostel_user");
     setUser(null);

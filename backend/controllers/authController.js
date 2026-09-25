@@ -3,12 +3,48 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const Student = require("../models/student");
 
-const generateToken = (id, role) => {
+const generateAccessToken = (id, role) => {
   if (!process.env.JWT_SECRET) {
     throw new Error("JWT_SECRET is not set in environment variables");
   }
   return jwt.sign({ id, role }, process.env.JWT_SECRET, {
-    expiresIn: "30d",
+    expiresIn: "15m",
+  });
+};
+
+const generateRefreshToken = (id, role) => {
+  if (!process.env.JWT_SECRET) {
+    throw new Error("JWT_SECRET is not set in environment variables");
+  }
+  return jwt.sign({ id, role }, process.env.JWT_SECRET, {
+    expiresIn: "7d",
+  });
+};
+
+const sendAuthResponse = async (res, user, statusCode = 200) => {
+  const accessToken = generateAccessToken(user._id, user.role);
+  const refreshToken = generateRefreshToken(user._id, user.role);
+
+  // Save refresh token to user
+  if (!user.refreshTokens) user.refreshTokens = [];
+  user.refreshTokens.push(refreshToken);
+  await user.save();
+
+  // Set HTTP-only cookie
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  });
+
+  res.status(statusCode).json({
+    _id: user._id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    student: user.student,
+    token: accessToken,
   });
 };
 
@@ -66,15 +102,7 @@ const registerStudent = async (req, res) => {
     });
 
     const populatedUser = await User.findById(user._id).select("-password").populate("student");
-
-    res.status(201).json({
-      _id: populatedUser._id,
-      name: populatedUser.name,
-      email: populatedUser.email,
-      role: populatedUser.role,
-      student: populatedUser.student,
-      token: generateToken(user._id, user.role),
-    });
+    await sendAuthResponse(res, populatedUser, 201);
   } catch (error) {
     if (error.code === 11000) {
       return res.status(400).json({
@@ -172,14 +200,7 @@ const loginUser = async (req, res) => {
       return res.status(401).json({ message: "Incorrect password. Please try again." });
     }
 
-    res.status(200).json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      student: user.student,
-      token: generateToken(user._id, user.role),
-    });
+    await sendAuthResponse(res, user, 200);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -195,8 +216,57 @@ const getMe = async (req, res) => {
   }
 };
 
+// Refresh Token
+const refreshToken = async (req, res) => {
+  try {
+    const token = req.cookies.refreshToken;
+    if (!token) return res.status(401).json({ message: "No refresh token provided." });
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id).populate("student");
+
+    if (!user || !user.refreshTokens.includes(token)) {
+      res.clearCookie("refreshToken");
+      return res.status(401).json({ message: "Invalid refresh token." });
+    }
+
+    const accessToken = generateAccessToken(user._id, user.role);
+    res.status(200).json({ token: accessToken });
+  } catch (error) {
+    res.clearCookie("refreshToken");
+    return res.status(401).json({ message: "Expired or invalid refresh token." });
+  }
+};
+
+// Logout User
+const logoutUser = async (req, res) => {
+  try {
+    const token = req.cookies.refreshToken;
+    if (token) {
+      // Decode without verification just to get user ID if possible
+      let decoded;
+      try {
+        decoded = jwt.verify(token, process.env.JWT_SECRET, { ignoreExpiration: true });
+        const user = await User.findById(decoded.id);
+        if (user) {
+          user.refreshTokens = user.refreshTokens.filter(rt => rt !== token);
+          await user.save();
+        }
+      } catch (err) {
+        console.error("Logout decode error", err);
+      }
+    }
+    res.clearCookie("refreshToken");
+    res.status(200).json({ message: "Logged out successfully." });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   registerStudent,
   loginUser,
   getMe,
+  refreshToken,
+  logoutUser,
 };
