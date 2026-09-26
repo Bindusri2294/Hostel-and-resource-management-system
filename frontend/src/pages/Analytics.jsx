@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { roomService, studentService, allocationService, feedbackService, getErrorMessage } from "../services/api";
+import AdminSearchBar from "../components/AdminSearchBar";
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid } from "recharts";
 import {
   BarChart,
@@ -27,6 +28,7 @@ export default function Analytics() {
   const [courseFilter, setCourseFilter] = useState("All");
   const [yearFilter, setYearFilter] = useState("All");
   const [activeTab, setActiveTab] = useState("KIET");
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -87,7 +89,11 @@ export default function Analytics() {
     const matchesCampus = campusFilter === "All" || getCampusFromRollNo(s.Rollno) === campusFilter;
     const matchesCourse = courseFilter === "All" || String(s.Course || "") === courseFilter;
     const matchesYear = yearFilter === "All" || String(s.Year || "") === yearFilter;
-    return matchesCampus && matchesCourse && matchesYear;
+    const matchesQuery =
+      !query ||
+      [s.Name, s.Rollno, s.email, s.Email, s.Roomno, s.Block, s.Course]
+        .some((value) => String(value || "").toLowerCase().includes(query.toLowerCase()));
+    return matchesCampus && matchesCourse && matchesYear && matchesQuery;
   });
 
   // Calculate Key Stats
@@ -160,6 +166,13 @@ export default function Analytics() {
 
       {/* Filters */}
       <div className="bg-white p-4 rounded-2xl border border-purple-100/70 shadow-xs flex flex-wrap items-center justify-between gap-3">
+        <div className="w-full lg:flex-1 lg:min-w-80">
+          <AdminSearchBar
+            value={query}
+            onChange={setQuery}
+            placeholder="Search student or room..."
+          />
+        </div>
         <div className="flex items-center flex-wrap gap-2 text-xs font-extrabold text-slate-700">
           <span>Campus:</span>
           <select

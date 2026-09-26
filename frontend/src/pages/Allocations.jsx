@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { allocationService, studentService, roomService, getErrorMessage } from "../services/api";
+import AdminSearchBar from "../components/AdminSearchBar";
 import {
   ClipboardList,
   Plus,
@@ -192,16 +193,11 @@ export default function Allocations() {
 
       {/* Toolbar Filters */}
       <div className="bg-white p-4 rounded-2xl border border-purple-100/70 shadow-xs flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2 bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 text-xs w-full sm:w-72">
-          <Search className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-          <input
-            type="text"
-            placeholder="Search student, roll no, room..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="bg-transparent outline-none w-full text-slate-800 placeholder-slate-400 font-medium"
-          />
-        </div>
+        <AdminSearchBar
+          value={query}
+          onChange={setQuery}
+          placeholder="Search student or room..."
+        />
 
         <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
           <span>Status Filter:</span>

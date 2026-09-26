@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { studentService, roomService, getErrorMessage } from "../services/api";
-import { ClipboardCheck, Search, CheckCircle2, XCircle, Clock, AlertCircle } from "lucide-react";
+import AdminSearchBar from "../components/AdminSearchBar";
+import { ClipboardCheck, CheckCircle2, XCircle, Clock, AlertCircle } from "lucide-react";
+
 
 export default function Attendance() {
   const [students, setStudents] = useState([]);
@@ -124,16 +126,7 @@ export default function Attendance() {
       {/* Table */}
       <div className="bg-white rounded-2xl border border-purple-100/70 shadow-xs overflow-hidden">
         <div className="p-4 border-b border-slate-100 bg-slate-50 flex flex-col lg:flex-row lg:items-center gap-3">
-          <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs flex-1 min-w-0">
-            <Search className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-            <input
-              type="text"
-              placeholder="Search student or room..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="bg-transparent text-xs font-medium text-slate-800 outline-none w-full"
-            />
-          </div>
+          <AdminSearchBar value={query} onChange={setQuery} />
 
           <div className="flex flex-col sm:flex-row gap-2">
             <select
