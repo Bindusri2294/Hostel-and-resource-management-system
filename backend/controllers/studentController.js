@@ -40,7 +40,14 @@ const createStudent = async (req, res, next) => {
 const getStudents = async (req, res, next) => {
   try {
     const students = await Student.find();
-    res.status(200).json(students);
+    const users = await User.find({ role: "Student" }).select("email student");
+    const emailByStudentId = new Map(users.map((user) => [String(user.student), user.email]));
+    res.status(200).json(
+      students.map((student) => ({
+        ...student.toObject(),
+        email: emailByStudentId.get(String(student._id)) || "",
+      }))
+    );
   } catch (error) {
     next(error);
   }

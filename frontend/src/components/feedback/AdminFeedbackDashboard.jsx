@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { feedbackService } from '../../services/feedbackService';
 import ResolveFeedbackModal from './ResolveFeedbackModal';
+import AdminSearchBar from '../../components/AdminSearchBar';
 import {
   ShieldCheck,
   LogOut,
@@ -82,11 +83,16 @@ import {
     if (search.trim()) {
       const q = search.toLowerCase();
       const matchMsg = item.message?.toLowerCase().includes(q);
-      const matchStudent = item.studentId?.toLowerCase().includes(q);
-      const matchRoom = item.RoomNo?.toLowerCase().includes(q);
-      const matchBlock = item.Block?.toLowerCase().includes(q);
-      const matchCategory = item.category?.toLowerCase().includes(q);
-      return matchMsg || matchStudent || matchRoom || matchBlock || matchCategory;
+      const searchableFields = [
+        item.studentId,
+        item.student?.Name,
+        item.RoomNo,
+        item.Block,
+        item.category,
+        item.subject,
+        item.message,
+      ];
+      return searchableFields.some((field) => String(field || '').toLowerCase().includes(q));
     }
     return true;
   });
@@ -166,13 +172,10 @@ import {
         <div className={`border p-4 rounded-2xl shadow-lg space-y-3 bg-white border-slate-200`}>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="relative flex-1 min-w-[240px]">
-              <Search className={`w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400`} />
-              <input
-                type="text"
-                placeholder="Search by student roll no, room, block, or message..."
+              <AdminSearchBar
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className={`w-full border rounded-xl pl-9 pr-3.5 py-2 text-xs font-medium focus:outline-none bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-[#673BB7] focus:bg-white shadow-sm`}
+                onChange={setSearch}
+                placeholder="Search student, subject, or feedback..."
               />
             </div>
 

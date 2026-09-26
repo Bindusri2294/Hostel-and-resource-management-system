@@ -14,7 +14,7 @@ export default function MyAllocation() {
       .mine()
       .then(({ data }) => setAllocation(data))
       .catch((err) => {
-        if (err.response?.status !== 404) {
+        if (err.response?.status !== 404 && err.response?.status !== 400) {
           setError(getErrorMessage(err));
         }
       })
