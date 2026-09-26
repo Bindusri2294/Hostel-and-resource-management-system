@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { roomService, studentService, allocationService, getErrorMessage } from "../services/api";
+import { roomService, studentService, allocationService, feedbackService, getErrorMessage } from "../services/api";
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid } from "recharts";
 import {
   BarChart,
   PieChart as PieIcon,
@@ -22,6 +23,7 @@ export default function Analytics() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const [campusFilter, setCampusFilter] = useState("All");
   const [courseFilter, setCourseFilter] = useState("All");
   const [yearFilter, setYearFilter] = useState("All");
   const [activeTab, setActiveTab] = useState("KIET");
@@ -57,10 +59,35 @@ export default function Analytics() {
         ? ["1", "2", "3"]
         : [];
 
+  const getCampusFromRollNo = (rollno) => {
+    if (!rollno || rollno.length < 4) return "Other";
+    const prefix = rollno.substring(2, 4).toUpperCase();
+    switch (prefix) {
+      case "B2": return "KIET";
+      case "6Q": return "KIET+";
+      case "JN": return "KIET W";
+      default: return "Other";
+    }
+  };
+
+  const getDeptFromRollNo = (rollno) => {
+    if (!rollno || rollno.length < 4) return "Other";
+    const code = rollno.slice(-4, -2);
+    switch (code) {
+      case "42": return "CSM";
+      case "43": return "CAI";
+      case "44": return "CSD";
+      case "45": return "AID";
+      case "46": return "CSC";
+      default: return "Other";
+    }
+  };
+
   const filteredStudents = students.filter((s) => {
+    const matchesCampus = campusFilter === "All" || getCampusFromRollNo(s.Rollno) === campusFilter;
     const matchesCourse = courseFilter === "All" || String(s.Course || "") === courseFilter;
     const matchesYear = yearFilter === "All" || String(s.Year || "") === yearFilter;
-    return matchesCourse && matchesYear;
+    return matchesCampus && matchesCourse && matchesYear;
   });
 
   // Calculate Key Stats
@@ -68,25 +95,36 @@ export default function Analytics() {
   const occupiedBeds = rooms.reduce((sum, r) => sum + Number(r.OccupiedCount || 0), 0);
   const availableBeds = Math.max(0, totalCapacity - occupiedBeds);
   const occupancyPercentage = totalCapacity ? Math.round((occupiedBeds / totalCapacity) * 100) : 0;
-  const activeAllocations = allocations.filter((a) => a.status === "Active").length;
-
-  // Department distribution
-  const deptMap = filteredStudents.reduce((acc, s) => {
-    const dept = s.Course || "General Engineering";
-    acc[dept] = (acc[dept] || 0) + 1;
-    return acc;
-  }, {});
-
-  const totalFilteredCount = filteredStudents.length || 1;
-  const deptData = Object.entries(deptMap).map(([name, count], index) => {
-    const colors = ["#673bb7", "#5e35b1", "#06b6d4", "#f59e0b", "#10b981", "#ec4899"];
-    return {
-      name,
-      count,
-      percentage: Math.round((count / totalFilteredCount) * 100),
-      color: colors[index % colors.length],
-    };
+  
+  const filteredAllocations = allocations.filter((a) => {
+    const student = students.find((s) => String(s._id) === String(a.studentId));
+    if (!student) return false;
+    const matchesCampus = campusFilter === "All" || getCampusFromRollNo(student.Rollno) === campusFilter;
+    const matchesCourse = courseFilter === "All" || String(student.Course || "") === courseFilter;
+    const matchesYear = yearFilter === "All" || String(student.Year || "") === yearFilter;
+    return matchesCampus && matchesCourse && matchesYear;
   });
+
+  const activeAllocations = filteredAllocations.filter((a) => a.status === "Active").length;
+
+  // Active Allocations by Branch
+  const activeAllocMap = filteredAllocations
+    .filter((a) => a.status === "Active")
+    .reduce((acc, a) => {
+      const student = students.find((s) => String(s._id) === String(a.studentId));
+      const branch = getDeptFromRollNo(student?.Rollno);
+      if (branch !== "Other") {
+        acc[branch] = (acc[branch] || 0) + 1;
+      }
+      return acc;
+    }, {});
+
+  const PIE_COLORS = ["#8b5cf6", "#3b82f6", "#10b981", "#f59e0b", "#ec4899", "#06b6d4"];
+  const allocPieData = Object.entries(activeAllocMap).map(([name, value], index) => ({
+    name,
+    value,
+    color: PIE_COLORS[index % PIE_COLORS.length],
+  }));
 
   const downloadPDF = () => {
     window.print();
@@ -120,11 +158,22 @@ export default function Analytics() {
         </div>
       )}
 
-      {/* Course and Year Filter Controls */}
+      {/* Filters */}
       <div className="bg-white p-4 rounded-2xl border border-purple-100/70 shadow-xs flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2 text-xs font-extrabold text-slate-700">
-          <Filter className="w-4 h-4 text-purple-600" />
-          <span>Filter by Course:</span>
+        <div className="flex items-center flex-wrap gap-2 text-xs font-extrabold text-slate-700">
+          <span>Campus:</span>
+          <select
+            value={campusFilter}
+            onChange={(e) => setCampusFilter(e.target.value)}
+            className="bg-slate-100 border border-slate-200 text-xs font-extrabold text-slate-700 rounded-xl px-3 py-2 outline-none mr-2"
+          >
+            <option value="All">All Campuses</option>
+            <option value="KIET">KIET</option>
+            <option value="KIET+">KIET+</option>
+            <option value="KIET W">KIET W</option>
+          </select>
+
+          <span>Course:</span>
           <select
             value={courseFilter}
             onChange={(e) => {
@@ -248,34 +297,43 @@ export default function Analytics() {
           </div>
         </div>
 
-        {/* Course / Department Distribution Pie Chart */}
+        {/* Active Allocations Pie Chart */}
         <div className="bg-white p-6 rounded-2xl border border-purple-100/70 shadow-xs space-y-4">
           <div className="border-b border-slate-100 pb-3">
-            <h3 className="text-lg font-extrabold text-slate-900">Department & Section Distribution</h3>
+            <h3 className="text-lg font-extrabold text-slate-900">Active Allocations by Course</h3>
           </div>
 
-          <div className="space-y-3 pt-2">
-            {deptData.length ? (
-              deptData.map((item) => (
-                <div key={item.name} className="flex items-center justify-between text-xs font-semibold p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
-                    <span className="font-bold text-slate-900">{item.name}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-slate-600">{item.count} Residents</span>
-                    <span className="font-extrabold text-purple-700 bg-white px-2 py-0.5 rounded-md border border-slate-200">
-                      {item.percentage}%
-                    </span>
-                  </div>
-                </div>
-              ))
+          <div className="pt-2 h-64 w-full">
+            {allocPieData.length ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={allocPieData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={45}
+                    outerRadius={85}
+                    paddingAngle={4}
+                    dataKey="value"
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    labelLine={{ stroke: '#94a3b8', strokeWidth: 1, strokeDasharray: '3 3' }}
+                    className="text-[11px] font-bold fill-slate-500"
+                  >
+                    {allocPieData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} stroke="rgba(255,255,255,0.5)" strokeWidth={2} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
             ) : (
-              <p className="text-xs text-slate-400 italic text-center py-6">No department data available.</p>
+              <p className="text-xs text-slate-400 italic text-center py-6">No active allocations available.</p>
             )}
           </div>
         </div>
-      </div>
+        </div>
     </div>
   );
 }
