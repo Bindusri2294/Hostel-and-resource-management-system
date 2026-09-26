@@ -115,6 +115,20 @@ export const feedbackService = {
   remove: (id) => api.delete(`/feedback/${id}`),
 };
 
+export const attendanceService = {
+  mine: (params) => api.get("/attendance/mine", { params }),
+  getByDate: (date) => api.get("/attendance/date", { params: { date } }),
+  getMonthSummary: (month) => api.get("/attendance/month-summary", { params: { month } }),
+  saveDaily: (payload) => api.post("/attendance/save", payload),
+};
+
+export const leaveService = {
+  apply: (payload) => api.post("/leave/apply", payload),
+  mine: () => api.get("/leave/mine"),
+  listAll: (params) => api.get("/leave/all", { params }),
+  updateStatus: (id, payload) => api.put(`/leave/${id}/status`, payload),
+};
+
 export const getErrorMessage = (error, fallback = "Something went wrong") =>
   error.response?.data?.message || (error.code === "ERR_NETWORK" ? "The server is unavailable. Check that the backend is running." : fallback);
 

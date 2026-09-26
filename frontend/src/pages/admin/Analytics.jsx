@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { roomService, studentService, allocationService, feedbackService, getErrorMessage } from "../services/api";
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid } from "recharts";
+import { roomService, studentService, allocationService, getErrorMessage } from "../../services/api";
 import {
   BarChart,
   PieChart as PieIcon,
@@ -8,12 +7,12 @@ import {
   Users,
   DoorOpen,
   ClipboardList,
-  Filter,
   Download,
   Calendar,
   Layers,
   Award,
   AlertCircle,
+  Search,
 } from "lucide-react";
 
 export default function Analytics() {
@@ -23,9 +22,10 @@ export default function Analytics() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const [campusFilter, setCampusFilter] = useState("All");
   const [courseFilter, setCourseFilter] = useState("All");
   const [yearFilter, setYearFilter] = useState("All");
+  const [blockFilter, setBlockFilter] = useState("All");
+  const [query, setQuery] = useState("");
   const [activeTab, setActiveTab] = useState("KIET");
 
   useEffect(() => {
@@ -59,35 +59,26 @@ export default function Analytics() {
         ? ["1", "2", "3"]
         : [];
 
-  const getCampusFromRollNo = (rollno) => {
-    if (!rollno || rollno.length < 4) return "Other";
-    const prefix = rollno.substring(2, 4).toUpperCase();
-    switch (prefix) {
-      case "B2": return "KIET";
-      case "6Q": return "KIET+";
-      case "JN": return "KIET W";
-      default: return "Other";
-    }
-  };
-
-  const getDeptFromRollNo = (rollno) => {
-    if (!rollno || rollno.length < 4) return "Other";
-    const code = rollno.slice(-4, -2);
-    switch (code) {
-      case "42": return "CSM";
-      case "43": return "CAI";
-      case "44": return "CSD";
-      case "45": return "AID";
-      case "46": return "CSC";
-      default: return "Other";
-    }
-  };
-
   const filteredStudents = students.filter((s) => {
-    const matchesCampus = campusFilter === "All" || getCampusFromRollNo(s.Rollno) === campusFilter;
     const matchesCourse = courseFilter === "All" || String(s.Course || "") === courseFilter;
     const matchesYear = yearFilter === "All" || String(s.Year || "") === yearFilter;
-    return matchesCampus && matchesCourse && matchesYear;
+    const matchesBlock = blockFilter === "All" || String(s.Block || "") === blockFilter;
+
+    if (!query.trim()) {
+      return matchesCourse && matchesYear && matchesBlock;
+    }
+
+    const q = query.toLowerCase();
+    const matchName = String(s.Name || "").toLowerCase().includes(q);
+    const matchRoll = String(s.Rollno || "").toLowerCase().includes(q);
+    const matchCourseName = String(s.Course || "").toLowerCase().includes(q);
+    const matchDept = String(s.Department || "").toLowerCase().includes(q);
+    const matchBlock = String(s.Block || "").toLowerCase().includes(q);
+    const matchRoom = String(s.Roomno || "").toLowerCase().includes(q);
+
+    const matchesQuery = matchName || matchRoll || matchCourseName || matchDept || matchBlock || matchRoom;
+
+    return matchesCourse && matchesYear && matchesBlock && matchesQuery;
   });
 
   // Calculate Key Stats
@@ -95,36 +86,25 @@ export default function Analytics() {
   const occupiedBeds = rooms.reduce((sum, r) => sum + Number(r.OccupiedCount || 0), 0);
   const availableBeds = Math.max(0, totalCapacity - occupiedBeds);
   const occupancyPercentage = totalCapacity ? Math.round((occupiedBeds / totalCapacity) * 100) : 0;
-  
-  const filteredAllocations = allocations.filter((a) => {
-    const student = students.find((s) => String(s._id) === String(a.studentId));
-    if (!student) return false;
-    const matchesCampus = campusFilter === "All" || getCampusFromRollNo(student.Rollno) === campusFilter;
-    const matchesCourse = courseFilter === "All" || String(student.Course || "") === courseFilter;
-    const matchesYear = yearFilter === "All" || String(student.Year || "") === yearFilter;
-    return matchesCampus && matchesCourse && matchesYear;
+  const activeAllocations = allocations.filter((a) => a.status === "Active").length;
+
+  // Department distribution
+  const deptMap = filteredStudents.reduce((acc, s) => {
+    const dept = s.Course || "General Engineering";
+    acc[dept] = (acc[dept] || 0) + 1;
+    return acc;
+  }, {});
+
+  const totalFilteredCount = filteredStudents.length || 1;
+  const deptData = Object.entries(deptMap).map(([name, count], index) => {
+    const colors = ["#673bb7", "#5e35b1", "#06b6d4", "#f59e0b", "#10b981", "#ec4899"];
+    return {
+      name,
+      count,
+      percentage: Math.round((count / totalFilteredCount) * 100),
+      color: colors[index % colors.length],
+    };
   });
-
-  const activeAllocations = filteredAllocations.filter((a) => a.status === "Active").length;
-
-  // Active Allocations by Branch
-  const activeAllocMap = filteredAllocations
-    .filter((a) => a.status === "Active")
-    .reduce((acc, a) => {
-      const student = students.find((s) => String(s._id) === String(a.studentId));
-      const branch = getDeptFromRollNo(student?.Rollno);
-      if (branch !== "Other") {
-        acc[branch] = (acc[branch] || 0) + 1;
-      }
-      return acc;
-    }, {});
-
-  const PIE_COLORS = ["#8b5cf6", "#3b82f6", "#10b981", "#f59e0b", "#ec4899", "#06b6d4"];
-  const allocPieData = Object.entries(activeAllocMap).map(([name, value], index) => ({
-    name,
-    value,
-    color: PIE_COLORS[index % PIE_COLORS.length],
-  }));
 
   const downloadPDF = () => {
     window.print();
@@ -158,41 +138,49 @@ export default function Analytics() {
         </div>
       )}
 
-      {/* Filters */}
-      <div className="bg-white p-4 rounded-2xl border border-purple-100/70 shadow-xs flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center flex-wrap gap-2 text-xs font-extrabold text-slate-700">
-          <span>Campus:</span>
-          <select
-            value={campusFilter}
-            onChange={(e) => setCampusFilter(e.target.value)}
-            className="bg-slate-100 border border-slate-200 text-xs font-extrabold text-slate-700 rounded-xl px-3 py-2 outline-none mr-2"
-          >
-            <option value="All">All Campuses</option>
-            <option value="KIET">KIET</option>
-            <option value="KIET+">KIET+</option>
-            <option value="KIET W">KIET W</option>
-          </select>
+      {/* FILTER & SEARCH TOOLBAR (Feedback style across all fields) */}
+      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="relative flex-1 min-w-[240px]">
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search by student name, roll no, department, room, block..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="w-full border rounded-xl pl-9 pr-3.5 py-2 text-xs font-medium focus:outline-none bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-[#673BB7] focus:bg-white shadow-sm"
+            />
+          </div>
 
-          <span>Course:</span>
-          <select
-            value={courseFilter}
-            onChange={(e) => {
-              setCourseFilter(e.target.value);
-              setYearFilter("All");
-            }}
-            className="bg-slate-100 border border-slate-200 text-xs font-extrabold text-slate-700 rounded-xl px-3 py-2 outline-none"
-          >
-            <option value="All">All Courses</option>
-            <option value="B.Tech">B.Tech</option>
-            <option value="Diploma">Diploma</option>
-          </select>
+          <div className="text-xs font-bold text-slate-500">
+            Showing <strong className="text-purple-700">{filteredStudents.length}</strong> residents
+          </div>
+        </div>
 
-          {yearOptions.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-slate-200">
+          <div>
+            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-slate-600">Course Filter</label>
+            <select
+              value={courseFilter}
+              onChange={(e) => {
+                setCourseFilter(e.target.value);
+                setYearFilter("All");
+              }}
+              className="w-full border rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none bg-slate-50 border-slate-300 text-slate-900 focus:border-[#673BB7] focus:bg-white shadow-sm cursor-pointer"
+            >
+              <option value="All">All Courses</option>
+              <option value="B.Tech">B.Tech</option>
+              <option value="Diploma">Diploma</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-slate-600">Year Filter</label>
             <select
               aria-label="Select Year"
               value={yearFilter}
               onChange={(e) => setYearFilter(e.target.value)}
-              className="bg-slate-100 border border-slate-200 text-xs font-extrabold text-slate-700 rounded-xl px-3 py-2 outline-none"
+              className="w-full border rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none bg-slate-50 border-slate-300 text-slate-900 focus:border-[#673BB7] focus:bg-white shadow-sm cursor-pointer"
             >
               <option value="All">All Years</option>
               {yearOptions.map((year) => (
@@ -201,11 +189,22 @@ export default function Analytics() {
                 </option>
               ))}
             </select>
-          )}
-        </div>
+          </div>
 
-        <div className="text-xs font-bold text-slate-500">
-          Showing data for <strong className="text-purple-700">{filteredStudents.length}</strong> residents
+          <div>
+            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-slate-600">Block Filter</label>
+            <select
+              value={blockFilter}
+              onChange={(e) => setBlockFilter(e.target.value)}
+              className="w-full border rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none bg-slate-50 border-slate-300 text-slate-900 focus:border-[#673BB7] focus:bg-white shadow-sm cursor-pointer"
+            >
+              <option value="All">All Blocks</option>
+              <option value="D">Block D</option>
+              <option value="E">Block E</option>
+              <option value="KW">Block KW</option>
+              <option value="Executive">Executive Block</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -297,43 +296,34 @@ export default function Analytics() {
           </div>
         </div>
 
-        {/* Active Allocations Pie Chart */}
+        {/* Course / Department Distribution Pie Chart */}
         <div className="bg-white p-6 rounded-2xl border border-purple-100/70 shadow-xs space-y-4">
           <div className="border-b border-slate-100 pb-3">
-            <h3 className="text-lg font-extrabold text-slate-900">Active Allocations by Course</h3>
+            <h3 className="text-lg font-extrabold text-slate-900">Department & Section Distribution</h3>
           </div>
 
-          <div className="pt-2 h-64 w-full">
-            {allocPieData.length ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={allocPieData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={45}
-                    outerRadius={85}
-                    paddingAngle={4}
-                    dataKey="value"
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    labelLine={{ stroke: '#94a3b8', strokeWidth: 1, strokeDasharray: '3 3' }}
-                    className="text-[11px] font-bold fill-slate-500"
-                  >
-                    {allocPieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} stroke="rgba(255,255,255,0.5)" strokeWidth={2} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
+          <div className="space-y-3 pt-2">
+            {deptData.length ? (
+              deptData.map((item) => (
+                <div key={item.name} className="flex items-center justify-between text-xs font-semibold p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
+                    <span className="font-bold text-slate-900">{item.name}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-slate-600">{item.count} Residents</span>
+                    <span className="font-extrabold text-purple-700 bg-white px-2 py-0.5 rounded-md border border-slate-200">
+                      {item.percentage}%
+                    </span>
+                  </div>
+                </div>
+              ))
             ) : (
-              <p className="text-xs text-slate-400 italic text-center py-6">No active allocations available.</p>
+              <p className="text-xs text-slate-400 italic text-center py-6">No department data available.</p>
             )}
           </div>
         </div>
-        </div>
+      </div>
     </div>
   );
 }

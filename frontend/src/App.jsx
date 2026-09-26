@@ -2,19 +2,26 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Layout from "./components/Layout";
+
+// Shared / Root pages
 import Login from "./pages/Login";
 import HomeDashboard from "./pages/HomeDashboard";
-import Students from "./pages/Students";
-import Rooms from "./pages/Rooms";
-import Allocations from "./pages/Allocations";
 import Feedback from "./pages/Feedback";
 import Profile from "./pages/Profile";
-import MyAllocation from "./pages/MyAllocation";
-import HostelInfo from "./pages/HostelInfo";
-import RoomInfo from "./pages/RoomInfo";
-import Attendance from "./pages/Attendance";
-import Analytics from "./pages/Analytics";
-import Settings from "./pages/Settings";
+
+// Student pages
+import MyAttendance from "./pages/student/MyAttendance";
+import MyAllocation from "./pages/student/MyAllocation";
+import RoomInfo from "./pages/student/RoomInfo";
+import HostelInfo from "./pages/student/HostelInfo";
+
+// Admin pages
+import Students from "./pages/admin/Students";
+import Rooms from "./pages/admin/Rooms";
+import Allocations from "./pages/admin/Allocations";
+import Attendance from "./pages/admin/Attendance";
+import Analytics from "./pages/admin/Analytics";
+import Settings from "./pages/admin/Settings";
 
 export default function App() {
   const { user } = useAuth();
@@ -32,6 +39,7 @@ export default function App() {
           <Route path="room-info" element={<RoomInfo />} />
           <Route path="my-allocation" element={<MyAllocation />} />
           <Route path="hostel-info" element={<HostelInfo />} />
+          <Route path="my-attendance" element={<MyAttendance />} />
         </Route>
       </Route>
 

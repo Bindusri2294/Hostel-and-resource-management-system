@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
-import { roomService, studentService, allocationService, getErrorMessage } from "../services/api";
+import { roomService, studentService, allocationService, getErrorMessage } from "../../services/api";
 import {
   DoorOpen,
   Plus,
   Search,
-  Filter,
   Layers,
   Users,
   ChevronRight,
@@ -14,6 +13,7 @@ import {
   X,
   AlertCircle,
   Building,
+  RefreshCw,
 } from "lucide-react";
 
 const blankRoom = {
@@ -34,6 +34,7 @@ export default function Rooms() {
   const [query, setQuery] = useState("");
   const [selectedBlock, setSelectedBlock] = useState("All");
   const [selectedStatus, setSelectedStatus] = useState("All");
+  const [selectedFloor, setSelectedFloor] = useState("All");
 
   // Modal states
   const [selected, setSelected] = useState(null);
@@ -82,12 +83,23 @@ export default function Rooms() {
     );
     const matchesStatus = selectedStatus === "All" || roomStatus === selectedStatus;
     const matchesBlock = selectedBlock === "All" || room.Block === selectedBlock;
-    const matchesQuery =
-      !query ||
-      String(room.RoomNo || "").toLowerCase().includes(query.toLowerCase()) ||
-      String(room.Block || "").toLowerCase().includes(query.toLowerCase());
+    const matchesFloor = selectedFloor === "All" || String(room.Floor || "") === String(selectedFloor);
 
-    return matchesStatus && matchesBlock && matchesQuery;
+    if (!query.trim()) {
+      return matchesStatus && matchesBlock && matchesFloor;
+    }
+
+    const q = query.toLowerCase();
+    const matchRoomNo = String(room.RoomNo || "").toLowerCase().includes(q);
+    const matchBlock = String(room.Block || "").toLowerCase().includes(q);
+    const matchFloor = `floor ${room.Floor || ""}`.toLowerCase().includes(q) || String(room.Floor || "").toLowerCase().includes(q);
+    const matchCapacity = `${room.Capacity || ""} beds`.toLowerCase().includes(q) || String(room.Capacity || "").toLowerCase().includes(q);
+    const matchOccupied = `${room.OccupiedCount || ""} occupied`.toLowerCase().includes(q);
+    const matchStatus = roomStatus.toLowerCase().includes(q);
+
+    const matchesQuery = matchRoomNo || matchBlock || matchFloor || matchCapacity || matchOccupied || matchStatus;
+
+    return matchesStatus && matchesBlock && matchesFloor && matchesQuery;
   });
 
   const openForm = (room = null) => {
@@ -203,26 +215,35 @@ export default function Rooms() {
         </div>
       )}
 
-      {/* Toolbar Filters */}
-      <div className="bg-white p-4 rounded-2xl border border-purple-100/70 shadow-xs flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2 bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 text-xs w-full sm:w-64">
-          <Search className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-          <input
-            type="text"
-            placeholder="Search room no or block..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="bg-transparent outline-none w-full text-slate-800 placeholder-slate-400 font-medium"
-          />
+      {/* FILTER & SEARCH TOOLBAR (Feedback style across all fields) */}
+      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="relative flex-1 min-w-[240px]">
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search by room no, block, floor, capacity, status..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="w-full border rounded-xl pl-9 pr-3.5 py-2 text-xs font-medium focus:outline-none bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-[#673BB7] focus:bg-white shadow-sm"
+            />
+          </div>
+
+          <button
+            onClick={loadData}
+            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer border bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300"
+          >
+            <RefreshCw className="w-3.5 h-3.5" /> Refresh
+          </button>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
-            <span>Block:</span>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-slate-200">
+          <div>
+            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-slate-600">Block Filter</label>
             <select
               value={selectedBlock}
               onChange={(e) => setSelectedBlock(e.target.value)}
-              className="bg-slate-50 border border-slate-200 text-xs font-semibold rounded-xl px-2.5 py-1.5 outline-none"
+              className="w-full border rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none bg-slate-50 border-slate-300 text-slate-900 focus:border-[#673BB7] focus:bg-white shadow-sm cursor-pointer"
             >
               <option value="All">All Blocks</option>
               <option value="D">Block D</option>
@@ -232,17 +253,32 @@ export default function Rooms() {
             </select>
           </div>
 
-          <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
-            <span>Status:</span>
+          <div>
+            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-slate-600">Status Filter</label>
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="bg-slate-50 border border-slate-200 text-xs font-semibold rounded-xl px-2.5 py-1.5 outline-none"
+              className="w-full border rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none bg-slate-50 border-slate-300 text-slate-900 focus:border-[#673BB7] focus:bg-white shadow-sm cursor-pointer"
             >
               <option value="All">All Statuses</option>
               <option value="Available">Available</option>
               <option value="Partial">Partial</option>
               <option value="Full">Full</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-slate-600">Floor Filter</label>
+            <select
+              value={selectedFloor}
+              onChange={(e) => setSelectedFloor(e.target.value)}
+              className="w-full border rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none bg-slate-50 border-slate-300 text-slate-900 focus:border-[#673BB7] focus:bg-white shadow-sm cursor-pointer"
+            >
+              <option value="All">All Floors</option>
+              <option value="1">Floor 1</option>
+              <option value="2">Floor 2</option>
+              <option value="3">Floor 3</option>
+              <option value="4">Floor 4</option>
             </select>
           </div>
         </div>
@@ -360,13 +396,6 @@ export default function Rooms() {
                 <X className="w-5 h-5" />
               </button>
             </div>
-
-            {error && (
-              <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-xs font-semibold flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
-                <span>{error}</span>
-              </div>
-            )}
 
             <div className="space-y-3 text-xs font-semibold">
               <div>

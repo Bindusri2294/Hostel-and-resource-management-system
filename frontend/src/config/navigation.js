@@ -24,6 +24,7 @@ export const adminNavItems = [
 
 export const studentNavItems = [
     { label: "Dashboard", icon: LayoutDashboard, path: "/" },
+    { label: "My Attendance", icon: ClipboardCheck, path: "/my-attendance" },
     { label: "My Allocation", icon: ClipboardList, path: "/my-allocation" },
     { label: "Hostel Info", icon: Home, path: "/hostel-info" },
     { label: "Feedback", icon: MessageSquare, path: "/feedback" },
