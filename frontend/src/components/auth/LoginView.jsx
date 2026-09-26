@@ -1,109 +1,108 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-
 import { useNavigate } from 'react-router-dom';
 import {
   LogIn,
   Building2,
-  AlertCircle, Mail,
+  AlertCircle,
+  Mail,
   Phone,
   MapPin,
-  Home,
-  Info,
   GraduationCap,
-  PhoneCall,
-  BookOpen,
-  Award,
+  ChevronRight,
+  ChevronLeft,
+  ShieldCheck,
+  BedDouble,
+  FileText,
+  Lock,
   Globe,
-  ExternalLink
+  ExternalLink,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 
 import kietLogo from '../../assets/kiet_logo.webp';
-import kietCollege from '../../assets/kiet_college_login_photo.png';
-
+import kietCollege from '../../assets/kiet_college_login_photo.jpeg';
 import hostelRoom1 from '../../assets/hostel_room1.jpeg';
 import hostelRoom2 from '../../assets/hostel_room2.jpeg';
-
-const hostelRoomImages = [
-  { img: hostelRoom1, title: 'Student Hostel Rooms', desc: 'Spacious, clean, and well-ventilated student accommodation' },
-  { img: hostelRoom2, title: 'Modern Hostel Facilities', desc: 'Comfortable living spaces equipped with study desks and storage' },
-];
+import hostelRoom3 from '../../assets/hostel_room3.jpeg';
+import hostelRoom4 from '../../assets/hostel_room4.jpeg';
+import hostelRoom5 from '../../assets/hostel_room5.jpeg';
+import hostelRoom6 from '../../assets/hostel_room6.jpeg';
+import hostelRoom7 from '../../assets/hostel_room7.jpeg';
+import hostelRoom8 from '../../assets/hostel_room8.jpeg';
 
 export default function LoginView() {
   const { login } = useAuth();
-
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [activeNav, setActiveNav] = useState('Home');
   const [loginRole, setLoginRole] = useState('Admin'); // 'Admin' or 'Student'
+  const [showPassword, setShowPassword] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  const allHostelRooms = [
+    hostelRoom1, hostelRoom2, hostelRoom3, hostelRoom4,
+    hostelRoom5, hostelRoom6, hostelRoom7, hostelRoom8
+  ];
+
+  const nextImage = () => setCurrentImageIndex((prev) => (prev + 1) % allHostelRooms.length);
+  const prevImage = () => setCurrentImageIndex((prev) => (prev === 0 ? allHostelRooms.length - 1 : prev - 1));
 
   // Login form state
   const [userId, setUserId] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
 
+  const fillDemo = (role) => {
+    setLoginRole(role);
+    if (role === 'Admin') {
+      setUserId('admin@hostel.com');
+      setLoginPassword('admin123');
+    } else {
+      setUserId('2026-CS-01');
+      setLoginPassword('2026-CS-01');
+    }
+  };
+
+  // Handle active navigation highlighting on scroll
   useEffect(() => {
     const handleScroll = () => {
-      const sections = [
-        { id: 'home', name: 'Home' },
-        { id: 'about-us', name: 'About Us' },
-        { id: 'institutions', name: 'Institutions' },
-        { id: 'contact-us', name: 'Contact Us' }
-      ];
-
-      let currentSection = '';
+      const sections = ['home', 'about', 'contact'];
+      let current = '';
 
       for (const section of sections) {
-        const element = document.getElementById(section.id);
+        const element = document.getElementById(section);
         if (element) {
           const rect = element.getBoundingClientRect();
-          // If the section top is above the middle of the viewport, it's considered active
-          if (rect.top <= window.innerHeight / 2) {
-            currentSection = section.name;
+          if (rect.top <= window.innerHeight / 3) {
+            current = section.charAt(0).toUpperCase() + section.slice(1);
           }
         }
       }
-
-      // If scrolled to the very bottom, ensure Contact Us is active
+      
       if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 50) {
-        currentSection = 'Contact Us';
+        current = 'Contact';
       }
 
-      if (currentSection) {
-        setActiveNav(prev => {
-          // If they explicitly clicked "Login", keep it active while in the Home section
-          if (prev === 'Login' && currentSection === 'Home') return prev;
-          return currentSection;
-        });
-      }
+      if (current) setActiveNav(current);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll(); // Initial check
-
+    handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const handleNavClick = (navName) => {
     setActiveNav(navName);
-
-    if (navName === 'Home') {
+    const targetId = navName.toLowerCase();
+    
+    if (targetId === 'home') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
-
-    let targetId = 'home';
-    if (navName === 'About Us') targetId = 'about-us';
-    if (navName === 'Institutions') targetId = 'institutions';
-    if (navName === 'Academics') targetId = 'academic-programs';
-    if (navName === 'Alumni') targetId = 'alumni';
-    if (navName === 'Contact Us') targetId = 'contact-us';
-    if (navName === 'Login') targetId = 'login-section';
-
-    const elem = document.getElementById(targetId);
-    if (elem) {
-      elem.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      const elem = document.getElementById(targetId);
+      if (elem) elem.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
 
@@ -114,25 +113,13 @@ export default function LoginView() {
     setLoginPassword('');
   };
 
-  const fillDemo = (role) => {
-    if (role === 'Admin') {
-      setLoginRole('Admin');
-      setUserId('admin@hostel.com');
-      setLoginPassword('admin123');
-    } else {
-      setLoginRole('Student');
-      setUserId('student@hostel.com');
-      setLoginPassword('student123');
-    }
-  };
-
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
     try {
-      const resUser = await login(userId, loginPassword);
+      await login(userId, loginPassword);
       navigate('/', { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
@@ -142,451 +129,305 @@ export default function LoginView() {
   };
 
   return (
-    <div className={`min-h-screen flex flex-col font-sans transition-colors duration-200 bg-slate-100 text-slate-900`}>
-      {/* 1. TOP CONTACT HEADER BAR */}
-      <div className={`border-b text-xs font-semibold py-2 px-4 transition-colors bg-[#311b92] text-[#f3e5f5] border-[#4a148c]`}>
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-4 flex-wrap">
-            <a href="https://mail.google.com/mail/?view=cm&fs=1&to=info@kietgroup.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-[#e1bee7] transition-colors">
-              <Mail className="w-3.5 h-3.5 text-[#d1c4e9]" />
-              <span>info@kietgroup.com</span>
-            </a>
-            <span className="text-[#9c27b0]">|</span>
-            <a href="https://mail.google.com/mail/?view=cm&fs=1&to=contact@kietgroup.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-[#e1bee7] transition-colors">
-              <Mail className="w-3.5 h-3.5 text-[#d1c4e9]" />
-              <span>contact@kietgroup.com</span>
-            </a>
-            <span className="text-[#9c27b0]">|</span>
-            <a href="https://mail.google.com/mail/?view=cm&fs=1&to=kietw@kietgroup.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-[#e1bee7] transition-colors">
-              <Mail className="w-3.5 h-3.5 text-[#d1c4e9]" />
-              <span>kietw@kietgroup.com</span>
-            </a>
-          </div>
-
-          <div className="flex items-center gap-4 flex-wrap">
-            <a href="tel:+919849495335" className="flex items-center gap-1.5 hover:text-[#e1bee7] transition-colors">
-              <Phone className="w-3.5 h-3.5 text-[#d1c4e9]" />
-              <span>+91 98494 95335</span>
-            </a>
-            <span className="text-[#9c27b0]">|</span>
-            <a href="tel:+919090887777" className="flex items-center gap-1.5 hover:text-[#e1bee7] transition-colors">
-              <Phone className="w-3.5 h-3.5 text-[#d1c4e9]" />
-              <span>+91 90908 87777</span>
-            </a>
-
-
-          </div>
-        </div>
-      </div>
-
-      {/* 2. COLLEGE BRANDING HEADER BAR */}
-      <div className={`border-b py-4 px-4 transition-colors bg-[#f3e5f5]/60 border-[#e1bee7]`}>
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center p-1 rounded-2xl bg-white shadow-md border border-slate-200">
-              <img
-                src={kietLogo}
-                alt="KIET Logo"
-                className="max-h-full max-w-full object-contain"
-              />
-            </div>
-            <div>
-              <h1 className={`text-xl sm:text-3xl font-extrabold tracking-tight uppercase text-slate-900`}>
-                KIET GROUP OF INSTITUTIONS
-              </h1>
-              <p className={`text-xs sm:text-sm font-semibold tracking-wide text-[#512da8]`}>
-                KAKINADA INSTITUTE OF ENGINEERING & TECHNOLOGY
-              </p>
-              <p className={`text-[11px] mt-0.5 flex items-center gap-1 text-slate-600`}>
-                <MapPin className="w-3 h-3 text-rose-500 shrink-0" />
-                <span>Yanam Road, Korangi Village, Tallarevu Mandal, Kakinada District (East Godavari), AP – 533461</span>
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 3. NAVIGATION BAR (Smooth Scrolling) */}
-      <nav className={`border-b sticky top-0 z-30 shadow-md backdrop-blur-lg bg-white/95 border-slate-200`}>
-        <div className="max-w-7xl mx-auto px-4 flex items-center justify-between overflow-x-auto">
-          <div className="flex items-center gap-1 sm:gap-2 text-xs font-bold py-2">
-            {[
-              { name: 'Home', icon: Home },
-              { name: 'About Us', icon: Info },
-              { name: 'Institutions', icon: GraduationCap },
-              { name: 'Contact Us', icon: PhoneCall },
-              { name: 'Login', icon: LogIn }
-            ].map((nav) => {
-              const Icon = nav.icon;
-              const isActive = activeNav === nav.name;
-              return (
-                <button
-                  key={nav.name}
-                  type="button"
-                  onClick={() => handleNavClick(nav.name)}
-                  className={`px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${isActive
-                      ? 'bg-[#673BB7] text-white shadow-md font-bold'
-                      : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
-                    }`}
-                >
-                  <Icon className="w-3.5 h-3.5" />
-                  <span>{nav.name}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </nav>
-
-      {/* SECTION 1: HOME / HERO BANNER & LOGIN CONTAINER */}
-      <section id="home" className="scroll-mt-20 relative flex items-center justify-center py-10 px-4 sm:px-6">
-        {/* Background Campus Banner with Overlay */}
-        <div className="absolute inset-0 z-0 overflow-hidden opacity-20 pointer-events-none">
+    <div className="min-h-screen flex flex-col font-sans bg-slate-50 text-slate-900 selection:bg-[#673BB7] selection:text-white">
+      
+      {/* ================= HERO SECTION (Matches Screenshot) ================= */}
+      <section id="home" className="relative h-[65vh] min-h-[500px] flex flex-col items-center pt-4 pb-2 px-4 sm:px-8 overflow-visible z-30">
+        
+        {/* Full Background Image with Dark Overlay */}
+        <div className="absolute inset-0 z-0 overflow-hidden">
           <img
             src={kietCollege}
-            alt="KIET Campus Banner"
-            className="w-full h-full object-cover filter blur-[1px]"
+            alt="KIET Campus Background"
+            className="w-full h-full object-cover"
           />
-          <div className={`absolute inset-0 bg-gradient-to-r from-slate-100 via-slate-100/90 to-slate-100/80`} />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
         </div>
 
-        <div className="max-w-7xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-center z-10">
-          {/* Left Column: Campus Welcome & Info */}
-          <div className="lg:col-span-7 space-y-5">
-            <h2 className={`text-2xl sm:text-4xl font-extrabold tracking-tight leading-tight text-slate-900`}>
-              Welcome to <span className="text-[#673BB7]">KIET Campus</span> Hostel Portal
-            </h2>
-
-            <p className={`text-xs sm:text-sm leading-relaxed text-slate-700`}>
-              Manage your hostel room allocations, submit feedback & maintenance reports, track resolution status, and stay connected with KIET campus hostel administration.
-            </p>
-
-            {/* Campus Showcase Card - Full Uncropped Campus View */}
-            <div className={`rounded-2xl border p-2.5 shadow-xl overflow-hidden bg-white/90 border-slate-200`}>
-              <div className="relative rounded-xl overflow-hidden bg-slate-900/40 flex flex-col">
-                <img
-                  src={kietCollege}
-                  alt="KIET College Campus"
-                  className="w-full h-auto max-h-[400px] object-contain rounded-xl"
-                />
-                <div className="p-3 border-t border-slate-800/40 flex flex-col justify-end bg-slate-900/90">
-                  <p className="text-[#d1c4e9] text-xs font-semibold">Yanam Road, Korangi Village, Kakinada District (East Godavari)</p>
-                </div>
-              </div>
+        {/* TOP FLOATING HEADER */}
+        <header className="relative z-20 w-full max-w-7xl mx-auto flex items-center mb-2 sm:mb-4">
+          {/* Left Logo */}
+          <div className="flex items-center gap-3 z-10">
+            <div className="bg-transparent p-1">
+              <img src={kietLogo} alt="KIET Logo" className="w-8 h-8 sm:w-10 sm:h-10 object-contain" />
+            </div>
+            <div className="flex flex-col">
+              <h1 className="text-white font-black text-lg sm:text-xl tracking-tight leading-none">KIET</h1>
+              <p className="text-white/70 text-[6px] sm:text-[7px] font-bold tracking-widest uppercase mt-0.5 leading-none">Group of Institutions</p>
             </div>
           </div>
 
-          {/* Right Column: Sign In Card with Dual Role Login */}
-          <div id="login-section" className="lg:col-span-5 scroll-mt-24">
-            <div className={`border rounded-2xl p-6 sm:p-8 shadow-2xl bg-white/95 border-slate-200`}>
-              <div className="flex flex-col items-center text-center mb-5">
-                <div className="w-14 h-14 bg-gradient-to-tr from-[#673BB7] to-[#512da8] rounded-2xl flex items-center justify-center shadow-lg shadow-[#673BB7]/20 mb-3">
-                  <Building2 className="w-8 h-8 text-white" />
+          {/* Centered Navigation */}
+          <nav className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-1 bg-white/95 backdrop-blur-md px-1.5 py-1.5 rounded-full shadow-lg">
+            {['Home', 'About', 'Contact'].map((item) => (
+              <button
+                key={item}
+                onClick={() => handleNavClick(item)}
+                className={`px-6 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                  activeNav === item 
+                    ? 'text-[#673BB7] shadow-sm bg-transparent' 
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                {item}
+              </button>
+            ))}
+          </nav>
+        </header>
+
+        {/* HERO CONTENT & LOGIN CARD */}
+        <div className="relative z-10 w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 flex-1">
+          
+          {/* Left: Text Content */}
+          <div className="lg:col-span-7 flex flex-col justify-center space-y-2">
+            <div className="space-y-1">
+              <p className="text-white text-[8px] sm:text-[9px] font-bold tracking-[0.1em] uppercase">
+                Kakinada Institute of Engineering & Technology (Autonomous)
+              </p>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-[1.1] tracking-tight">
+                KIET Hostel <br />
+                <span className="text-blue-400">Management Portal</span>
+              </h2>
+            </div>
+            
+            <p className="text-[10px] sm:text-xs text-white/90 max-w-lg leading-relaxed font-medium">
+              A smarter way to manage your hostel life. Access room allocations, submit feedback, track maintenance and more — all in one place.
+            </p>
+
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-2">
+              {[
+                { icon: BedDouble, text: 'Room Management' },
+                { icon: GraduationCap, text: 'Student Services' },
+                { icon: FileText, text: 'Resource Utilization' },
+                { icon: ShieldCheck, text: 'Safe & Secure Access' }
+              ].map((badge, idx) => (
+                <div key={idx} className="flex items-center gap-1.5 text-white/90">
+                  <badge.icon className="w-3.5 h-3.5 text-blue-300" />
+                  <span className="text-[9px] sm:text-[10px] font-semibold">{badge.text}</span>
                 </div>
-                <h2 className={`text-xl font-extrabold tracking-tight text-slate-900`}>
-                  KIET Hostel Portal
-                </h2>
-                <p className={`text-xs mt-1 text-slate-600`}>
-                  Select your role experience to access your workspace
-                </p>
-              </div>
+              ))}
+            </div>
+          </div>
 
-              {/* DUAL LOGIN TABS (Admin Login vs Student Login) */}
-              <div className="flex rounded-xl p-1 bg-slate-100 dark:bg-slate-800 mb-5 border border-slate-200/80 dark:border-slate-700/80">
-                <button
-                  type="button"
-                  onClick={() => handleRoleChange('Admin')}
-                  className={`flex-1 py-2.5 px-3 rounded-lg text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${loginRole === 'Admin'
-                      ? 'bg-[#673BB7] text-white shadow-md'
-                      : 'text-slate-600 hover:text-slate-900'
-                    }`}
-                >
-                  <Building2 className="w-3.5 h-3.5" />
-                  <span>Admin Login</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleRoleChange('Student')}
-                  className={`flex-1 py-2.5 px-3 rounded-lg text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${loginRole === 'Student'
-                      ? 'bg-[#673BB7] text-white shadow-md'
-                      : 'text-slate-600 hover:text-slate-900'
-                    }`}
-                >
-                  <GraduationCap className="w-3.5 h-3.5" />
-                  <span>Student Login</span>
-                </button>
-              </div>
+          {/* Right: Login Card */}
+          <div className="lg:col-span-5 flex justify-center lg:justify-end w-full self-start -mt-2 sm:-mt-6">
+            <div className="w-full max-w-[380px] bg-white rounded-2xl p-5 shadow-2xl shadow-black/40 relative overflow-hidden">
+              {/* Decorative background blur inside card */}
+              <div className="absolute -top-20 -right-20 w-40 h-40 bg-[#673BB7]/10 rounded-full blur-3xl pointer-events-none" />
+              
+              <div className="relative z-10 space-y-4">
+                
 
-              {/* QUICK DEMO FILL BUTTONS */}
-              <div className="flex items-center justify-between gap-2 mb-4 p-2 rounded-xl bg-purple-50/70 border border-purple-100">
-                <span className="text-[10px] font-bold text-purple-900 uppercase tracking-wider">Quick Demo:</span>
-                <div className="flex items-center gap-1.5">
+                <div>
+                  <h3 className="text-xl font-black text-slate-900 tracking-tight">Welcome Back!</h3>
+                  <p className="text-xs font-medium text-slate-500 mt-0.5">Sign in to access your hostel management portal.</p>
+                </div>
+
+                <div className="flex p-1 bg-slate-50 border border-slate-100 rounded-xl mb-4">
                   <button
                     type="button"
-                    onClick={() => fillDemo('Admin')}
-                    className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-white text-purple-700 border border-purple-200 hover:bg-purple-100 transition-colors cursor-pointer shadow-xs"
+                    onClick={() => handleRoleChange('Admin')}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
+                      loginRole === 'Admin' ? 'bg-[#512da8] text-white shadow-md' : 'text-slate-500 hover:text-slate-900'
+                    }`}
                   >
-                    Demo Admin
+                    <Building2 className="w-3 h-3" /> Admin
                   </button>
                   <button
                     type="button"
-                    onClick={() => fillDemo('Student')}
-                    className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-white text-purple-700 border border-purple-200 hover:bg-purple-100 transition-colors cursor-pointer shadow-xs"
+                    onClick={() => handleRoleChange('Student')}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
+                      loginRole === 'Student' ? 'bg-[#512da8] text-white shadow-md' : 'text-slate-500 hover:text-slate-900'
+                    }`}
                   >
-                    Demo Student
+                    <GraduationCap className="w-3 h-3" /> Student
                   </button>
                 </div>
-              </div>
 
-              {error && (
-                <div className="mb-4 p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-600 text-xs font-semibold flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
-                  <span>{error}</span>
-                </div>
-              )}
-
-              {/* LOGIN FORM */}
-              <form onSubmit={handleLoginSubmit} className="space-y-4">
-                <div>
-                  <label className={`block text-xs font-bold mb-1 text-slate-800`}>
-                    {loginRole === 'Admin' ? 'Admin Email / Username *' : 'Student Roll Number / Email *'}
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder={loginRole === 'Admin' ? 'admin@hostel.com' : 'student@hostel.com or Roll No'}
-                    value={userId}
-                    onChange={(e) => setUserId(e.target.value)}
-                    className={`w-full border rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-[#673BB7] focus:bg-white shadow-sm`}
-                  />
+                {/* Demo Quick Login */}
+                <div className="flex justify-between items-center bg-blue-50 p-2.5 rounded-xl mb-4 border border-blue-100/50">
+                  <span className="text-[10px] font-black text-blue-800 uppercase tracking-widest pl-1">One-Click Demo</span>
+                  <div className="flex gap-1.5">
+                    <button type="button" onClick={() => fillDemo('Admin')} className="text-[10px] font-bold bg-white text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg shadow-sm hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all active:scale-95">Admin</button>
+                    <button type="button" onClick={() => fillDemo('Student')} className="text-[10px] font-bold bg-white text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg shadow-sm hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all active:scale-95">Student</button>
+                  </div>
                 </div>
 
-                <div>
-                  <label className={`block text-xs font-bold mb-1 text-slate-800`}>
-                    Password *
-                  </label>
-                  <input
-                    type="password"
-                    required
-                    placeholder="••••••••"
-                    value={loginPassword}
-                    onChange={(e) => setLoginPassword(e.target.value)}
-                    className={`w-full border rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-[#673BB7] focus:bg-white shadow-sm`}
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-[#673BB7] hover:bg-[#5e35b1] text-white font-bold py-2.5 rounded-xl shadow-lg text-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2"
-                >
-                  {loading ? (
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <>
-                      <LogIn className="w-4 h-4" /> Sign In as {loginRole}
-                    </>
+                {/* Form */}
+                <form onSubmit={handleLoginSubmit} className="space-y-3">
+                  {error && (
+                    <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-600 text-xs font-semibold flex items-center gap-2 animate-pulse">
+                      <AlertCircle className="w-4 h-4 shrink-0" />
+                      <span>{error}</span>
+                    </div>
                   )}
-                </button>
-              </form>
+
+                  <div className="space-y-3">
+                    <div className="relative group">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#673BB7] transition-colors">
+                        <Mail className="w-4 h-4" />
+                      </div>
+                      <input
+                        type="text"
+                        required
+                        placeholder={loginRole === 'Admin' ? "Enter admin email or username" : "Enter student email or roll no"}
+                        value={userId}
+                        onChange={(e) => setUserId(e.target.value)}
+                        className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 text-xs font-medium text-slate-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#673BB7]/20 focus:border-[#673BB7] transition-all placeholder:text-slate-400"
+                      />
+                    </div>
+
+                    <div className="relative group">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#673BB7] transition-colors">
+                        <Lock className="w-4 h-4" />
+                      </div>
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        required
+                        placeholder="Enter your password"
+                        value={loginPassword}
+                        onChange={(e) => setLoginPassword(e.target.value)}
+                        className="w-full pl-9 pr-9 py-2 bg-white border border-slate-200 text-xs font-medium text-slate-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#673BB7]/20 focus:border-[#673BB7] transition-all placeholder:text-slate-400"
+                      />
+                      <button 
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600"
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1">
+                    <label className="flex items-center gap-2 cursor-pointer group">
+                      <input type="checkbox" className="w-4 h-4 rounded border-slate-300 text-[#673BB7] focus:ring-[#673BB7] cursor-pointer" />
+                      <span className="text-xs font-semibold text-slate-600 group-hover:text-slate-900 transition-colors">Remember me</span>
+                    </label>
+                    <a href="#" className="text-xs font-bold text-[#673BB7] hover:text-[#512da8] transition-colors">Forgot password?</a>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full bg-[#512da8] hover:bg-[#4527a0] text-white font-bold py-2.5 rounded-lg shadow-md shadow-[#512da8]/20 text-xs transition-all flex items-center justify-center gap-2 disabled:opacity-50 mt-3 active:scale-[0.98]"
+                  >
+                    {loading ? (
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <>Sign In <ChevronRight className="w-4 h-4" /></>
+                    )}
+                  </button>
+                  
+                  <div className="text-center pt-2">
+                    <p className="text-xs font-medium text-slate-500">
+                      New here? <a href="#contact" className="font-bold text-[#673BB7] hover:underline">Contact Admin</a>
+                    </p>
+                  </div>
+                </form>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* SECTION 2: ABOUT US */}
-      <section id="about-us" className="scroll-mt-20 py-12 px-4 sm:px-6 border-t transition-colors">
-        <div className="max-w-7xl mx-auto space-y-6">
-          <div className="text-center max-w-3xl mx-auto space-y-2">
-            <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-[#f3e5f5] text-[#512da8] border border-[#e1bee7]">
-              ABOUT US
-            </span>
-            <h2 className={`text-2xl sm:text-3xl font-bold tracking-tight text-slate-900`}>
-              Excellence in Technical Education
-            </h2>
-            <p className={`text-xs sm:text-sm text-slate-600`}>
-              Kakinada Institute of Engineering & Technology (KIET) is approved by AICTE, Govt of AP & Affiliated to JNTUK.
+      {/* ================= ABOUT / ROOMS SECTION ================= */}
+      <section id="about" className="pt-10 pb-20 px-4 sm:px-8 bg-white relative z-10">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-10 items-start">
+          
+          {/* Left: About Details */}
+          <div className="space-y-8 flex flex-col justify-start">
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 text-xs font-bold tracking-[0.15em] text-slate-500 uppercase">
+                <div className="w-8 h-[2px] bg-[#673BB7]"></div>
+                About KIET Hostel
+              </div>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 leading-[1.15] tracking-tight">
+                More Than Just a Place to Stay<br />
+                <span className="text-[#673BB7]">— It's Your Home Away From Home</span>
+              </h2>
+            </div>
+
+            <p className="text-slate-600 leading-relaxed font-medium">
+              KIET Hostel provides a safe, comfortable and supportive living environment for students. Our hostels are designed to offer the right balance of academic focus, personal growth and a vibrant community life. With modern facilities, well-maintained rooms and dedicated support staff, we ensure that every student feels at home, away from home.
             </p>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className={`p-6 rounded-2xl border bg-white border-slate-200 shadow-md`}>
-              <BookOpen className="w-8 h-8 text-[#673BB7] mb-3" />
-              <h3 className="text-base font-bold mb-2">Quality Academics</h3>
-              <p className={`text-xs leading-relaxed text-slate-600`}>
-                Offering state-of-the-art engineering, technology, management, and pharmacy courses with experienced faculty members.
-              </p>
-            </div>
-
-            <div className={`p-6 rounded-2xl border bg-white border-slate-200 shadow-md`}>
-              <Building2 className="w-8 h-8 text-[#673BB7] mb-3" />
-              <h3 className="text-base font-bold mb-2">Modern Hostels</h3>
-              <p className={`text-xs leading-relaxed text-slate-600`}>
-                Well-equipped residential hostels with 24/7 security, Wi-Fi connectivity, clean sanitation, and nutritious mess facilities.
-              </p>
-            </div>
-
-            <div className={`p-6 rounded-2xl border bg-white border-slate-200 shadow-md`}>
-              <Award className="w-8 h-8 text-[#673BB7] mb-3" />
-              <h3 className="text-base font-bold mb-2">AICTE & JNTUK Approved</h3>
-              <p className={`text-xs leading-relaxed text-slate-600`}>
-                Recognized for academic standards, research laboratories, industry partnerships, and campus placements.
-              </p>
-            </div>
-          </div>
-
-          {/* Hostel Room Showcase Cards (Static 2-Column Grid) */}
-          <div className="pt-6 space-y-4">
-            <div className="text-center max-w-3xl mx-auto space-y-1">
-              <h3 className={`text-2xl sm:text-3xl font-bold tracking-tight text-slate-900`}>
-                Our Hostel Rooms
-              </h3>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-              {hostelRoomImages.map((item, idx) => (
-                <div
-                  key={`hostel-room-${idx}`}
-                  className={`rounded-3xl overflow-hidden shadow-xl border transition-all duration-300 transform hover:scale-[1.02] hover:-translate-y-1 hover:shadow-2xl hover:border-[#673BB7] cursor-pointer flex flex-col bg-white border-slate-200`}
-                >
-                  <div className="relative w-full h-[280px] sm:h-[320px] overflow-hidden">
-                    <img
-                      src={item.img}
-                      alt={item.title}
-                      className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-                    />
-                  </div>
-                  <div className={`p-4 border-t border-slate-100 bg-white`}>
-                    <p className={`text-xs font-semibold text-slate-700`}>
-                      {item.desc}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Hostel Life Information Section */}
-          <div className="pt-8 space-y-8">
-            {/* Tagline */}
-            <div className="text-center max-w-3xl mx-auto space-y-2">
-              <h3 className={`text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900`}>
-                Hostel Life at <span className="text-[#673BB7]">KIET</span>
-              </h3>
-              <p className={`text-xs sm:text-sm leading-relaxed font-medium text-slate-600`}>
-                A Home Away From Home — secure, comfortable, and vibrant living designed to support academic excellence and holistic development.
-              </p>
-            </div>
-
-            {/* Key Highlights - 4 Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div className="grid grid-cols-2 gap-4">
               {[
-                {
-                  title: '24×7 Security',
-                  desc: 'CCTV surveillance, controlled entry/exit, and dedicated hostel wardens available round the clock.',
-                },
-                {
-                  title: 'Quality Dining',
-                  desc: 'Fully AC mess with nutritious breakfast, lunch, evening refreshments & dinner prepared under strict hygiene.',
-                },
-                {
-                  title: 'Academic Support',
-                  desc: 'AC study halls, reading rooms, and Wi-Fi connectivity for focused self-study and exam preparation.',
-                },
-                {
-                  title: 'Sports & Fitness',
-                  desc: 'AC gymnasium with trainer, indoor/outdoor sports — cricket, basketball, badminton, table tennis & more.',
-                },
-              ].map((card, idx) => (
-                <div
-                  key={`hostel-highlight-${idx}`}
-                  className={`p-5 rounded-2xl border transition-all duration-300 hover:border-[#673BB7] hover:shadow-lg bg-white border-slate-200 shadow-sm`}
-                >
-                  <h4 className={`text-sm font-bold mb-1.5 text-slate-900`}>{card.title}</h4>
-                  <p className={`text-xs leading-relaxed text-slate-600`}>{card.desc}</p>
+                { icon: ShieldCheck, title: 'Safe & Secure', sub: 'Campus' },
+                { icon: Building2, title: 'Modern', sub: 'Facilities' },
+                { icon: AlertCircle, title: 'Healthy', sub: 'Environment' },
+                { icon: GraduationCap, title: 'Student', sub: 'Support' }
+              ].map((feature, idx) => (
+                <div key={idx} className="flex items-center gap-3 p-3 rounded-xl border border-slate-100 bg-slate-50 hover:bg-white hover:shadow-md hover:border-[#e1bee7] transition-all cursor-default">
+                  <div className="w-10 h-10 rounded-lg bg-[#f3e5f5] text-[#673BB7] flex items-center justify-center shrink-0">
+                    <feature.icon className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-900 leading-tight">{feature.title}</p>
+                    <p className="text-xs font-medium text-slate-500">{feature.sub}</p>
+                  </div>
                 </div>
               ))}
             </div>
+          </div>
 
-            {/* Boys & Girls Hostel Info */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className={`p-6 rounded-2xl border bg-white border-slate-200 shadow-md`}>
-                <h4 className={`text-base font-bold mb-2 text-slate-900`}>Boys' Hostels</h4>
-                <p className={`text-xs leading-relaxed text-slate-600`}>
-                  A nurturing environment with robust safety measures, quality dining, fitness & sports facilities, and reliable transportation for off-campus residents. More than a place to stay — a community where students live, learn, grow, and succeed.
-                </p>
-              </div>
-              <div className={`p-6 rounded-2xl border bg-white border-slate-200 shadow-md`}>
-                <h4 className={`text-base font-bold mb-2 text-slate-900`}>Girls' Hostels</h4>
-                <p className={`text-xs leading-relaxed text-slate-600`}>
-                  A safe, peaceful, and comfortable environment with AC mess, AC gym with professional trainer, visitors' room, beauty parlour, 24×7 ambulance service, medical room, laundry services, lift access, and seamless Wi-Fi connectivity.
-                </p>
+          {/* Right: Room Images Grid */}
+          <div className="space-y-4 flex flex-col justify-start">
+            <div className="flex items-end justify-between mb-2">
+              <div>
+                <h3 className="text-2xl font-black text-slate-900 tracking-tight">Our Hostel Rooms</h3>
+                <p className="text-sm font-medium text-slate-500 mt-1">Comfortable, well-furnished rooms designed for a better stay.</p>
               </div>
             </div>
 
-            {/* Hostel Facilities Grid */}
-            <div>
-              <h4 className={`text-base font-bold mb-4 text-center text-slate-900`}>Hostel Facilities</h4>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                {[
-                  'Fully AC Mess & Dining', 'AC Study Hall', 'High-Speed Wi-Fi', 'Cafeteria & Store',
-                  'Indoor & Outdoor Sports', 'Power Backup (Generator)', 'RO Purified Drinking Water', 'Lift Access',
-                  'Laundry & Iron (Self-Service)', 'Bus Service (Off-Campus)', 'CCTV & Security', 'Temple',
-                ].map((facility) => (
-                  <div
-                    key={facility}
-                    className={`px-3 py-2.5 rounded-xl text-xs font-semibold text-center border transition-all hover:border-[#673BB7] hover:shadow-sm bg-[#f3e5f5]/60 text-[#512da8] border-[#e1bee7]`}
-                  >
-                    {facility}
-                  </div>
+            {/* Main Featured Image */}
+            <div className="relative w-full h-[280px] sm:h-[340px] rounded-2xl overflow-hidden group shadow-lg">
+              <img src={allHostelRooms[currentImageIndex]} alt="Hostel Room" className="w-full h-full object-cover transition-transform duration-700" />
+              
+              {/* Navigation Arrows */}
+              <button 
+                onClick={prevImage}
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/30 hover:bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-md"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+              <button 
+                onClick={nextImage}
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/30 hover:bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-md"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </button>
+
+              {/* Dots indicator */}
+              <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                {allHostelRooms.map((_, i) => (
+                  <button key={i} onClick={() => setCurrentImageIndex(i)} className={`w-2 h-2 rounded-full transition-colors ${i === currentImageIndex ? 'bg-white' : 'bg-white/40 hover:bg-white/80'}`} />
                 ))}
               </div>
             </div>
-          </div>
-        </div>
-      </section>
 
-      {/* SECTION 3: INSTITUTIONS & ACADEMIC PROGRAMS */}
-      <section id="institutions" className="scroll-mt-20 py-12 px-4 sm:px-6 border-t transition-colors space-y-12">
-        {/* Campus Colleges Header */}
-        <div className="max-w-7xl mx-auto space-y-6">
-          <div className="text-center max-w-3xl mx-auto space-y-2">
-            <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-[#f3e5f5] text-[#512da8] border border-[#e1bee7]">
-              OUR INSTITUTIONS
-            </span>
-            <h2 className={`text-2xl sm:text-3xl font-bold tracking-tight text-slate-900`}>
-              KIET Group of Colleges
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {[
-              { name: 'KIET', desc: 'Engineering & Technology (B.Tech / M.Tech)', icon: GraduationCap },
-              { name: 'KIET II', desc: 'Engineering & Technology (B.Tech / M.Tech)', icon: GraduationCap },
-              { name: 'KIET Women’s', desc: 'Women’s Engineering College (B.Tech)', icon: GraduationCap },
-              { name: 'KIET Polytechnic', desc: 'Diploma Programs & Technical Courses', icon: GraduationCap },
-            ].map((inst) => {
-              const InstIcon = inst.icon;
-              return (
-                <div
-                  key={inst.name}
-                  className={`p-5 rounded-2xl border transition-all duration-300 transform hover:scale-[1.03] hover:-translate-y-1 hover:shadow-xl hover:border-[#673BB7] hover:ring-2 hover:ring-[#673BB7]/30 cursor-pointer bg-white border-slate-200 shadow-sm`}
+            {/* Sub Images Grid (Thumbnails) */}
+            <div className="grid grid-cols-4 gap-2 sm:gap-3">
+              {allHostelRooms.map((img, idx) => (
+                <div 
+                  key={idx}
+                  onClick={() => setCurrentImageIndex(idx)}
+                  className={`relative h-16 sm:h-20 rounded-xl overflow-hidden group shadow-sm cursor-pointer border-2 transition-all ${currentImageIndex === idx ? 'border-[#673BB7]' : 'border-transparent'}`}
                 >
-                  <InstIcon className="w-7 h-7 text-[#673BB7] mb-2" />
-                  <h3 className="text-sm font-bold">{inst.name}</h3>
-                  <p className={`text-xs mt-1 text-slate-500`}>{inst.desc}</p>
+                  <img src={img} alt={`Room Thumbnail ${idx + 1}`} className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 ${currentImageIndex === idx ? 'opacity-100' : 'opacity-60 group-hover:opacity-100'}`} />
                 </div>
-              );
-            })}
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* SECTION 5: CONTACT US (Matching Reference Image 100%) */}
-      <section id="contact-us" className="scroll-mt-20 py-12 px-4 sm:px-6 border-t transition-colors">
+      {/* ================= CONTACT SECTION ================= */}
+      <section className="py-12 px-4 sm:px-6 border-t transition-colors bg-slate-50">
         <div className="max-w-7xl mx-auto space-y-8">
           {/* Header Dark Card */}
-          <div className="rounded-3xl bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 p-8 text-white shadow-2xl border border-slate-700/60 space-y-3 relative overflow-hidden">
+          <div id="contact" className="scroll-mt-4 rounded-3xl bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 p-8 text-white shadow-2xl border border-slate-700/60 space-y-3 relative overflow-hidden">
             <div className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-[#673BB7] text-white uppercase tracking-wider shadow">
               CONTACT US
             </div>
@@ -718,7 +559,7 @@ export default function LoginView() {
                       className={`flex items-center gap-2.5 hover:text-rose-600 transition-colors text-slate-800`}
                     >
                       <svg className="w-4 h-4 text-rose-600 shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+                        <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
                       </svg>
                       <span>YT: @kakinadakiet</span>
                     </a>
@@ -740,13 +581,14 @@ export default function LoginView() {
       <footer className={`border-t py-6 px-4 text-xs transition-colors bg-white border-slate-200 text-slate-600`}>
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-extrabold">
-            {['Home', 'About Us', 'Institutions', 'Contact Us', 'Login'].map((item) => (
+            {['Home', 'About', 'Contact'].map((item) => (
               <button
                 key={`footer-nav-${item}`}
                 type="button"
                 onClick={() => handleNavClick(item)}
-                className={`hover:text-[#673BB7] transition-colors cursor-pointer ${activeNav === item ? 'text-[#673BB7] font-black underline' : ''
-                  }`}
+                className={`hover:text-[#673BB7] transition-colors cursor-pointer ${
+                  activeNav === item ? 'text-[#673BB7] font-black underline' : ''
+                }`}
               >
                 {item}
               </button>
@@ -759,6 +601,7 @@ export default function LoginView() {
           </div>
         </div>
       </footer>
+      
     </div>
   );
 }
