@@ -322,6 +322,13 @@ export default function Allocations() {
               </button>
             </div>
 
+            {error && (
+              <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-xs font-semibold flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
+
             <div className="space-y-3 text-xs font-semibold">
               <div>
                 <label className="block text-slate-700 mb-1 font-bold">Select Resident Student *</label>

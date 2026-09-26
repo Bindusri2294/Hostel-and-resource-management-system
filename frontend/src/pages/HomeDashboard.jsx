@@ -75,7 +75,7 @@ export default function HomeDashboard() {
     } else {
       Promise.all([
         allocationService.mine().catch((err) => {
-          if (err.response?.status === 404) return { data: null };
+          if (err.response?.status === 404 || err.response?.status === 400) return { data: null };
           throw err;
         }),
         feedbackService.list().catch(() => ({ data: [] })),
