@@ -218,7 +218,6 @@ export default function Rooms() {
 
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
-            <Building className="w-3.5 h-3.5 text-purple-600" />
             <span>Block:</span>
             <select
               value={selectedBlock}
@@ -234,7 +233,6 @@ export default function Rooms() {
           </div>
 
           <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
-            <Filter className="w-3.5 h-3.5 text-purple-600" />
             <span>Status:</span>
             <select
               value={selectedStatus}
@@ -362,6 +360,13 @@ export default function Rooms() {
                 <X className="w-5 h-5" />
               </button>
             </div>
+
+            {error && (
+              <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-xs font-semibold flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
 
             <div className="space-y-3 text-xs font-semibold">
               <div>
