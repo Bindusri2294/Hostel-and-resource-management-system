@@ -36,7 +36,8 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
     
-    if (originalRequest.url === "/auth/refresh") {
+    const url = originalRequest.url || "";
+    if (url.includes("/auth/refresh") || url.includes("/auth/login") || url.includes("/auth/register")) {
       return Promise.reject(error);
     }
 
