@@ -64,6 +64,7 @@ const createAllocation = async (req, res, next) => {
 
     student.Roomno = room.RoomNo;
     student.Block = room.Block;
+    student.Status = "Active";
     await student.save();
 
     const populatedAllocation = await Allocation.findById(allocation._id)
@@ -187,6 +188,7 @@ const updateAllocation = async (req, res, next) => {
         const student = await Student.findById(allocation.studentId);
         if (student) {
           student.Roomno = "Unassigned";
+          student.Status = "Inactive";
           await student.save();
         }
       }
@@ -223,6 +225,8 @@ const updateAllocation = async (req, res, next) => {
         const student = await Student.findById(allocation.studentId);
         if (student) {
           student.Roomno = room.RoomNo;
+          student.Block = room.Block;
+          student.Status = "Active";
           await student.save();
         }
       }
@@ -267,6 +271,7 @@ const deleteAllocation = async (req, res, next) => {
       const student = await Student.findById(allocation.studentId);
       if (student) {
         student.Roomno = "Unassigned";
+        student.Status = "Inactive";
         await student.save();
       }
     }

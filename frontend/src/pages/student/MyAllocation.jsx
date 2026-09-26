@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { allocationService, getErrorMessage } from "../services/api";
-import { useAuth } from "../context/AuthContext";
+import { allocationService, getErrorMessage } from "../../services/api";
+import { useAuth } from "../../context/AuthContext";
 import { ClipboardList, DoorOpen, ChevronRight, AlertCircle, Calendar, Users, Building } from "lucide-react";
 
 export default function MyAllocation() {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { allocationService, studentService, roomService, getErrorMessage } from "../services/api";
+import { allocationService, studentService, roomService, getErrorMessage } from "../../services/api";
 import {
   ClipboardList,
   Plus,
@@ -10,6 +10,7 @@ import {
   AlertCircle,
   X,
   Building,
+  RefreshCw,
 } from "lucide-react";
 
 export default function Allocations() {
@@ -22,10 +23,13 @@ export default function Allocations() {
   const [successMsg, setSuccessMsg] = useState("");
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+  const [blockFilter, setBlockFilter] = useState("All");
+  const [roomFilter, setRoomFilter] = useState("All");
 
   // Modal State for New Allocation
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState("");
+  const [selectedBlock, setSelectedBlock] = useState("D");
   const [selectedRoom, setSelectedRoom] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -58,6 +62,27 @@ export default function Allocations() {
     (r) => r.Status !== "Full" && Number(r.OccupiedCount || 0) < Number(r.Capacity || 1)
   );
 
+  const availableRoomNumbers = Array.from(
+    new Set(
+      rooms
+        .filter((r) => blockFilter === "All" || r.Block === blockFilter)
+        .map((r) => r.RoomNo)
+    )
+  ).sort((a, b) => String(a).localeCompare(String(b), undefined, { numeric: true }));
+
+  const modalAvailableRooms = availableRooms.filter(
+    (r) => !selectedBlock || r.Block === selectedBlock
+  );
+
+  const handleStudentSelect = (studentId) => {
+    setSelectedStudent(studentId);
+    const stu = students.find((s) => s._id === studentId);
+    if (stu?.Block) {
+      setSelectedBlock(stu.Block);
+    }
+    setSelectedRoom("");
+  };
+
   const handleCreateAllocation = async (e) => {
     e.preventDefault();
     if (!selectedStudent || !selectedRoom) return;
@@ -74,6 +99,7 @@ export default function Allocations() {
 
       setSuccessMsg("Room allocation created successfully.");
       setSelectedStudent("");
+      setSelectedBlock("D");
       setSelectedRoom("");
       setModalOpen(false);
       loadData();
@@ -110,19 +136,28 @@ export default function Allocations() {
   };
 
   const filteredAllocations = allocations.filter((alloc) => {
+    const allocBlock = alloc.room?.Block || alloc.block || "D";
+    const allocRoom = String(alloc.roomNo || alloc.room?.RoomNo || "");
     const matchesStatus = statusFilter === "All" || alloc.status === statusFilter;
-    const matchesQuery =
-      !query ||
-      [
-        alloc.studentName,
-        alloc.student?.Name,
-        alloc.student?.Rollno,
-        alloc.roomNo,
-        alloc.room?.RoomNo,
-        alloc.room?.Block,
-      ].some((v) => String(v || "").toLowerCase().includes(query.toLowerCase()));
+    const matchesBlock = blockFilter === "All" || allocBlock === blockFilter;
+    const matchesRoom = roomFilter === "All" || allocRoom === roomFilter;
 
-    return matchesStatus && matchesQuery;
+    if (!query.trim()) {
+      return matchesStatus && matchesBlock && matchesRoom;
+    }
+
+    const q = query.toLowerCase();
+    const matchName = String(alloc.studentName || alloc.student?.Name || "").toLowerCase().includes(q);
+    const matchRoll = String(alloc.student?.Rollno || "").toLowerCase().includes(q);
+    const matchRoom = allocRoom.toLowerCase().includes(q);
+    const matchBlock = String(allocBlock).toLowerCase().includes(q);
+    const matchCourse = String(alloc.student?.Course || alloc.student?.Department || "").toLowerCase().includes(q);
+    const matchStatus = String(alloc.status || "").toLowerCase().includes(q);
+    const matchDate = alloc.allocationDate ? new Date(alloc.allocationDate).toLocaleDateString().toLowerCase().includes(q) : false;
+
+    const matchesQuery = matchName || matchRoll || matchRoom || matchBlock || matchCourse || matchStatus || matchDate;
+
+    return matchesStatus && matchesBlock && matchesRoom && matchesQuery;
   });
 
   return (
@@ -190,30 +225,75 @@ export default function Allocations() {
         </div>
       </div>
 
-      {/* Toolbar Filters */}
-      <div className="bg-white p-4 rounded-2xl border border-purple-100/70 shadow-xs flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2 bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 text-xs w-full sm:w-72">
-          <Search className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-          <input
-            type="text"
-            placeholder="Search student, roll no, room..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="bg-transparent outline-none w-full text-slate-800 placeholder-slate-400 font-medium"
-          />
+      {/* FILTER & SEARCH TOOLBAR (Feedback style across all fields) */}
+      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="relative flex-1 min-w-[240px]">
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search by student name, roll no, room, block, course, status, date..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="w-full border rounded-xl pl-9 pr-3.5 py-2 text-xs font-medium focus:outline-none bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-[#673BB7] focus:bg-white shadow-sm"
+            />
+          </div>
+
+          <button
+            onClick={loadData}
+            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer border bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300"
+          >
+            <RefreshCw className="w-3.5 h-3.5" /> Refresh
+          </button>
         </div>
 
-        <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
-          <span>Status Filter:</span>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-slate-50 border border-slate-200 text-xs font-semibold rounded-xl px-3 py-1.5 outline-none"
-          >
-            <option value="All">All</option>
-            <option value="Active">Active</option>
-            <option value="Vacated">Vacated</option>
-          </select>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-slate-200">
+          <div>
+            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-slate-600">Block Filter</label>
+            <select
+              value={blockFilter}
+              onChange={(e) => {
+                setBlockFilter(e.target.value);
+                setRoomFilter("All");
+              }}
+              className="w-full border rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none bg-slate-50 border-slate-300 text-slate-900 focus:border-[#673BB7] focus:bg-white shadow-sm cursor-pointer"
+            >
+              <option value="All">All Blocks</option>
+              <option value="D">Block D</option>
+              <option value="E">Block E</option>
+              <option value="KW">Block KW</option>
+              <option value="Executive">Executive Block</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-slate-600">Room Filter</label>
+            <select
+              value={roomFilter}
+              onChange={(e) => setRoomFilter(e.target.value)}
+              className="w-full border rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none bg-slate-50 border-slate-300 text-slate-900 focus:border-[#673BB7] focus:bg-white shadow-sm cursor-pointer"
+            >
+              <option value="All">All Rooms</option>
+              {availableRoomNumbers.map((room) => (
+                <option key={room} value={room}>
+                  Room {room}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-slate-600">Status Filter</label>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full border rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none bg-slate-50 border-slate-300 text-slate-900 focus:border-[#673BB7] focus:bg-white shadow-sm cursor-pointer"
+            >
+              <option value="All">All Statuses</option>
+              <option value="Active">Active</option>
+              <option value="Vacated">Vacated</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -250,14 +330,20 @@ export default function Allocations() {
                   return (
                     <tr key={alloc.id || alloc._id} className="hover:bg-slate-50/80 transition-colors">
                       <td className="py-3 px-4 font-bold text-slate-900 flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-full bg-purple-600 text-white font-bold flex items-center justify-center text-xs">
-                          {studentName.charAt(0)}
+                        <div className="w-8 h-8 rounded-full bg-purple-600 text-white font-extrabold flex items-center justify-center text-xs">
+                          {studentName.charAt(0)?.toUpperCase()}
                         </div>
                         <span>{studentName}</span>
                       </td>
                       <td className="py-3 px-4 text-slate-600 font-bold">{rollNo}</td>
-                      <td className="py-3 px-4 font-bold text-purple-700">Block {blockName}</td>
-                      <td className="py-3 px-4 font-extrabold text-slate-900">Room {roomNum}</td>
+                      <td className="py-3 px-4 font-bold text-purple-700">
+                        {blockName === "Executive" ? "Executive" : (blockName || "D")}
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className="px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 font-bold text-[11px]">
+                          {roomNum || "Unassigned"}
+                        </span>
+                      </td>
                       <td className="py-3 px-4 text-slate-500">{allocDate}</td>
                       <td className="py-3 px-4">
                         <span
@@ -328,34 +414,58 @@ export default function Allocations() {
                 <select
                   required
                   value={selectedStudent}
-                  onChange={(e) => setSelectedStudent(e.target.value)}
+                  onChange={(e) => handleStudentSelect(e.target.value)}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
                 >
                   <option value="">Select a student...</option>
-                  {students.map((s) => (
-                    <option key={s._id} value={s._id}>
-                      {s.Name} ({s.Rollno})
-                    </option>
-                  ))}
+                  {students.map((s) => {
+                    const isUnassigned = !s.Roomno || s.Roomno.toLowerCase() === "unassigned";
+                    return (
+                      <option key={s._id} value={s._id}>
+                        {s.Name} ({s.Rollno}) {isUnassigned ? "• Unassigned" : `• Room ${s.Roomno}`}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
 
-              <div>
-                <label className="block text-slate-700 mb-1 font-bold">Select Available Room *</label>
-                <select
-                  required
-                  value={selectedRoom}
-                  onChange={(e) => setSelectedRoom(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
-                >
-                  <option value="">Select a room...</option>
-                  {availableRooms.map((r) => (
-                    <option key={r._id} value={r._id}>
-                      Room {r.RoomNo} · Block {r.Block} (
-                      {Math.max(0, (r.Capacity || 1) - (r.OccupiedCount || 0))} beds left)
-                    </option>
-                  ))}
-                </select>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-700 mb-1 font-bold">Block *</label>
+                  <select
+                    value={selectedBlock}
+                    onChange={(e) => {
+                      setSelectedBlock(e.target.value);
+                      setSelectedRoom("");
+                    }}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
+                  >
+                    <option value="D">Block D</option>
+                    <option value="E">Block E</option>
+                    <option value="KW">Block KW</option>
+                    <option value="Executive">Executive Block</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-slate-700 mb-1 font-bold">Room Number *</label>
+                  <select
+                    required
+                    value={selectedRoom}
+                    onChange={(e) => setSelectedRoom(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
+                  >
+                    <option value="">Select Room...</option>
+                    {modalAvailableRooms.map((r) => {
+                      const freeBeds = Math.max(0, (r.Capacity || 1) - (r.OccupiedCount || 0));
+                      return (
+                        <option key={r._id} value={r._id}>
+                          {r.RoomNo} ({freeBeds} {freeBeds === 1 ? "bed" : "beds"} left)
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
               </div>
             </div>
 

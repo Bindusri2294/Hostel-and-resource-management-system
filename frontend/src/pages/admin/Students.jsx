@@ -1,18 +1,17 @@
 import { useEffect, useState } from "react";
-import { studentService, roomService, getErrorMessage } from "../services/api";
+import { studentService, roomService, getErrorMessage } from "../../services/api";
 import {
   Users,
   Search,
-  Filter,
   Plus,
   Eye,
   Edit2,
   Trash2,
   X,
   AlertCircle,
-  GraduationCap,
   Building,
   UserCheck,
+  RefreshCw,
 } from "lucide-react";
 
 const blankStudent = {
@@ -72,6 +71,7 @@ export default function Students() {
   const [query, setQuery] = useState("");
   const [deptFilter, setDeptFilter] = useState("All");
   const [yearFilter, setYearFilter] = useState("All");
+  const [blockFilter, setBlockFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
 
   // Modal states
@@ -114,14 +114,38 @@ export default function Students() {
       (student.Course || student.Department || "").toLowerCase().includes(deptFilter.toLowerCase());
     const matchesYear =
       yearFilter === "All" || String(student.Year || "") === String(yearFilter);
+    const matchesBlock =
+      blockFilter === "All" || String(student.Block || "") === String(blockFilter);
     const matchesStatus =
       statusFilter === "All" || (student.Status || "Active") === statusFilter;
-    const matchesQuery =
-      !query ||
-      [student.Name, student.Rollno, student.Course, student.Roomno, student.Block]
-        .some((val) => String(val || "").toLowerCase().includes(query.toLowerCase()));
 
-    return matchesDept && matchesYear && matchesStatus && matchesQuery;
+    if (!query.trim()) {
+      return matchesDept && matchesYear && matchesBlock && matchesStatus;
+    }
+
+    const q = query.toLowerCase();
+    const matchName = String(student.Name || "").toLowerCase().includes(q);
+    const matchRoll = String(student.Rollno || "").toLowerCase().includes(q);
+    const matchCourse = String(student.Course || "").toLowerCase().includes(q);
+    const matchDept = String(student.Department || "").toLowerCase().includes(q);
+    const matchRoom = String(student.Roomno || "").toLowerCase().includes(q);
+    const matchBlock = String(student.Block || "").toLowerCase().includes(q);
+    const matchCampus = String(student.Campus || "").toLowerCase().includes(q);
+    const matchEmail = String(student.Email || "").toLowerCase().includes(q);
+    const matchPhone = String(student.Phone || "").toLowerCase().includes(q);
+
+    const matchesQuery =
+      matchName ||
+      matchRoll ||
+      matchCourse ||
+      matchDept ||
+      matchRoom ||
+      matchBlock ||
+      matchCampus ||
+      matchEmail ||
+      matchPhone;
+
+    return matchesDept && matchesYear && matchesBlock && matchesStatus && matchesQuery;
   });
 
   const openForm = (student = null) => {
@@ -212,27 +236,38 @@ export default function Students() {
         </div>
       )}
 
-      {/* Toolbar Filters */}
-      <div className="bg-white p-4 rounded-2xl border border-purple-100/70 shadow-xs flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2 bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 text-xs w-full sm:w-72">
-          <Search className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-          <input
-            type="text"
-            placeholder="Search name, roll no, course..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="bg-transparent outline-none w-full text-slate-800 placeholder-slate-400 font-medium"
-          />
+      {/* FILTER & SEARCH TOOLBAR (Feedback style across all fields) */}
+      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="relative flex-1 min-w-[240px]">
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search by student name, roll no, course, room, block, department, phone..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="w-full border rounded-xl pl-9 pr-3.5 py-2 text-xs font-medium focus:outline-none bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-[#673BB7] focus:bg-white shadow-sm"
+            />
+          </div>
+
+          <button
+            onClick={() => {
+              loadStudents();
+              loadRooms();
+            }}
+            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer border bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300"
+          >
+            <RefreshCw className="w-3.5 h-3.5" /> Refresh
+          </button>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 text-xs font-bold text-slate-600">
-          <div className="flex items-center gap-1.5">
-            <GraduationCap className="w-3.5 h-3.5 text-purple-600" />
-            <span>Course:</span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-3 border-t border-slate-200">
+          <div>
+            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-slate-600">Course Filter</label>
             <select
               value={deptFilter}
               onChange={(e) => setDeptFilter(e.target.value)}
-              className="bg-slate-50 border border-slate-200 text-xs font-semibold rounded-xl px-2.5 py-1.5 outline-none"
+              className="w-full border rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none bg-slate-50 border-slate-300 text-slate-900 focus:border-[#673BB7] focus:bg-white shadow-sm cursor-pointer"
             >
               <option value="All">All Courses</option>
               <option value="B.TECH">B.TECH</option>
@@ -240,12 +275,12 @@ export default function Students() {
             </select>
           </div>
 
-          <div className="flex items-center gap-1.5">
-            <span>Year:</span>
+          <div>
+            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-slate-600">Year Filter</label>
             <select
               value={yearFilter}
               onChange={(e) => setYearFilter(e.target.value)}
-              className="bg-slate-50 border border-slate-200 text-xs font-semibold rounded-xl px-2.5 py-1.5 outline-none"
+              className="w-full border rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none bg-slate-50 border-slate-300 text-slate-900 focus:border-[#673BB7] focus:bg-white shadow-sm cursor-pointer"
             >
               <option value="All">All Years</option>
               <option value="1">1st Year</option>
@@ -255,12 +290,27 @@ export default function Students() {
             </select>
           </div>
 
-          <div className="flex items-center gap-1.5">
-            <span>Status:</span>
+          <div>
+            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-slate-600">Block Filter</label>
+            <select
+              value={blockFilter}
+              onChange={(e) => setBlockFilter(e.target.value)}
+              className="w-full border rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none bg-slate-50 border-slate-300 text-slate-900 focus:border-[#673BB7] focus:bg-white shadow-sm cursor-pointer"
+            >
+              <option value="All">All Blocks</option>
+              <option value="D">Block D</option>
+              <option value="E">Block E</option>
+              <option value="KW">Block KW</option>
+              <option value="Executive">Executive Block</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-slate-600">Status Filter</label>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-slate-50 border border-slate-200 text-xs font-semibold rounded-xl px-2.5 py-1.5 outline-none"
+              className="w-full border rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none bg-slate-50 border-slate-300 text-slate-900 focus:border-[#673BB7] focus:bg-white shadow-sm cursor-pointer"
             >
               <option value="All">All Statuses</option>
               <option value="Active">Active</option>
@@ -476,7 +526,7 @@ export default function Students() {
                 </select>
               </div>
 
-              <div className="col-span-2">
+              <div>
                 <label className="block text-slate-700 mb-1 font-bold">Room Number</label>
                 <select
                   value={form.Roomno || "Unassigned"}
@@ -491,6 +541,18 @@ export default function Students() {
                         {room.RoomNo}
                       </option>
                   ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-slate-700 mb-1 font-bold">Resident Status</label>
+                <select
+                  value={form.Status || "Active"}
+                  onChange={(e) => setForm({ ...form, Status: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
+                >
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
                 </select>
               </div>
             </div>
@@ -556,6 +618,21 @@ export default function Students() {
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
                 <span className="text-[10px] text-slate-400 font-bold block">Allocated Room</span>
                 <span className="font-extrabold text-slate-900">{selected.Roomno || "Unassigned"}</span>
+              </div>
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 col-span-2 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] text-slate-400 font-bold block">Resident Status</span>
+                  <span className="text-[11px] text-slate-500 font-medium">Hostel Residency State</span>
+                </div>
+                <span
+                  className={`px-3 py-1 rounded-full text-xs font-extrabold ${
+                    (selected.Status || "Active") === "Active"
+                      ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                      : "bg-slate-100 text-slate-600 border border-slate-200"
+                  }`}
+                >
+                  {selected.Status || "Active"}
+                </span>
               </div>
             </div>
 

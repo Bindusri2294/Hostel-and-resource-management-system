@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { roomService, studentService, allocationService, getErrorMessage } from "../services/api";
+import { roomService, studentService, allocationService, getErrorMessage } from "../../services/api";
 import {
   BarChart,
   PieChart as PieIcon,
@@ -7,12 +7,12 @@ import {
   Users,
   DoorOpen,
   ClipboardList,
-  Filter,
   Download,
   Calendar,
   Layers,
   Award,
   AlertCircle,
+  Search,
 } from "lucide-react";
 
 export default function Analytics() {
@@ -24,6 +24,8 @@ export default function Analytics() {
 
   const [courseFilter, setCourseFilter] = useState("All");
   const [yearFilter, setYearFilter] = useState("All");
+  const [blockFilter, setBlockFilter] = useState("All");
+  const [query, setQuery] = useState("");
   const [activeTab, setActiveTab] = useState("KIET");
 
   useEffect(() => {
@@ -60,7 +62,23 @@ export default function Analytics() {
   const filteredStudents = students.filter((s) => {
     const matchesCourse = courseFilter === "All" || String(s.Course || "") === courseFilter;
     const matchesYear = yearFilter === "All" || String(s.Year || "") === yearFilter;
-    return matchesCourse && matchesYear;
+    const matchesBlock = blockFilter === "All" || String(s.Block || "") === blockFilter;
+
+    if (!query.trim()) {
+      return matchesCourse && matchesYear && matchesBlock;
+    }
+
+    const q = query.toLowerCase();
+    const matchName = String(s.Name || "").toLowerCase().includes(q);
+    const matchRoll = String(s.Rollno || "").toLowerCase().includes(q);
+    const matchCourseName = String(s.Course || "").toLowerCase().includes(q);
+    const matchDept = String(s.Department || "").toLowerCase().includes(q);
+    const matchBlock = String(s.Block || "").toLowerCase().includes(q);
+    const matchRoom = String(s.Roomno || "").toLowerCase().includes(q);
+
+    const matchesQuery = matchName || matchRoll || matchCourseName || matchDept || matchBlock || matchRoom;
+
+    return matchesCourse && matchesYear && matchesBlock && matchesQuery;
   });
 
   // Calculate Key Stats
@@ -120,30 +138,49 @@ export default function Analytics() {
         </div>
       )}
 
-      {/* Course and Year Filter Controls */}
-      <div className="bg-white p-4 rounded-2xl border border-purple-100/70 shadow-xs flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2 text-xs font-extrabold text-slate-700">
-          <Filter className="w-4 h-4 text-purple-600" />
-          <span>Filter by Course:</span>
-          <select
-            value={courseFilter}
-            onChange={(e) => {
-              setCourseFilter(e.target.value);
-              setYearFilter("All");
-            }}
-            className="bg-slate-100 border border-slate-200 text-xs font-extrabold text-slate-700 rounded-xl px-3 py-2 outline-none"
-          >
-            <option value="All">All Courses</option>
-            <option value="B.Tech">B.Tech</option>
-            <option value="Diploma">Diploma</option>
-          </select>
+      {/* FILTER & SEARCH TOOLBAR (Feedback style across all fields) */}
+      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="relative flex-1 min-w-[240px]">
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search by student name, roll no, department, room, block..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="w-full border rounded-xl pl-9 pr-3.5 py-2 text-xs font-medium focus:outline-none bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-[#673BB7] focus:bg-white shadow-sm"
+            />
+          </div>
 
-          {yearOptions.length > 0 && (
+          <div className="text-xs font-bold text-slate-500">
+            Showing <strong className="text-purple-700">{filteredStudents.length}</strong> residents
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-slate-200">
+          <div>
+            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-slate-600">Course Filter</label>
+            <select
+              value={courseFilter}
+              onChange={(e) => {
+                setCourseFilter(e.target.value);
+                setYearFilter("All");
+              }}
+              className="w-full border rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none bg-slate-50 border-slate-300 text-slate-900 focus:border-[#673BB7] focus:bg-white shadow-sm cursor-pointer"
+            >
+              <option value="All">All Courses</option>
+              <option value="B.Tech">B.Tech</option>
+              <option value="Diploma">Diploma</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-slate-600">Year Filter</label>
             <select
               aria-label="Select Year"
               value={yearFilter}
               onChange={(e) => setYearFilter(e.target.value)}
-              className="bg-slate-100 border border-slate-200 text-xs font-extrabold text-slate-700 rounded-xl px-3 py-2 outline-none"
+              className="w-full border rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none bg-slate-50 border-slate-300 text-slate-900 focus:border-[#673BB7] focus:bg-white shadow-sm cursor-pointer"
             >
               <option value="All">All Years</option>
               {yearOptions.map((year) => (
@@ -152,11 +189,22 @@ export default function Analytics() {
                 </option>
               ))}
             </select>
-          )}
-        </div>
+          </div>
 
-        <div className="text-xs font-bold text-slate-500">
-          Showing data for <strong className="text-purple-700">{filteredStudents.length}</strong> residents
+          <div>
+            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-slate-600">Block Filter</label>
+            <select
+              value={blockFilter}
+              onChange={(e) => setBlockFilter(e.target.value)}
+              className="w-full border rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none bg-slate-50 border-slate-300 text-slate-900 focus:border-[#673BB7] focus:bg-white shadow-sm cursor-pointer"
+            >
+              <option value="All">All Blocks</option>
+              <option value="D">Block D</option>
+              <option value="E">Block E</option>
+              <option value="KW">Block KW</option>
+              <option value="Executive">Executive Block</option>
+            </select>
+          </div>
         </div>
       </div>
 

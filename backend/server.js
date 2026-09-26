@@ -10,6 +10,9 @@ const roomRoutes = require("./routes/roomRoutes");
 const allocationRoutes = require("./routes/allocationRoutes");
 const feedbackRoutes = require("./routes/feedbackRoutes");
 const authRoutes = require("./routes/authRoutes");
+const attendanceRoutes = require("./routes/attendanceRoutes");
+const leaveRoutes = require("./routes/leaveRoutes");
+const { seedAttendanceIfEmpty } = require("./controllers/attendanceController");
 const errorHandler = require("./middleware/errorHandler");
 
 dotenv.config();
@@ -73,11 +76,14 @@ app.use("/api/rooms", roomRoutes);
 app.use("/api/allocations", allocationRoutes);
 app.use("/api/feedback", feedbackRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/attendance", attendanceRoutes);
+app.use("/api/leave", leaveRoutes);
 app.use(errorHandler);
 
 const startServer = async () => {
   await connectDB();
   await seedAdminAndDemoUsers();
+  await seedAttendanceIfEmpty();
   const PORT = process.env.PORT || 5000;
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
