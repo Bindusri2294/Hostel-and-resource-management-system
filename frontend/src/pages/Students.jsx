@@ -28,7 +28,7 @@ const blankStudent = {
 };
 
 const getDeptFromRollNo = (rollno) => {
-  if (!rollno || rollno.length < 4) return "CSE";
+  if (!rollno || rollno.length < 4) return "Other";
   const code = rollno.slice(-4, -2);
   switch (code) {
     case "42": return "CSM";
@@ -36,7 +36,7 @@ const getDeptFromRollNo = (rollno) => {
     case "44": return "CSD";
     case "45": return "AID";
     case "46": return "CSC";
-    default: return "CSE";
+    default: return "Other";
   }
 };
 
@@ -169,6 +169,16 @@ export default function Students() {
     }
   };
 
+  const handleStatusChange = async (student, newStatus) => {
+    try {
+      await studentService.update(student._id, { ...student, Status: newStatus });
+      setSuccessMsg(`Status updated to ${newStatus}`);
+      loadStudents();
+    } catch (err) {
+      setError(getErrorMessage(err, "Failed to update status."));
+    }
+  };
+
   const deleteStudent = async (student) => {
     if (!window.confirm(`Are you sure you want to delete ${student.Name}?`)) return;
     try {
@@ -227,7 +237,6 @@ export default function Students() {
 
         <div className="flex flex-wrap items-center gap-3 text-xs font-bold text-slate-600">
           <div className="flex items-center gap-1.5">
-            <GraduationCap className="w-3.5 h-3.5 text-purple-600" />
             <span>Course:</span>
             <select
               value={deptFilter}
@@ -320,15 +329,18 @@ export default function Students() {
                       </span>
                     </td>
                     <td className="py-3 px-4">
-                      <span
-                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${
+                      <select
+                        value={student.Status || "Active"}
+                        onChange={(e) => handleStatusChange(student, e.target.value)}
+                        className={`px-2.5 py-1 rounded-md text-[10px] font-extrabold cursor-pointer outline-none transition-colors ${
                           (student.Status || "Active") === "Active"
                             ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
-                            : "bg-slate-100 text-slate-600 border border-slate-200"
+                            : "bg-rose-100 text-rose-800 border border-rose-200"
                         }`}
                       >
-                        {student.Status || "Active"}
-                      </span>
+                        <option value="Active" className="bg-white text-emerald-800">Active</option>
+                        <option value="Inactive" className="bg-white text-rose-800">Inactive</option>
+                      </select>
                     </td>
                     <td className="py-3 px-4 flex justify-end items-center gap-1">
                       <button
@@ -380,6 +392,13 @@ export default function Students() {
                 <X className="w-5 h-5" />
               </button>
             </div>
+
+            {error && (
+              <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-xs font-semibold flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-3 text-xs font-semibold">
               <div>
