@@ -6,6 +6,7 @@ import {
   roomService,
   allocationService,
   feedbackService,
+  authService,
   getErrorMessage,
 } from "../../services/api";
 import {
@@ -29,6 +30,7 @@ export default function AdminDashboard({ data: propData }) {
       rooms: [],
       allocations: [],
       feedbacks: [],
+      resetRequests: [],
     }
   );
   const [loading, setLoading] = useState(!propData);
@@ -49,14 +51,16 @@ export default function AdminDashboard({ data: propData }) {
       roomService.list(),
       allocationService.list(),
       feedbackService.list(),
+      authService.getResetRequests(),
     ])
-      .then(([studentsRes, roomsRes, allocationsRes, feedbackRes]) => {
+      .then(([studentsRes, roomsRes, allocationsRes, feedbackRes, resetReqRes]) => {
         if (!cancelled) {
           setData({
             students: studentsRes.data || [],
             rooms: roomsRes.data || [],
             allocations: allocationsRes.data || [],
             feedbacks: feedbackRes.data || [],
+            resetRequests: resetReqRes.data || [],
           });
         }
       })
@@ -71,6 +75,20 @@ export default function AdminDashboard({ data: propData }) {
       cancelled = true;
     };
   }, [propData]);
+
+  const handleResolveResetRequest = async (id) => {
+    try {
+      const res = await authService.resolveResetRequest(id);
+      alert(res.data.message);
+      // Remove it from the local state
+      setData((prev) => ({
+        ...prev,
+        resetRequests: prev.resetRequests.filter((req) => req._id !== id),
+      }));
+    } catch (err) {
+      alert(getErrorMessage(err));
+    }
+  };
 
   if (loading) {
     return (
@@ -335,6 +353,60 @@ export default function AdminDashboard({ data: propData }) {
           </table>
         </div>
       </div>
+
+      {/* Manual Password Reset Requests Section */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 mt-6 mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-orange-50 text-orange-600 rounded-xl">
+              <AlertCircle className="w-5 h-5" />
+            </div>
+            <h3 className="font-bold text-slate-800 text-[15px]">Pending Password Resets</h3>
+          </div>
+          {data.resetRequests?.length > 0 && (
+            <span className="bg-orange-100 text-orange-700 font-bold px-2.5 py-1 rounded-full text-xs">
+              {data.resetRequests.length} pending
+            </span>
+          )}
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead>
+              <tr className="border-b border-slate-100 text-[11px] font-bold uppercase text-slate-400 tracking-wider">
+                <th className="py-2.5 px-3">Student Name</th>
+                <th className="py-2.5 px-3">Roll No</th>
+                <th className="py-2.5 px-3">Course</th>
+                <th className="py-2.5 px-3 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+              {data.resetRequests?.length ? (
+                data.resetRequests.map((req) => (
+                  <tr key={req._id}>
+                    <td className="py-3 px-3 font-bold text-slate-900">{req.student?.Name}</td>
+                    <td className="py-3 px-3 font-semibold text-slate-600">{req.student?.Rollno}</td>
+                    <td className="py-3 px-3 text-slate-500">{req.student?.Course}</td>
+                    <td className="py-3 px-3 text-right">
+                      <button 
+                        onClick={() => handleResolveResetRequest(req._id)}
+                        className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-1.5 px-3 rounded text-[11px] shadow-sm transition-all"
+                      >
+                        Reset to Roll No
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="4" className="py-6 text-center text-slate-400 italic">No pending password reset requests.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
     </div>
   );
 }

@@ -1,10 +1,16 @@
 import React, { useState, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
-import { Plus, ShieldCheck, Lock } from "lucide-react";
+import { Plus, ShieldCheck, Lock, CheckCircle2, AlertCircle } from "lucide-react";
+import { authService } from "../services/api";
 
 export default function Profile() {
   const { user } = useAuth();
   const student = user?.student || {};
+
+  const [email, setEmail] = useState(user?.email || "");
+  const [phone, setPhone] = useState(user?.phone || "");
+  const [contactLoading, setContactLoading] = useState(false);
+  const [contactMsg, setContactMsg] = useState(null);
 
   const [profileImage, setProfileImage] = useState(() => {
     return localStorage.getItem(`profile_image_${user?._id || user?.id || user?.email || "current"}`) || null;
@@ -22,6 +28,20 @@ export default function Profile() {
         window.dispatchEvent(new Event("storage"));
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleContactUpdate = async (e) => {
+    e.preventDefault();
+    setContactLoading(true);
+    setContactMsg(null);
+    try {
+      await authService.updateContact({ email, phone });
+      setContactMsg({ type: "success", text: "Contact information updated successfully!" });
+    } catch (err) {
+      setContactMsg({ type: "error", text: err.response?.data?.message || "Failed to update contact info." });
+    } finally {
+      setContactLoading(false);
     }
   };
 
@@ -83,14 +103,7 @@ export default function Profile() {
                 readOnly
               />
             </div>
-            <div className="space-y-2">
-              <label className="text-[13px] font-bold text-[#1a1d2d]">Email</label>
-              <input 
-                defaultValue={user?.email} 
-                className="w-full h-11 px-3 rounded-xl bg-slate-50 border border-gray-200 text-gray-500 font-medium focus-visible:outline-none focus-visible:border-[#6348f9] focus-visible:ring-1 focus-visible:ring-[#6348f9]" 
-                readOnly
-              />
-            </div>
+
             <div className="space-y-2">
               <label className="text-[13px] font-bold text-[#1a1d2d]">Roll Number</label>
               <input 
@@ -129,6 +142,60 @@ export default function Profile() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Contact Information Section */}
+      <div className="bg-white rounded-2xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] border border-purple-100/70 p-8">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="bg-blue-50 p-2.5 rounded-full text-blue-500">
+              <ShieldCheck className="w-5 h-5" />
+            </div>
+            <h3 className="text-[17px] font-bold text-[#1a1d2d]">Contact Information</h3>
+          </div>
+          <span className="text-xs font-semibold text-gray-500">Used for password recovery</span>
+        </div>
+        
+        {contactMsg && (
+          <div className={`mb-6 p-3 rounded-xl text-xs font-semibold flex items-center gap-2 ${contactMsg.type === 'success' ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-rose-50 text-rose-600 border border-rose-200'}`}>
+            {contactMsg.type === 'success' ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+            {contactMsg.text}
+          </div>
+        )}
+
+        <form onSubmit={handleContactUpdate}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+            <div className="space-y-2">
+              <label className="text-[13px] font-bold text-[#1a1d2d]">Email Address</label>
+              <input 
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter recovery email" 
+                className="w-full h-11 px-3 rounded-xl bg-white border border-gray-200 focus-visible:outline-none focus-visible:border-[#6348f9] focus-visible:ring-1 focus-visible:ring-[#6348f9]" 
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-[13px] font-bold text-[#1a1d2d]">Phone Number</label>
+              <input 
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="Enter phone number" 
+                className="w-full h-11 px-3 rounded-xl bg-white border border-gray-200 focus-visible:outline-none focus-visible:border-[#6348f9] focus-visible:ring-1 focus-visible:ring-[#6348f9]" 
+              />
+            </div>
+          </div>
+          <div className="mt-6 flex justify-end">
+            <button 
+              type="submit"
+              disabled={contactLoading}
+              className="h-11 px-8 rounded-xl bg-[#6348f9] text-white font-semibold hover:bg-[#5135ec] shadow-md shadow-[#6348f9]/20 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+            >
+              {contactLoading ? "Saving..." : "Save Contact Info"}
+            </button>
+          </div>
+        </form>
       </div>
 
       {/* Change Password Section */}

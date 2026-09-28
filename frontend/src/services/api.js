@@ -82,6 +82,13 @@ export const authService = {
   register: (payload) => api.post("/auth/register", payload),
   me: () => api.get("/auth/me"),
   logout: () => api.post("/auth/logout"),
+  updateContact: (payload) => api.put("/auth/contact", payload),
+  forgotPassword: (payload) => api.post("/auth/forgot-password", payload),
+  verifyOTP: (payload) => api.post("/auth/verify-otp", payload),
+  resetPassword: (payload) => api.post("/auth/reset-password", payload),
+  requestManualReset: (payload) => api.post("/auth/request-manual-reset", payload),
+  getResetRequests: () => api.get("/auth/reset-requests"),
+  resolveResetRequest: (id) => api.post(`/auth/reset-requests/${id}/resolve`),
 };
 
 export const studentService = {
