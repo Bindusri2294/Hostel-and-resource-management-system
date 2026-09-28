@@ -23,6 +23,7 @@ import {
 
 import kietLogo from '../../assets/kiet_logo.webp';
 import kietCollege from '../../assets/kiet_college_login_photo.jpeg';
+import { authService } from '../../services/api';
 import hostelRoom1 from '../../assets/hostel_room1.jpeg';
 import hostelRoom2 from '../../assets/hostel_room2.jpeg';
 import hostelRoom3 from '../../assets/hostel_room3.jpeg';
@@ -54,6 +55,19 @@ export default function LoginView() {
   // Login form state
   const [userId, setUserId] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
+
+  // Forgot Password state
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [forgotStep, setForgotStep] = useState(1); // 1: RollNo, 2: OTP, 3: NewPassword
+  const [forgotRollNo, setForgotRollNo] = useState('');
+  const [forgotOTP, setForgotOTP] = useState('');
+  const [forgotNewPassword, setForgotNewPassword] = useState('');
+  const [forgotResetToken, setForgotResetToken] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotError, setForgotError] = useState('');
+  const [forgotSuccess, setForgotSuccess] = useState('');
+  const [showManualResetPrompt, setShowManualResetPrompt] = useState(false);
+  const [otpCooldown, setOtpCooldown] = useState(0);
 
   const fillDemo = (role) => {
     setLoginRole(role);
@@ -94,6 +108,16 @@ export default function LoginView() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useEffect(() => {
+    let timer;
+    if (otpCooldown > 0) {
+      timer = setInterval(() => {
+        setOtpCooldown((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [otpCooldown]);
+
   const handleNavClick = (navName) => {
     setActiveNav(navName);
     const targetId = navName.toLowerCase();
@@ -125,6 +149,84 @@ export default function LoginView() {
       setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleForgotSubmit = async (e) => {
+    e.preventDefault();
+    setForgotError('');
+    setForgotSuccess('');
+    setShowManualResetPrompt(false);
+    setForgotLoading(true);
+    try {
+      const res = await authService.forgotPassword({ rollNo: forgotRollNo });
+      setForgotSuccess(res.data.message);
+      setForgotStep(2);
+      setOtpCooldown(60);
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Failed to send OTP.';
+      setForgotError(msg);
+      if (msg.includes('No email address found')) {
+        setShowManualResetPrompt(true);
+      }
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const handleManualResetRequest = async () => {
+    setForgotError('');
+    setForgotSuccess('');
+    setForgotLoading(true);
+    try {
+      const res = await authService.requestManualReset({ rollNo: forgotRollNo });
+      setForgotSuccess(res.data.message);
+      setShowManualResetPrompt(false);
+    } catch (err) {
+      setForgotError(err.response?.data?.message || 'Failed to request manual reset.');
+      setShowManualResetPrompt(false);
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const handleVerifyOTP = async (e) => {
+    e.preventDefault();
+    setForgotError('');
+    setForgotSuccess('');
+    setForgotLoading(true);
+    try {
+      const res = await authService.verifyOTP({ rollNo: forgotRollNo, otp: forgotOTP });
+      setForgotSuccess('OTP verified successfully!');
+      setForgotResetToken(res.data.resetToken);
+      setForgotStep(3);
+    } catch (err) {
+      setForgotError(err.response?.data?.message || 'Invalid or expired OTP.');
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    setForgotError('');
+    setForgotSuccess('');
+    setForgotLoading(true);
+    try {
+      await authService.resetPassword({ resetToken: forgotResetToken, newPassword: forgotNewPassword });
+      setForgotSuccess('Password reset successfully! You can now login.');
+      setTimeout(() => {
+        setShowForgotModal(false);
+        setForgotStep(1);
+        setForgotRollNo('');
+        setForgotOTP('');
+        setForgotNewPassword('');
+        setForgotSuccess('');
+      }, 2000);
+    } catch (err) {
+      setForgotError(err.response?.data?.message || 'Failed to reset password.');
+    } finally {
+      setForgotLoading(false);
     }
   };
 
@@ -304,7 +406,18 @@ export default function LoginView() {
                       <input type="checkbox" className="w-4 h-4 rounded border-slate-300 text-[#673BB7] focus:ring-[#673BB7] cursor-pointer" />
                       <span className="text-xs font-semibold text-slate-600 group-hover:text-slate-900 transition-colors">Remember me</span>
                     </label>
-                    <a href="#" className="text-xs font-bold text-[#673BB7] hover:text-[#512da8] transition-colors">Forgot password?</a>
+                    <button 
+                      type="button"
+                      onClick={() => {
+                        if (loginRole === 'Student' && userId) {
+                          setForgotRollNo(userId);
+                        }
+                        setShowForgotModal(true);
+                      }}
+                      className="text-xs font-bold text-[#673BB7] hover:text-[#512da8] transition-colors"
+                    >
+                      Forgot password?
+                    </button>
                   </div>
 
                   <button
@@ -602,6 +715,183 @@ export default function LoginView() {
         </div>
       </footer>
       
+      {/* Forgot Password Modal */}
+      {showForgotModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-slate-50">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 text-blue-600 rounded-full">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <h3 className="font-bold text-slate-800 text-lg">Reset Password</h3>
+              </div>
+              <button 
+                type="button"
+                onClick={() => {
+                  setShowForgotModal(false);
+                  setForgotStep(1);
+                  setForgotError('');
+                  setForgotSuccess('');
+                }}
+                className="text-slate-400 hover:text-slate-600 font-bold p-2 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6">
+              {forgotError && (
+                <div className="mb-4 p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-600 text-xs font-semibold flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{forgotError}</span>
+                </div>
+              )}
+              {forgotSuccess && (
+                <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-600 text-xs font-semibold flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 shrink-0" />
+                  <span>{forgotSuccess}</span>
+                </div>
+              )}
+
+              {/* Step 1: Request OTP */}
+              {forgotStep === 1 && (
+                <div className="space-y-4">
+                  {!showManualResetPrompt ? (
+                    !forgotSuccess && !(forgotError && forgotError.includes("pending password reset request")) ? (
+                      <form onSubmit={handleForgotSubmit} className="space-y-4">
+                        <p className="text-sm text-slate-500 font-medium mb-2">
+                          Enter your Roll Number. We will send a 6-digit OTP to the email address registered on your student profile.
+                        </p>
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-slate-700">Roll Number</label>
+                          <input 
+                            type="text" 
+                            required
+                            placeholder="e.g. 2026-CS-01"
+                            value={forgotRollNo}
+                            onChange={(e) => setForgotRollNo(e.target.value)}
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#673BB7]/20 focus:border-[#673BB7]"
+                          />
+                        </div>
+                        <button type="submit" disabled={forgotLoading} className="w-full bg-[#673BB7] hover:bg-[#512da8] text-white font-bold py-2.5 rounded-xl shadow-md transition-all disabled:opacity-70 mt-2 cursor-pointer">
+                          {forgotLoading ? "Sending OTP..." : "Send OTP to Email"}
+                        </button>
+                      </form>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowForgotModal(false);
+                          setForgotError('');
+                          setForgotSuccess('');
+                        }}
+                        className="w-full bg-[#673BB7] hover:bg-[#512da8] text-white font-bold py-2.5 rounded-xl shadow-md transition-all mt-2 cursor-pointer"
+                      >
+                        Close
+                      </button>
+                    )
+                  ) : (
+                    <div className="p-4 border border-orange-200 bg-orange-50 rounded-xl animate-in slide-in-from-top-2">
+                      <p className="text-sm text-orange-800 font-semibold mb-4">
+                        No registered email address was found. Would you like to notify the administration office to reset your password manually?
+                      </p>
+                      <button 
+                        type="button" 
+                        onClick={handleManualResetRequest}
+                        disabled={forgotLoading} 
+                        className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-2.5 rounded-lg shadow-sm transition-all disabled:opacity-70 text-sm cursor-pointer"
+                      >
+                        {forgotLoading ? "Notifying..." : "Notify Admin for Manual Reset"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowManualResetPrompt(false);
+                          setForgotError('');
+                        }}
+                        className="w-full mt-3 text-orange-600 font-bold hover:text-orange-800 text-xs transition-colors cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Step 2: Verify OTP */}
+              {forgotStep === 2 && (
+                <form onSubmit={handleVerifyOTP} className="space-y-4">
+                  <p className="text-sm text-slate-500 font-medium mb-2">
+                    Check your email inbox! Enter the 6-digit verification code below.
+                  </p>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700">Verification Code</label>
+                    <input 
+                      type="text" 
+                      required
+                      maxLength="6"
+                      placeholder="Enter 6-digit OTP"
+                      value={forgotOTP}
+                      onChange={(e) => setForgotOTP(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm tracking-widest text-center font-bold focus:outline-none focus:ring-2 focus:ring-[#673BB7]/20 focus:border-[#673BB7]"
+                    />
+                  </div>
+                  <button type="submit" disabled={forgotLoading} className="w-full bg-[#673BB7] hover:bg-[#512da8] text-white font-bold py-2.5 rounded-xl shadow-md transition-all disabled:opacity-70 mt-2 cursor-pointer">
+                    {forgotLoading ? "Verifying..." : "Verify OTP"}
+                  </button>
+                  <div className="text-center mt-3 text-xs font-semibold">
+                    {otpCooldown > 0 ? (
+                      <span className="text-slate-500">Resend OTP in {otpCooldown}s</span>
+                    ) : (
+                      <button 
+                        type="button" 
+                        onClick={handleForgotSubmit}
+                        disabled={forgotLoading}
+                        className="text-[#673BB7] hover:text-[#512da8] transition-colors cursor-pointer"
+                      >
+                        Resend OTP
+                      </button>
+                    )}
+                  </div>
+                </form>
+              )}
+
+              {/* Step 3: New Password */}
+              {forgotStep === 3 && (
+                <form onSubmit={handleResetPassword} className="space-y-4">
+                  <p className="text-sm text-slate-500 font-medium mb-2">
+                    OTP verified successfully. Please set your new password.
+                  </p>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700">New Password</label>
+                    <div className="relative group">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <Lock className="w-4 h-4" />
+                      </div>
+                      <input 
+                        type="password" 
+                        required
+                        minLength="6"
+                        placeholder="Enter new password"
+                        value={forgotNewPassword}
+                        onChange={(e) => setForgotNewPassword(e.target.value)}
+                        className="w-full pl-10 px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#673BB7]/20 focus:border-[#673BB7]"
+                      />
+                    </div>
+                  </div>
+                  <button type="submit" disabled={forgotLoading} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl shadow-md transition-all disabled:opacity-70 mt-2 cursor-pointer">
+                    {forgotLoading ? "Resetting..." : "Reset Password"}
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
