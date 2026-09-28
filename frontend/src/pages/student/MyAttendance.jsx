@@ -156,10 +156,6 @@ export default function MyAttendance() {
       {/* 1. Header Banner */}
       <div className="bg-gradient-to-r from-purple-800 via-indigo-800 to-purple-900 text-white p-6 sm:p-8 rounded-3xl shadow-xl flex flex-wrap items-center justify-between gap-6">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-xs font-semibold text-purple-200 border border-white/15 mb-2">
-            <UserCheck className="w-3.5 h-3.5" />
-            <span>Personal Attendance & Leave Portal</span>
-          </div>
           <h2 className="text-2xl sm:text-3xl font-black tracking-tight">
             My Attendance Record
           </h2>

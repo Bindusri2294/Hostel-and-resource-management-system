@@ -222,57 +222,9 @@ const getMonthSummary = async (req, res, next) => {
   }
 };
 
-// 5. SEED INITIAL ATTENDANCE IF EMPTY (Self-healing demo helper)
-const seedAttendanceIfEmpty = async () => {
-  try {
-    const count = await Attendance.estimatedDocumentCount();
-    if (count > 0) return;
-
-    const students = await Student.find({});
-    if (!students || students.length === 0) return;
-
-    console.log(`[ATTENDANCE] Seeding initial 14 days attendance for ${students.length} students...`);
-
-    const now = new Date();
-    const ops = [];
-
-    // Seed past 14 days up to today
-    for (let d = 13; d >= 0; d--) {
-      const pastDate = new Date(now);
-      pastDate.setDate(now.getDate() - d);
-      const dateStr = pastDate.toISOString().slice(0, 10);
-
-      students.forEach((s, idx) => {
-        // Pseudo-random deterministic distribution based on roll number & date
-        const hash = (idx * 31 + d * 17) % 100;
-        let status = "Present";
-        if (hash >= 94) {
-          status = "Absent";
-        } else if (hash === 93) {
-          status = "Leave";
-        }
-
-        ops.push({
-          date: dateStr,
-          student: s._id,
-          rollNo: s.Rollno,
-          status,
-          remarks: status === "Leave" ? "Permitted home leave" : "",
-        });
-      });
-    }
-
-    await Attendance.insertMany(ops, { ordered: false });
-    console.log(`[ATTENDANCE] Seeded ${ops.length} attendance records successfully.`);
-  } catch (err) {
-    console.error("[ATTENDANCE] Seeding error:", err.message);
-  }
-};
-
 module.exports = {
   getMyAttendance,
   getAttendanceByDate,
   saveDailyAttendance,
   getMonthSummary,
-  seedAttendanceIfEmpty,
 };

@@ -1,15 +1,24 @@
 import React, { useState, useRef } from "react";
 import { useAuth } from "../../context/AuthContext";
-import { Plus, ShieldCheck, Lock } from "lucide-react";
+import { authService, getErrorMessage } from "../../services/api";
+import { Plus, Lock, Save, CheckCircle2, AlertCircle, Mail } from "lucide-react";
 
 export default function Profile() {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const student = user?.student || {};
 
   const [profileImage, setProfileImage] = useState(() => {
     return localStorage.getItem(`profile_image_${user?._id || user?.id || user?.email || "current"}`) || null;
   });
   const fileInputRef = useRef(null);
+
+  // Editable email state
+  const [editEmail, setEditEmail] = useState(user?.email || "");
+  const [saving, setSaving] = useState(false);
+  const [savedMsg, setSavedMsg] = useState("");
+  const [error, setError] = useState("");
+
+  const emailChanged = editEmail.trim().toLowerCase() !== (user?.email || "").toLowerCase();
 
   const handleImageUpload = (e) => {
     const file = e.target.files?.[0];
@@ -25,8 +34,45 @@ export default function Profile() {
     }
   };
 
+  const handleSaveProfile = async () => {
+    if (!emailChanged) return;
+
+    setSaving(true);
+    setError("");
+    setSavedMsg("");
+
+    try {
+      const res = await authService.updateProfile({ email: editEmail.trim() });
+      // Update user context with new data
+      if (setUser && res.data) {
+        setUser(res.data);
+        localStorage.setItem("hostel_user", JSON.stringify(res.data));
+      }
+      setSavedMsg("Profile updated successfully!");
+      setTimeout(() => setSavedMsg(""), 4000);
+    } catch (err) {
+      setError(getErrorMessage(err, "Failed to update profile."));
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
+      {/* Success / Error Messages */}
+      {savedMsg && (
+        <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-800 text-xs font-bold flex items-center gap-2 shadow-xs">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+          <span>{savedMsg}</span>
+        </div>
+      )}
+      {error && (
+        <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-800 text-xs font-bold flex items-center gap-2 shadow-xs">
+          <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
+
       {/* Profile Details Card */}
       <div className="bg-white rounded-2xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] border border-purple-100/70 p-8">
         {/* Profile Header */}
@@ -63,12 +109,6 @@ export default function Profile() {
               <p className="text-sm font-medium text-gray-500 mt-1">{student?.Rollno || "Unassigned"}</p>
             </div>
           </div>
-          {student?.Status === "Active" && (
-            <div className="inline-flex items-center gap-1.5 bg-[#ecfdf3] text-[#027a48] px-3 py-1.5 rounded-full text-xs font-bold border border-[#a6f4c5]">
-              <ShieldCheck className="w-4 h-4" />
-              Allocated Resident
-            </div>
-          )}
         </div>
 
         {/* Form Fields (2 Columns) */}
@@ -84,11 +124,17 @@ export default function Profile() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-[13px] font-bold text-[#1a1d2d]">Email</label>
+              <label className="text-[13px] font-bold text-[#1a1d2d] flex items-center gap-1.5">
+                <Mail className="w-3.5 h-3.5 text-purple-600" />
+                Email
+                <span className="text-[10px] font-semibold text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded-md">Editable</span>
+              </label>
               <input 
-                defaultValue={user?.email} 
-                className="w-full h-11 px-3 rounded-xl bg-slate-50 border border-gray-200 text-gray-500 font-medium focus-visible:outline-none focus-visible:border-[#6348f9] focus-visible:ring-1 focus-visible:ring-[#6348f9]" 
-                readOnly
+                type="email"
+                value={editEmail} 
+                onChange={(e) => setEditEmail(e.target.value)}
+                className="w-full h-11 px-3 rounded-xl bg-white border border-gray-200 text-gray-900 font-medium focus-visible:outline-none focus-visible:border-[#6348f9] focus-visible:ring-1 focus-visible:ring-[#6348f9]" 
+                placeholder="Enter your email"
               />
             </div>
             <div className="space-y-2">
@@ -128,6 +174,27 @@ export default function Profile() {
               />
             </div>
           </div>
+        </div>
+
+        {/* Save Profile Button */}
+        <div className="mt-6 flex justify-end">
+          <button
+            type="button"
+            onClick={handleSaveProfile}
+            disabled={!emailChanged || saving}
+            className={`h-11 px-8 rounded-xl font-semibold shadow-sm cursor-pointer flex items-center gap-2 text-sm transition-all ${
+              emailChanged
+                ? "bg-[#6348f9] hover:bg-[#5639e0] text-white shadow-md"
+                : "border border-gray-200 text-gray-400 cursor-not-allowed"
+            } disabled:opacity-50`}
+          >
+            {saving ? (
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <Save className="w-4 h-4" />
+            )}
+            Save Profile
+          </button>
         </div>
       </div>
 

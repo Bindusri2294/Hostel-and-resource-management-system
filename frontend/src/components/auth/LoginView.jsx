@@ -5,6 +5,7 @@ import {
   LogIn,
   Building2,
   AlertCircle,
+  User,
   Mail,
   Phone,
   MapPin,
@@ -367,12 +368,12 @@ export default function LoginView() {
                   <div className="space-y-3">
                     <div className="relative group">
                       <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#673BB7] transition-colors">
-                        <Mail className="w-4 h-4" />
+                        <User className="w-4 h-4" />
                       </div>
                       <input
                         type="text"
                         required
-                        placeholder={loginRole === 'Admin' ? "Enter admin email or username" : "Enter student email or roll no"}
+                        placeholder="Enter username"
                         value={userId}
                         onChange={(e) => setUserId(e.target.value)}
                         className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 text-xs font-medium text-slate-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#673BB7]/20 focus:border-[#673BB7] transition-all placeholder:text-slate-400"

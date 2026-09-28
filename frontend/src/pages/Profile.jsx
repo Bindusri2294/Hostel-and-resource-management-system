@@ -4,7 +4,7 @@ import { Plus, ShieldCheck, Lock, CheckCircle2, AlertCircle } from "lucide-react
 import { authService } from "../services/api";
 
 export default function Profile() {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const student = user?.student || {};
 
   const [email, setEmail] = useState(user?.email || "");
@@ -36,7 +36,12 @@ export default function Profile() {
     setContactLoading(true);
     setContactMsg(null);
     try {
-      await authService.updateContact({ email, phone });
+      const res = await authService.updateContact({ email, phone });
+      if (setUser && res.data?.user) {
+        const updated = { ...user, ...res.data.user };
+        setUser(updated);
+        localStorage.setItem("hostel_user", JSON.stringify(updated));
+      }
       setContactMsg({ type: "success", text: "Contact information updated successfully!" });
     } catch (err) {
       setContactMsg({ type: "error", text: err.response?.data?.message || "Failed to update contact info." });
@@ -83,12 +88,6 @@ export default function Profile() {
               <p className="text-sm font-medium text-gray-500 mt-1">{student?.Rollno || "Unassigned"}</p>
             </div>
           </div>
-          {student?.Status === "Active" && (
-            <div className="inline-flex items-center gap-1.5 bg-[#ecfdf3] text-[#027a48] px-3 py-1.5 rounded-full text-xs font-bold border border-[#a6f4c5]">
-              <ShieldCheck className="w-4 h-4" />
-              Allocated Resident
-            </div>
-          )}
         </div>
 
         {/* Form Fields (2 Columns) */}

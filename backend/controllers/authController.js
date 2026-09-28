@@ -216,6 +216,46 @@ const getMe = async (req, res) => {
   }
 };
 
+// Update current user profile (email)
+const updateProfile = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    if (email) {
+      const cleanEmail = email.toLowerCase().trim();
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(cleanEmail)) {
+        return res.status(400).json({ message: "Please provide a valid email address." });
+      }
+
+      // Check if email is already taken by another user
+      const existingUser = await User.findOne({ email: cleanEmail, _id: { $ne: user._id } });
+      if (existingUser) {
+        return res.status(400).json({ message: "This email is already in use by another account." });
+      }
+
+      user.email = cleanEmail;
+    }
+
+    await user.save();
+
+    const updatedUser = await User.findById(user._id).select("-password").populate("student");
+    res.status(200).json(updatedUser);
+  } catch (error) {
+    if (error.code === 11000) {
+      return res.status(400).json({ message: "This email is already in use." });
+    }
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // Refresh Token
 const refreshToken = async (req, res) => {
   try {
@@ -475,6 +515,10 @@ const resolveResetRequest = async (req, res) => {
       return res.status(404).json({ message: "Request not found." });
     }
 
+    if (!request.student || !request.student.Rollno) {
+      return res.status(400).json({ message: "Associated student record or roll number not found." });
+    }
+
     const user = await User.findById(request.user);
     if (!user) {
       return res.status(404).json({ message: "User not found." });
@@ -499,6 +543,7 @@ module.exports = {
   registerStudent,
   loginUser,
   getMe,
+  updateProfile,
   refreshToken,
   logoutUser,
   updateContact,
