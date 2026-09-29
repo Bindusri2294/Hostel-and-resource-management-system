@@ -137,13 +137,13 @@ export default function Layout() {
 
       <SidebarInset>
         <header className="flex items-center justify-between border-b border-purple-100 bg-white/90 backdrop-blur-md px-4 py-3 sticky top-0 z-20">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <SidebarTrigger className="hover:bg-purple-50 text-slate-700" />
-            <div>
-              <p className="text-sm font-extrabold text-slate-900 tracking-tight">
+            <div className="max-sm:max-w-[130px] max-[375px]:max-w-[110px]">
+              <p className="text-sm font-extrabold text-slate-900 tracking-tight truncate">
                 {user?.role === "Admin" ? `${getGreeting()}, Administrator` : `${getGreeting()}, ${user?.name?.split(' ')?.[0] || 'Resident'}`}
               </p>
-              <p className="text-[11px] text-slate-500 font-medium">{today}</p>
+              <p className="text-[11px] text-slate-500 font-medium max-sm:hidden">{today}</p>
             </div>
           </div>
 

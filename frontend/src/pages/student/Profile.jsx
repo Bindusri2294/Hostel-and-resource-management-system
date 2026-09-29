@@ -182,7 +182,7 @@ export default function Profile() {
             type="button"
             onClick={handleSaveProfile}
             disabled={!emailChanged || saving}
-            className={`h-11 px-8 rounded-xl font-semibold shadow-sm cursor-pointer flex items-center gap-2 text-sm transition-all ${
+            className={`h-11 px-8 rounded-xl font-semibold shadow-sm cursor-pointer flex items-center justify-center gap-2 text-sm transition-all max-md:w-full ${
               emailChanged
                 ? "bg-[#6348f9] hover:bg-[#5639e0] text-white shadow-md"
                 : "border border-gray-200 text-gray-400 cursor-not-allowed"
@@ -227,7 +227,7 @@ export default function Profile() {
         </div>
 
         <div className="mt-6 flex justify-end">
-          <button className="h-11 px-8 rounded-xl border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 hover:text-gray-900 shadow-sm cursor-pointer">
+          <button className="h-11 px-8 rounded-xl border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 hover:text-gray-900 shadow-sm cursor-pointer max-md:w-full flex items-center justify-center">
             Update Password
           </button>
         </div>

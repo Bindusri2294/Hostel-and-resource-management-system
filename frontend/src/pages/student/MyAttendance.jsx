@@ -154,7 +154,7 @@ export default function MyAttendance() {
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
       {/* 1. Header Banner */}
-      <div className="bg-gradient-to-r from-purple-800 via-indigo-800 to-purple-900 text-white p-6 sm:p-8 rounded-3xl shadow-xl flex flex-wrap items-center justify-between gap-6">
+      <div className="bg-gradient-to-r from-purple-800 via-indigo-800 to-purple-900 text-white p-6 sm:p-8 rounded-3xl shadow-xl flex flex-wrap items-center justify-between gap-6 max-md:flex-col max-md:text-center">
         <div>
           <h2 className="text-2xl sm:text-3xl font-black tracking-tight">
             My Attendance Record
@@ -167,17 +167,17 @@ export default function MyAttendance() {
         </div>
 
         {/* Action & Rate Badge */}
-        <div className="flex items-center gap-4 flex-wrap">
+        <div className="flex items-center gap-4 flex-wrap max-md:w-full max-md:flex-col">
           <button
             type="button"
             onClick={() => setIsLeaveModalOpen(true)}
-            className="px-4 py-2.5 bg-white text-purple-900 hover:bg-purple-50 font-bold text-xs rounded-2xl shadow-lg transition-all flex items-center gap-2 cursor-pointer"
+            className="px-4 py-2.5 bg-white text-purple-900 hover:bg-purple-50 font-bold text-xs rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer max-md:w-full"
           >
             <PlusCircle className="w-4 h-4 text-purple-600" />
             <span>Apply for Leave</span>
           </button>
 
-          <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/20">
+          <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/20 max-md:w-full max-md:justify-center">
             <div className="text-right">
               <p className="text-[10px] text-purple-200 font-bold uppercase tracking-wider">Attendance Rate</p>
               <p className="text-2xl font-black text-white">{summary.percentage}%</p>
