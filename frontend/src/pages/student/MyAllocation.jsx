@@ -54,9 +54,9 @@ export default function MyAllocation() {
       {allocation ? (
         <div className="space-y-6">
           <div className="bg-white p-6 rounded-2xl border border-purple-100/70 shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4 max-md:flex-col max-md:items-start max-md:gap-3">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-purple-600 text-white font-black text-xl flex items-center justify-center shadow-md">
+                <div className="w-12 h-12 rounded-2xl bg-purple-600 text-white font-black text-xl flex items-center justify-center shadow-md shrink-0">
                   {room.RoomNo || allocation.roomNo}
                 </div>
                 <div>
