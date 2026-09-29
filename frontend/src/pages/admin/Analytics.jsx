@@ -104,16 +104,23 @@ export default function Analytics() {
     };
   }, [selectedMonth]);
 
+  const getNormalizedCourse = (c) => {
+    const str = String(c || "").trim().toLowerCase();
+    if (str.includes("diploma") || str.includes("polytechnic")) return "Diploma";
+    return "B.Tech";
+  };
+
   const yearOptions =
     courseFilter === "B.Tech"
       ? ["1", "2", "3", "4"]
       : courseFilter === "Diploma"
       ? ["1", "2", "3"]
-      : [];
+      : ["1", "2", "3", "4"];
 
   const filteredStudents = useMemo(() => {
     return students.filter((s) => {
-      const matchesCourse = courseFilter === "All" || String(s.Course || "") === courseFilter;
+      const normCourse = getNormalizedCourse(s.Course);
+      const matchesCourse = courseFilter === "All" || normCourse === courseFilter;
       const matchesYear = yearFilter === "All" || String(s.Year || "") === yearFilter;
       const matchesBlock = blockFilter === "All" || String(s.Block || "") === blockFilter;
 
@@ -183,8 +190,8 @@ export default function Analytics() {
   const courseYearData = useMemo(() => {
     const years = ["1", "2", "3", "4"];
     return years.map((yr) => {
-      const btechCount = filteredStudents.filter((s) => s.Course === "B.Tech" && String(s.Year) === yr).length;
-      const diplomaCount = filteredStudents.filter((s) => s.Course === "Diploma" && String(s.Year) === yr).length;
+      const btechCount = filteredStudents.filter((s) => getNormalizedCourse(s.Course) === "B.Tech" && String(s.Year) === yr).length;
+      const diplomaCount = filteredStudents.filter((s) => getNormalizedCourse(s.Course) === "Diploma" && String(s.Year) === yr).length;
       return {
         year: `Year ${yr}`,
         "B.Tech": btechCount,
