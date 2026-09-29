@@ -2,7 +2,7 @@ import { Building, ShieldCheck, Utensils, Wifi, PhoneCall, BookOpen, Clock } fro
 
 export default function HostelInfo() {
   return (
-    <div className="space-y-6 max-w-5xl">
+    <div className="space-y-6 max-w-5xl min-w-0 w-full">
       {/* Hero */}
       <div className="bg-gradient-to-r from-purple-800 via-indigo-800 to-purple-950 text-white p-6 rounded-3xl shadow-xl border border-purple-500/30">
         <h2 className="text-2xl font-black">KIET Residential Hostel Facilities</h2>

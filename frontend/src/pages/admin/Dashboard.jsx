@@ -142,9 +142,9 @@ export default function AdminDashboard({ data: propData }) {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 min-w-0 w-full">
       {/* 6 Stat Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 min-w-0">
         <div className="bg-white p-4 rounded-2xl border border-purple-100/70 shadow-xs">
           <div className="flex justify-between items-start mb-2">
             <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Students</p>

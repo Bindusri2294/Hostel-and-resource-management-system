@@ -270,9 +270,9 @@ export default function Analytics() {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto" id="analytics-dashboard">
+    <div className="space-y-6 max-w-7xl mx-auto w-full min-w-0" id="analytics-dashboard">
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-900 via-indigo-900 to-purple-950 text-white p-6 sm:p-8 rounded-3xl shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+      <div className="bg-gradient-to-r from-purple-900 via-indigo-900 to-purple-950 text-white p-5 sm:p-8 rounded-3xl shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-xs font-semibold text-purple-200 border border-white/15 mb-2">
             <TrendingUp className="w-3.5 h-3.5" />
@@ -313,13 +313,13 @@ export default function Analytics() {
       )}
 
       {/* SECTION SELECTOR & FILTER TOOLBAR */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
+      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4 min-w-0">
+        <div className="flex flex-col sm:flex-row flex-wrap sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
           {/* Navigation Pills */}
-          <div className="flex items-center gap-2 p-1 bg-slate-100 rounded-xl">
+          <div className="flex flex-wrap sm:flex-nowrap items-center gap-1.5 p-1.5 bg-slate-100 rounded-xl overflow-x-auto w-full sm:w-auto">
             <button
               onClick={() => setActiveSection("all")}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              className={`px-3 sm:px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
                 activeSection === "all"
                   ? "bg-white text-purple-900 shadow-xs"
                   : "text-slate-600 hover:text-slate-900"
@@ -329,7 +329,7 @@ export default function Analytics() {
             </button>
             <button
               onClick={() => setActiveSection("allocation")}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              className={`px-3 sm:px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
                 activeSection === "allocation"
                   ? "bg-white text-purple-900 shadow-xs"
                   : "text-slate-600 hover:text-slate-900"
@@ -340,7 +340,7 @@ export default function Analytics() {
             </button>
             <button
               onClick={() => setActiveSection("attendance")}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              className={`px-3 sm:px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
                 activeSection === "attendance"
                   ? "bg-white text-purple-900 shadow-xs"
                   : "text-slate-600 hover:text-slate-900"
@@ -416,7 +416,7 @@ export default function Analytics() {
       </div>
 
       {/* KPI Metric Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
         <div className="bg-white p-5 rounded-2xl border border-purple-100/70 shadow-xs flex items-center justify-between">
           <div>
             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Occupancy Rate</p>
@@ -425,7 +425,7 @@ export default function Analytics() {
               {occupiedBeds} / {totalCapacity} Beds Occupied
             </p>
           </div>
-          <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center">
+          <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center shrink-0">
             <DoorOpen className="w-6 h-6" />
           </div>
         </div>
@@ -438,7 +438,7 @@ export default function Analytics() {
               {availableBeds} Available Beds
             </p>
           </div>
-          <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center">
+          <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center shrink-0">
             <ClipboardList className="w-6 h-6" />
           </div>
         </div>
@@ -453,7 +453,7 @@ export default function Analytics() {
               {totalMonthlyLogs} monthly log entries
             </p>
           </div>
-          <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center">
+          <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center shrink-0">
             <CalendarCheck2 className="w-6 h-6" />
           </div>
         </div>
@@ -466,7 +466,7 @@ export default function Analytics() {
               {allocatedStudentsCount} Allocated · {unallocatedStudentsCount} Unassigned
             </p>
           </div>
-          <div className="w-12 h-12 bg-cyan-50 text-cyan-600 rounded-2xl flex items-center justify-center">
+          <div className="w-12 h-12 bg-cyan-50 text-cyan-600 rounded-2xl flex items-center justify-center shrink-0">
             <Users className="w-6 h-6" />
           </div>
         </div>
@@ -484,7 +484,7 @@ export default function Analytics() {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Chart 1: Block-wise Capacity vs Occupancy Bar Chart (8 cols) */}
-            <div className="lg:col-span-8 bg-white p-6 rounded-2xl border border-purple-100/70 shadow-xs space-y-4">
+            <div className="lg:col-span-8 bg-white p-4 sm:p-6 rounded-2xl border border-purple-100/70 shadow-xs space-y-4 min-w-0">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div>
                   <h4 className="text-base font-extrabold text-slate-900">Block-wise Capacity vs Occupancy</h4>
@@ -512,7 +512,7 @@ export default function Analytics() {
             </div>
 
             {/* Chart 2: Bed Occupancy Donut Chart (4 cols) */}
-            <div className="lg:col-span-4 bg-white p-6 rounded-2xl border border-purple-100/70 shadow-xs space-y-4 flex flex-col justify-between">
+            <div className="lg:col-span-4 bg-white p-4 sm:p-6 rounded-2xl border border-purple-100/70 shadow-xs space-y-4 flex flex-col justify-between min-w-0">
               <div className="border-b border-slate-100 pb-3">
                 <h4 className="text-base font-extrabold text-slate-900">Bed Occupancy Ratio</h4>
                 <p className="text-xs text-slate-500">Total bed inventory distribution</p>
@@ -559,7 +559,7 @@ export default function Analytics() {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Chart 3: Course & Year Allocation Breakdown (7 cols) */}
-            <div className="lg:col-span-7 bg-white p-6 rounded-2xl border border-purple-100/70 shadow-xs space-y-4">
+            <div className="lg:col-span-7 bg-white p-4 sm:p-6 rounded-2xl border border-purple-100/70 shadow-xs space-y-4 min-w-0">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div>
                   <h4 className="text-base font-extrabold text-slate-900">Student Census by Year & Course</h4>
@@ -586,7 +586,7 @@ export default function Analytics() {
             </div>
 
             {/* Chart 4: Room Status Breakdown Donut (5 cols) */}
-            <div className="lg:col-span-5 bg-white p-6 rounded-2xl border border-purple-100/70 shadow-xs space-y-4 flex flex-col justify-between">
+            <div className="lg:col-span-5 bg-white p-4 sm:p-6 rounded-2xl border border-purple-100/70 shadow-xs space-y-4 flex flex-col justify-between min-w-0">
               <div className="border-b border-slate-100 pb-3">
                 <h4 className="text-base font-extrabold text-slate-900">Room Status Distribution</h4>
                 <p className="text-xs text-slate-500">Breakdown of {rooms.length} residential rooms</p>
@@ -654,7 +654,7 @@ export default function Analytics() {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Chart 5: Daily Attendance Trend Area Chart (8 cols) */}
-            <div className="lg:col-span-8 bg-white p-6 rounded-2xl border border-indigo-100/70 shadow-xs space-y-4">
+            <div className="lg:col-span-8 bg-white p-4 sm:p-6 rounded-2xl border border-indigo-100/70 shadow-xs space-y-4 min-w-0">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div>
                   <h4 className="text-base font-extrabold text-slate-900">Daily Attendance Flow</h4>
@@ -704,7 +704,7 @@ export default function Analytics() {
             </div>
 
             {/* Chart 6: Monthly Attendance Proportion Donut Chart (4 cols) */}
-            <div className="lg:col-span-4 bg-white p-6 rounded-2xl border border-indigo-100/70 shadow-xs space-y-4 flex flex-col justify-between">
+            <div className="lg:col-span-4 bg-white p-4 sm:p-6 rounded-2xl border border-indigo-100/70 shadow-xs space-y-4 flex flex-col justify-between min-w-0">
               <div className="border-b border-slate-100 pb-3">
                 <h4 className="text-base font-extrabold text-slate-900">Monthly Attendance Split</h4>
                 <p className="text-xs text-slate-500">Overall ratio of present, absent, and leave</p>

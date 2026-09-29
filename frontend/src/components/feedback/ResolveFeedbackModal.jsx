@@ -37,7 +37,7 @@ export default function ResolveFeedbackModal({ feedback, onClose, onSuccess }) {
   return (
     <>
       <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto backdrop-blur-md bg-slate-900/40`}>
-      <div className={`border rounded-2xl w-full max-w-md shadow-2xl overflow-hidden relative animate-in fade-in zoom-in-95 duration-150 bg-white border-slate-300 text-slate-900`}>
+      <div className={`border rounded-2xl w-full max-w-[calc(100vw-2rem)] sm:max-w-md max-h-[90vh] overflow-y-auto shadow-2xl overflow-hidden relative animate-in fade-in zoom-in-95 duration-150 bg-white border-slate-300 text-slate-900`}>
         {/* Header */}
         <div className={`p-5 border-b flex items-center justify-between bg-slate-50 border-slate-200`}>
           <div className="flex items-center gap-2">
