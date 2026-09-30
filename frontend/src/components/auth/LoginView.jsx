@@ -44,6 +44,7 @@ export default function LoginView() {
   const [loginRole, setLoginRole] = useState('Admin'); // 'Admin' or 'Student'
   const [showPassword, setShowPassword] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [showMobileLogin, setShowMobileLogin] = useState(false);
 
   const allHostelRooms = [
     hostelRoom1, hostelRoom2, hostelRoom3, hostelRoom4,
@@ -235,7 +236,7 @@ export default function LoginView() {
     <div className="min-h-screen flex flex-col font-sans bg-slate-50 text-slate-900 selection:bg-[#673BB7] selection:text-white">
       
       {/* ================= HERO SECTION (Matches Screenshot) ================= */}
-      <section id="home" className="relative h-[65vh] min-h-[500px] flex flex-col items-center pt-4 pb-2 px-4 sm:px-8 overflow-visible z-30">
+      <section id="home" className="relative h-[65vh] min-h-[500px] max-lg:h-auto max-lg:min-h-0 max-lg:pb-12 flex flex-col items-center pt-4 pb-2 px-4 sm:px-8 overflow-visible z-30">
         
         {/* Full Background Image with Dark Overlay */}
         <div className="absolute inset-0 z-0 overflow-hidden">
@@ -248,7 +249,7 @@ export default function LoginView() {
         </div>
 
         {/* TOP FLOATING HEADER */}
-        <header className="relative z-20 w-full max-w-7xl mx-auto flex items-center mb-2 sm:mb-4">
+        <header className="relative z-20 w-full max-w-7xl mx-auto flex items-center justify-between mb-2 sm:mb-4">
           {/* Left Logo */}
           <div className="flex items-center gap-3 z-10">
             <div className="bg-transparent p-1">
@@ -259,6 +260,14 @@ export default function LoginView() {
               <p className="text-white/70 text-[6px] sm:text-[7px] font-bold tracking-widest uppercase mt-0.5 leading-none">Group of Institutions</p>
             </div>
           </div>
+
+          {/* Right Mobile Login Button */}
+          <button
+            onClick={() => setShowMobileLogin(!showMobileLogin)}
+            className="lg:hidden px-4 py-1.5 bg-white/95 text-[#673BB7] text-[10px] font-black rounded-full shadow-lg border border-white/20 z-10 uppercase tracking-wide cursor-pointer"
+          >
+            {showMobileLogin ? 'View Home' : 'Sign In'}
+          </button>
 
           {/* Centered Navigation */}
           <nav className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-1 bg-white/95 backdrop-blur-md px-1.5 py-1.5 rounded-full shadow-lg">
@@ -282,7 +291,7 @@ export default function LoginView() {
         <div className="relative z-10 w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 flex-1">
           
           {/* Left: Text Content */}
-          <div className="lg:col-span-7 flex flex-col justify-center space-y-2">
+          <div className="lg:col-span-7 flex flex-col justify-center space-y-2 max-lg:order-2 max-lg:mt-8">
             <div className="space-y-1">
               <p className="text-white text-[8px] sm:text-[9px] font-bold tracking-[0.1em] uppercase">
                 Kakinada Institute of Engineering & Technology (Autonomous)
@@ -313,7 +322,7 @@ export default function LoginView() {
           </div>
 
           {/* Right: Login Card */}
-          <div className="lg:col-span-5 flex justify-center lg:justify-end w-full self-start -mt-2 sm:-mt-6">
+          <div className={`lg:col-span-5 justify-center lg:justify-end w-full self-start -mt-2 sm:-mt-6 max-lg:order-1 max-lg:mt-4 ${showMobileLogin ? 'flex' : 'hidden lg:flex'}`}>
             <div className="w-full max-w-[380px] bg-white rounded-2xl p-5 shadow-2xl shadow-black/40 relative overflow-hidden">
               {/* Decorative background blur inside card */}
               <div className="absolute -top-20 -right-20 w-40 h-40 bg-[#673BB7]/10 rounded-full blur-3xl pointer-events-none" />

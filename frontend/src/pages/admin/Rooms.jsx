@@ -188,7 +188,7 @@ export default function Rooms() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 min-w-0 w-full">
       {/* Hierarchy Breadcrumb Banner */}
       <div className="bg-white p-6 rounded-2xl border border-purple-100/70 shadow-xs space-y-3">
 
@@ -387,10 +387,10 @@ export default function Rooms() {
 
       {/* Add / Edit Room Modal */}
       {formOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
           <form
             onSubmit={saveRoom}
-            className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden space-y-4 p-6"
+            className="bg-white rounded-2xl shadow-xl w-full max-w-[calc(100vw-2rem)] sm:max-w-md max-h-[90vh] overflow-y-auto space-y-4 p-5 sm:p-6"
           >
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="text-base font-extrabold text-slate-900">

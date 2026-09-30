@@ -58,7 +58,7 @@ export default function Profile() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6 min-w-0 w-full">
       {/* Success / Error Messages */}
       {savedMsg && (
         <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-800 text-xs font-bold flex items-center gap-2 shadow-xs">
@@ -74,10 +74,10 @@ export default function Profile() {
       )}
 
       {/* Profile Details Card */}
-      <div className="bg-white rounded-2xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] border border-purple-100/70 p-8">
+      <div className="bg-white rounded-2xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] border border-purple-100/70 p-4 sm:p-8 min-w-0">
         {/* Profile Header */}
-        <div className="flex flex-col sm:flex-row items-start justify-between mb-8 gap-4">
-          <div className="flex items-center gap-6">
+        <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between mb-8 gap-4 text-center sm:text-left">
+          <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
             <div 
               className="relative group cursor-pointer" 
               onClick={() => fileInputRef.current?.click()}
@@ -182,7 +182,7 @@ export default function Profile() {
             type="button"
             onClick={handleSaveProfile}
             disabled={!emailChanged || saving}
-            className={`h-11 px-8 rounded-xl font-semibold shadow-sm cursor-pointer flex items-center gap-2 text-sm transition-all ${
+            className={`h-11 px-8 rounded-xl font-semibold shadow-sm cursor-pointer flex items-center justify-center gap-2 text-sm transition-all max-md:w-full ${
               emailChanged
                 ? "bg-[#6348f9] hover:bg-[#5639e0] text-white shadow-md"
                 : "border border-gray-200 text-gray-400 cursor-not-allowed"
@@ -227,7 +227,7 @@ export default function Profile() {
         </div>
 
         <div className="mt-6 flex justify-end">
-          <button className="h-11 px-8 rounded-xl border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 hover:text-gray-900 shadow-sm cursor-pointer">
+          <button className="h-11 px-8 rounded-xl border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 hover:text-gray-900 shadow-sm cursor-pointer max-md:w-full flex items-center justify-center">
             Update Password
           </button>
         </div>
