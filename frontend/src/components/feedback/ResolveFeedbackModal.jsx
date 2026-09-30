@@ -36,23 +36,23 @@ export default function ResolveFeedbackModal({ feedback, onClose, onSuccess }) {
 
   return (
     <>
-      <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto backdrop-blur-md bg-slate-900/40`}>
-      <div className={`border rounded-2xl w-full max-w-[calc(100vw-2rem)] sm:max-w-md max-h-[90vh] overflow-y-auto shadow-2xl overflow-hidden relative animate-in fade-in zoom-in-95 duration-150 bg-white border-slate-300 text-slate-900`}>
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto backdrop-blur-xs bg-[#2F2925]/50">
+      <div className="border rounded-2xl w-full max-w-md shadow-2xl overflow-hidden relative animate-in fade-in zoom-in-95 duration-150 bg-white border-[#E8D8C4] text-[#2F2925]">
         {/* Header */}
-        <div className={`p-5 border-b flex items-center justify-between bg-slate-50 border-slate-200`}>
+        <div className="p-5 border-b flex items-center justify-between bg-[#FDF0DC]/30 border-[#E8D8C4]">
           <div className="flex items-center gap-2">
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center border bg-[#f3e5f5] text-[#673BB7] border-[#e1bee7]`}>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center border bg-[#FDF0DC] text-[#EB8055] border-[#E8D8C4]">
               <ShieldCheck className="w-4 h-4" />
             </div>
             <div>
-              <h3 className={`text-base font-bold text-slate-900`}>Update Feedback Status</h3>
-              <p className={`text-xs text-slate-500`}>ID: {feedback._id}</p>
+              <h3 className="text-base font-bold text-[#2F2925]">Update Feedback Status</h3>
+              <p className="text-xs text-[#8B7355]">ID: {feedback._id}</p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className={`p-1 rounded-lg transition-all text-slate-400 hover:text-slate-700 hover:bg-slate-200`}
+            className="p-1 rounded-lg transition-all text-[#8B7355] hover:text-[#2F2925] hover:bg-[#FDF0DC]"
           >
             <X className="w-5 h-5" />
           </button>
@@ -67,18 +67,18 @@ export default function ResolveFeedbackModal({ feedback, onClose, onSuccess }) {
           )}
 
           {/* Feedback Snapshot */}
-          <div className={`p-3.5 rounded-xl border space-y-2 text-xs bg-slate-50 border-slate-200`}>
-            <div className={`flex items-center justify-between flex-wrap gap-2 text-slate-600`}>
-              <span className={`font-bold text-[#673BB7]`}>Student ID: {feedback.studentId}</span>
+          <div className="p-3.5 rounded-xl border space-y-2 text-xs bg-[#FDF0DC]/20 border-[#E8D8C4]">
+            <div className="flex items-center justify-between flex-wrap gap-2 text-[#8B7355]">
+              <span className="font-bold text-[#EB8055]">Student ID: {feedback.studentId}</span>
               <div className="flex items-center gap-2">
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border bg-[#f3e5f5] text-[#512da8] border-[#e1bee7]`}>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border bg-[#FDF0DC] text-[#B85228] border-[#E8D8C4]">
                   {feedback.category || 'Overall Experience'}
                 </span>
                 <span>Room {feedback.RoomNo} ({feedback.Block})</span>
               </div>
             </div>
 
-            <p className={`p-2.5 rounded-lg border text-xs leading-relaxed font-semibold bg-white border-slate-200 text-slate-800`}>
+            <p className="p-2.5 rounded-lg border text-xs leading-relaxed font-semibold bg-white border-[#E8D8C4] text-[#2F2925]">
               {feedback.message}
             </p>
 
@@ -90,7 +90,7 @@ export default function ResolveFeedbackModal({ feedback, onClose, onSuccess }) {
                   <button
                     type="button"
                     onClick={() => setLightboxImage(fullUrl)}
-                    className="inline-block border rounded-lg overflow-hidden shadow-sm hover:opacity-90 transition-all cursor-pointer"
+                    className="inline-block border rounded-lg overflow-hidden shadow-xs hover:opacity-90 transition-all cursor-pointer border-[#E8D8C4]"
                   >
                     <img
                       src={fullUrl}
@@ -103,7 +103,7 @@ export default function ResolveFeedbackModal({ feedback, onClose, onSuccess }) {
             })()}
 
             <div className="flex items-center gap-1 text-amber-500">
-              <span className="font-semibold text-slate-500 mr-1">Rating:</span>
+              <span className="font-semibold text-[#8B7355] mr-1">Rating:</span>
               <div className="flex gap-0.5">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <Star
@@ -121,13 +121,13 @@ export default function ResolveFeedbackModal({ feedback, onClose, onSuccess }) {
 
           {/* Status Select */}
           <div>
-            <label className={`block text-xs font-semibold mb-1.5 text-slate-800`}>
+            <label className="block text-xs font-semibold mb-1.5 text-[#2F2925]">
               Feedback Resolution Status *
             </label>
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-              className={`w-full border rounded-xl px-3.5 py-2.5 text-xs font-semibold focus:outline-none bg-slate-50 border-slate-300 text-slate-900 focus:border-[#673BB7] focus:bg-white shadow-sm`}
+              className="w-full border rounded-xl px-3.5 py-2.5 text-xs font-semibold focus:outline-none bg-white border-[#E8D8C4] text-[#2F2925] focus:border-[#EB8055] shadow-xs cursor-pointer"
             >
               <option value="Pending">⏳ Pending Review</option>
               <option value="In Progress">⚡ In Progress</option>
@@ -140,14 +140,14 @@ export default function ResolveFeedbackModal({ feedback, onClose, onSuccess }) {
             <button
               type="button"
               onClick={onClose}
-              className={`flex-1 py-2.5 text-xs font-semibold rounded-xl border transition-all cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300`}
+              className="flex-1 py-2.5 text-xs font-semibold rounded-xl border transition-all cursor-pointer bg-[#FDF0DC] hover:bg-[#F5E8D4] text-[#2F2925] border-[#E8D8C4]"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 py-2.5 bg-[#673BB7] hover:bg-[#5e35b1] text-white text-xs font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+              className="flex-1 py-2.5 bg-[#EB8055] hover:bg-[#D96B3A] text-white text-xs font-bold rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
             >
               {loading ? (
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

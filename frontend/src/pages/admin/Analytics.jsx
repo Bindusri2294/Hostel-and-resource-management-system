@@ -44,18 +44,18 @@ import {
 
 // Theme color palette
 const PALETTE = {
-  primary: "#673BB7",
-  primaryLight: "#8559da",
-  secondary: "#06B6D4",
-  accent: "#F59E0B",
+  primary: "#EB8055",
+  primaryLight: "#F3C694",
+  secondary: "#D96B3A",
+  accent: "#ECA270",
   success: "#10B981",
   danger: "#EF4444",
-  purple: "#8B5CF6",
-  indigo: "#6366F1",
-  slate: "#64748B",
+  purple: "#B85228",
+  indigo: "#923F1E",
+  slate: "#8B7355",
 };
 
-const PIE_COLORS = ["#673BB7", "#06B6D4", "#10B981", "#F59E0B", "#EC4899", "#8B5CF6"];
+const PIE_COLORS = ["#EB8055", "#D96B3A", "#ECA270", "#F3C694", "#B85228", "#923F1E"];
 
 export default function Analytics() {
   const [students, setStudents] = useState([]);
@@ -270,23 +270,23 @@ export default function Analytics() {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto w-full min-w-0" id="analytics-dashboard">
+    <div className="space-y-6 max-w-7xl mx-auto" id="analytics-dashboard">
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-900 via-indigo-900 to-purple-950 text-white p-5 sm:p-8 rounded-3xl shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+      <div className="bg-gradient-to-r from-[#2F2925] via-[#43372F] to-[#2F2925] text-white p-6 sm:p-8 rounded-3xl shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-6 border border-[#52453D]">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-xs font-semibold text-purple-200 border border-white/15 mb-2">
-            <TrendingUp className="w-3.5 h-3.5" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-xs font-semibold text-[#FDF0DC] border border-white/15 mb-2">
+            <TrendingUp className="w-3.5 h-3.5 text-[#EB8055]" />
             <span>Interactive Visual Analytics</span>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-black tracking-tight">Hostel & Student Analytics</h2>
-          <p className="text-xs sm:text-sm text-purple-200 font-medium mt-1">
+          <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-[#F9EFDE]">Hostel & Student Analytics</h2>
+          <p className="text-xs sm:text-sm text-[#F5E8D4]/80 font-medium mt-1">
             Real-time data visualization of room allocations, occupancy capacity, and monthly attendance records.
           </p>
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
           <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 py-2 rounded-2xl border border-white/20">
-            <Calendar className="w-4 h-4 text-purple-200" />
+            <Calendar className="w-4 h-4 text-[#F3C694]" />
             <input
               type="month"
               value={selectedMonth}
@@ -297,9 +297,9 @@ export default function Analytics() {
 
           <button
             onClick={downloadPDF}
-            className="flex items-center gap-2 px-4 py-2.5 bg-white text-purple-900 hover:bg-purple-50 font-bold text-xs rounded-2xl shadow-lg transition-all cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2.5 bg-[#EB8055] hover:bg-[#D96B3A] text-white font-bold text-xs rounded-2xl shadow-lg transition-all cursor-pointer"
           >
-            <Download className="w-4 h-4 text-purple-600" />
+            <Download className="w-4 h-4" />
             <span>Export Report</span>
           </button>
         </div>
@@ -313,59 +313,59 @@ export default function Analytics() {
       )}
 
       {/* SECTION SELECTOR & FILTER TOOLBAR */}
-      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4 min-w-0">
-        <div className="flex flex-col sm:flex-row flex-wrap sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+      <div className="bg-white p-5 rounded-2xl border border-[#E8D8C4] shadow-sm space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#E8D8C4]/60 pb-4">
           {/* Navigation Pills */}
-          <div className="flex flex-wrap sm:flex-nowrap items-center gap-1.5 p-1.5 bg-slate-100 rounded-xl overflow-x-auto w-full sm:w-auto">
+          <div className="flex items-center gap-2 p-1 bg-[#FDF0DC] rounded-xl border border-[#E8D8C4]">
             <button
               onClick={() => setActiveSection("all")}
-              className={`px-3 sm:px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 activeSection === "all"
-                  ? "bg-white text-purple-900 shadow-xs"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "bg-[#EB8055] text-white shadow-xs"
+                  : "text-[#8B7355] hover:text-[#2F2925]"
               }`}
             >
               All Analytics
             </button>
             <button
               onClick={() => setActiveSection("allocation")}
-              className={`px-3 sm:px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
+              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                 activeSection === "allocation"
-                  ? "bg-white text-purple-900 shadow-xs"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "bg-[#EB8055] text-white shadow-xs"
+                  : "text-[#8B7355] hover:text-[#2F2925]"
               }`}
             >
-              <DoorOpen className="w-3.5 h-3.5 text-purple-600" />
+              <DoorOpen className="w-3.5 h-3.5" />
               Allocation & Capacity
             </button>
             <button
               onClick={() => setActiveSection("attendance")}
-              className={`px-3 sm:px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
+              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                 activeSection === "attendance"
-                  ? "bg-white text-purple-900 shadow-xs"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "bg-[#EB8055] text-white shadow-xs"
+                  : "text-[#8B7355] hover:text-[#2F2925]"
               }`}
             >
-              <CalendarCheck2 className="w-3.5 h-3.5 text-indigo-600" />
+              <CalendarCheck2 className="w-3.5 h-3.5" />
               Attendance Trends
             </button>
           </div>
 
-          <div className="text-xs font-bold text-slate-500">
-            Showing <span className="text-purple-700 font-extrabold">{filteredStudents.length}</span> students in scope
+          <div className="text-xs font-bold text-[#8B7355]">
+            Showing <span className="text-[#EB8055] font-extrabold">{filteredStudents.length}</span> students in scope
           </div>
         </div>
 
         {/* Search & Filter Dropdowns */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <div className="relative">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8B7355]" />
             <input
               type="text"
               placeholder="Search student, roll no, room..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="w-full border rounded-xl pl-9 pr-3.5 py-2 text-xs font-medium focus:outline-none bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-[#673BB7] focus:bg-white shadow-xs"
+              className="w-full border rounded-xl pl-9 pr-3.5 py-2 text-xs font-medium focus:outline-none bg-white border-[#E8D8C4] text-[#2F2925] placeholder-[#8B7355]/60 focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 shadow-xs"
             />
           </div>
 
@@ -376,7 +376,7 @@ export default function Analytics() {
                 setCourseFilter(e.target.value);
                 setYearFilter("All");
               }}
-              className="w-full border rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none bg-slate-50 border-slate-300 text-slate-900 focus:border-[#673BB7] focus:bg-white shadow-xs cursor-pointer"
+              className="w-full border rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none bg-white border-[#E8D8C4] text-[#2F2925] focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 shadow-xs cursor-pointer"
             >
               <option value="All">All Courses</option>
               <option value="B.Tech">B.Tech</option>
@@ -388,7 +388,7 @@ export default function Analytics() {
             <select
               value={yearFilter}
               onChange={(e) => setYearFilter(e.target.value)}
-              className="w-full border rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none bg-slate-50 border-slate-300 text-slate-900 focus:border-[#673BB7] focus:bg-white shadow-xs cursor-pointer"
+              className="w-full border rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none bg-white border-[#E8D8C4] text-[#2F2925] focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 shadow-xs cursor-pointer"
             >
               <option value="All">All Years</option>
               {yearOptions.map((year) => (
@@ -403,7 +403,7 @@ export default function Analytics() {
             <select
               value={blockFilter}
               onChange={(e) => setBlockFilter(e.target.value)}
-              className="w-full border rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none bg-slate-50 border-slate-300 text-slate-900 focus:border-[#673BB7] focus:bg-white shadow-xs cursor-pointer"
+              className="w-full border rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none bg-white border-[#E8D8C4] text-[#2F2925] focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 shadow-xs cursor-pointer"
             >
               <option value="All">All Blocks</option>
               <option value="D">Block D</option>
@@ -416,57 +416,57 @@ export default function Analytics() {
       </div>
 
       {/* KPI Metric Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-        <div className="bg-white p-5 rounded-2xl border border-purple-100/70 shadow-xs flex items-center justify-between">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="bg-white p-5 rounded-2xl border border-[#E8D8C4] shadow-xs flex items-center justify-between">
           <div>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Occupancy Rate</p>
-            <h3 className="text-2xl font-black text-slate-900 mt-1">{occupancyPercentage}%</h3>
-            <p className="text-[11px] font-semibold text-purple-600 mt-0.5">
+            <p className="text-[11px] font-bold text-[#8B7355] uppercase tracking-wider">Occupancy Rate</p>
+            <h3 className="text-2xl font-black text-[#2F2925] mt-1">{occupancyPercentage}%</h3>
+            <p className="text-[11px] font-semibold text-[#B85228] mt-0.5">
               {occupiedBeds} / {totalCapacity} Beds Occupied
             </p>
           </div>
-          <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center shrink-0">
+          <div className="w-12 h-12 bg-[#FDF0DC] text-[#EB8055] rounded-2xl flex items-center justify-center">
             <DoorOpen className="w-6 h-6" />
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-indigo-100/70 shadow-xs flex items-center justify-between">
+        <div className="bg-white p-5 rounded-2xl border border-[#E8D8C4] shadow-xs flex items-center justify-between">
           <div>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Active Allocations</p>
-            <h3 className="text-2xl font-black text-slate-900 mt-1">{activeAllocations}</h3>
-            <p className="text-[11px] font-semibold text-indigo-600 mt-0.5">
+            <p className="text-[11px] font-bold text-[#8B7355] uppercase tracking-wider">Active Allocations</p>
+            <h3 className="text-2xl font-black text-[#2F2925] mt-1">{activeAllocations}</h3>
+            <p className="text-[11px] font-semibold text-[#D96B3A] mt-0.5">
               {availableBeds} Available Beds
             </p>
           </div>
-          <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center shrink-0">
+          <div className="w-12 h-12 bg-[#F5E8D4] text-[#D96B3A] rounded-2xl flex items-center justify-center">
             <ClipboardList className="w-6 h-6" />
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-emerald-100/70 shadow-xs flex items-center justify-between">
+        <div className="bg-white p-5 rounded-2xl border border-[#E8D8C4] shadow-xs flex items-center justify-between">
           <div>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Attendance Rate</p>
-            <h3 className="text-2xl font-black text-slate-900 mt-1">
+            <p className="text-[11px] font-bold text-[#8B7355] uppercase tracking-wider">Attendance Rate</p>
+            <h3 className="text-2xl font-black text-[#2F2925] mt-1">
               {totalMonthlyLogs > 0 ? `${overallAttendanceRate}%` : "No Logs"}
             </h3>
             <p className="text-[11px] font-semibold text-emerald-600 mt-0.5">
               {totalMonthlyLogs} monthly log entries
             </p>
           </div>
-          <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center shrink-0">
+          <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center">
             <CalendarCheck2 className="w-6 h-6" />
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-cyan-100/70 shadow-xs flex items-center justify-between">
+        <div className="bg-white p-5 rounded-2xl border border-[#E8D8C4] shadow-xs flex items-center justify-between">
           <div>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Student Census</p>
-            <h3 className="text-2xl font-black text-slate-900 mt-1">{filteredStudents.length}</h3>
-            <p className="text-[11px] font-semibold text-cyan-600 mt-0.5">
+            <p className="text-[11px] font-bold text-[#8B7355] uppercase tracking-wider">Student Census</p>
+            <h3 className="text-2xl font-black text-[#2F2925] mt-1">{filteredStudents.length}</h3>
+            <p className="text-[11px] font-semibold text-[#B85228] mt-0.5">
               {allocatedStudentsCount} Allocated · {unallocatedStudentsCount} Unassigned
             </p>
           </div>
-          <div className="w-12 h-12 bg-cyan-50 text-cyan-600 rounded-2xl flex items-center justify-center shrink-0">
+          <div className="w-12 h-12 bg-[#FDF0DC] text-[#B85228] rounded-2xl flex items-center justify-center">
             <Users className="w-6 h-6" />
           </div>
         </div>
@@ -478,33 +478,33 @@ export default function Analytics() {
       {(activeSection === "all" || activeSection === "allocation") && (
         <div className="space-y-6">
           <div className="flex items-center gap-2 pt-2">
-            <DoorOpen className="w-5 h-5 text-[#673BB7]" />
-            <h3 className="text-lg font-black text-slate-900">Allocation & Capacity Visualizations</h3>
+            <DoorOpen className="w-5 h-5 text-[#EB8055]" />
+            <h3 className="text-lg font-black text-[#2F2925]">Allocation & Capacity Visualizations</h3>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Chart 1: Block-wise Capacity vs Occupancy Bar Chart (8 cols) */}
-            <div className="lg:col-span-8 bg-white p-4 sm:p-6 rounded-2xl border border-purple-100/70 shadow-xs space-y-4 min-w-0">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="lg:col-span-8 bg-white p-6 rounded-2xl border border-[#E8D8C4] shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-[#E8D8C4]/60 pb-3">
                 <div>
-                  <h4 className="text-base font-extrabold text-slate-900">Block-wise Capacity vs Occupancy</h4>
-                  <p className="text-xs text-slate-500">Comparison of total beds, active occupancies, and available slots across blocks.</p>
+                  <h4 className="text-base font-extrabold text-[#2F2925]">Block-wise Capacity vs Occupancy</h4>
+                  <p className="text-xs text-[#8B7355]">Comparison of total beds, active occupancies, and available slots across blocks.</p>
                 </div>
               </div>
 
               <div className="h-72 w-full pt-2">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={blockData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                    <XAxis dataKey="name" tick={{ fill: "#64748b", fontSize: 12, fontWeight: 600 }} />
-                    <YAxis tick={{ fill: "#64748b", fontSize: 11 }} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#F5E8D4" />
+                    <XAxis dataKey="name" tick={{ fill: "#8B7355", fontSize: 12, fontWeight: 600 }} />
+                    <YAxis tick={{ fill: "#8B7355", fontSize: 11 }} />
                     <Tooltip
-                      contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #e2e8f0", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1)" }}
+                      contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #E8D8C4", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.05)" }}
                       formatter={(val, name) => [`${val} Beds`, name]}
                     />
                     <Legend wrapperStyle={{ fontSize: 12, paddingTop: 10 }} />
-                    <Bar dataKey="Capacity" fill="#94A3B8" radius={[6, 6, 0, 0]} />
-                    <Bar dataKey="Occupied" fill="#673BB7" radius={[6, 6, 0, 0]} />
+                    <Bar dataKey="Capacity" fill="#D9C4A8" radius={[6, 6, 0, 0]} />
+                    <Bar dataKey="Occupied" fill="#EB8055" radius={[6, 6, 0, 0]} />
                     <Bar dataKey="Available" fill="#10B981" radius={[6, 6, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
@@ -512,10 +512,10 @@ export default function Analytics() {
             </div>
 
             {/* Chart 2: Bed Occupancy Donut Chart (4 cols) */}
-            <div className="lg:col-span-4 bg-white p-4 sm:p-6 rounded-2xl border border-purple-100/70 shadow-xs space-y-4 flex flex-col justify-between min-w-0">
-              <div className="border-b border-slate-100 pb-3">
-                <h4 className="text-base font-extrabold text-slate-900">Bed Occupancy Ratio</h4>
-                <p className="text-xs text-slate-500">Total bed inventory distribution</p>
+            <div className="lg:col-span-4 bg-white p-6 rounded-2xl border border-[#E8D8C4] shadow-xs space-y-4 flex flex-col justify-between">
+              <div className="border-b border-[#E8D8C4]/60 pb-3">
+                <h4 className="text-base font-extrabold text-[#2F2925]">Bed Occupancy Ratio</h4>
+                <p className="text-xs text-[#8B7355]">Total bed inventory distribution</p>
               </div>
 
               <div className="h-60 w-full flex items-center justify-center">
@@ -536,7 +536,7 @@ export default function Analytics() {
                       ))}
                     </Pie>
                     <Tooltip
-                      contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #e2e8f0" }}
+                      contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #E8D8C4" }}
                       formatter={(val, name) => [`${val} Beds (${totalCapacity ? Math.round((val/totalCapacity)*100) : 0}%)`, name]}
                     />
                     <Legend wrapperStyle={{ fontSize: 12 }} />
@@ -544,10 +544,10 @@ export default function Analytics() {
                 </ResponsiveContainer>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 text-center">
-                <div className="bg-purple-50 p-2 rounded-xl">
-                  <p className="text-[10px] uppercase font-bold text-purple-700">Occupied</p>
-                  <p className="text-sm font-black text-purple-900">{occupiedBeds}</p>
+              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#E8D8C4]/60 text-center">
+                <div className="bg-[#FDF0DC] p-2 rounded-xl">
+                  <p className="text-[10px] uppercase font-bold text-[#B85228]">Occupied</p>
+                  <p className="text-sm font-black text-[#2F2925]">{occupiedBeds}</p>
                 </div>
                 <div className="bg-emerald-50 p-2 rounded-xl">
                   <p className="text-[10px] uppercase font-bold text-emerald-700">Available</p>
@@ -559,37 +559,37 @@ export default function Analytics() {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Chart 3: Course & Year Allocation Breakdown (7 cols) */}
-            <div className="lg:col-span-7 bg-white p-4 sm:p-6 rounded-2xl border border-purple-100/70 shadow-xs space-y-4 min-w-0">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="lg:col-span-7 bg-white p-6 rounded-2xl border border-[#E8D8C4] shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-[#E8D8C4]/60 pb-3">
                 <div>
-                  <h4 className="text-base font-extrabold text-slate-900">Student Census by Year & Course</h4>
-                  <p className="text-xs text-slate-500">Distribution of hostelites across academic years and programs.</p>
+                  <h4 className="text-base font-extrabold text-[#2F2925]">Student Census by Year & Course</h4>
+                  <p className="text-xs text-[#8B7355]">Distribution of hostelites across academic years and programs.</p>
                 </div>
               </div>
 
               <div className="h-64 w-full pt-2">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={courseYearData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                    <XAxis dataKey="year" tick={{ fill: "#64748b", fontSize: 12, fontWeight: 600 }} />
-                    <YAxis tick={{ fill: "#64748b", fontSize: 11 }} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#F5E8D4" />
+                    <XAxis dataKey="year" tick={{ fill: "#8B7355", fontSize: 12, fontWeight: 600 }} />
+                    <YAxis tick={{ fill: "#8B7355", fontSize: 11 }} />
                     <Tooltip
-                      contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #e2e8f0" }}
+                      contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #E8D8C4" }}
                       formatter={(val, name) => [`${val} Students`, name]}
                     />
                     <Legend wrapperStyle={{ fontSize: 12 }} />
-                    <Bar dataKey="B.Tech" fill="#673BB7" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="Diploma" fill="#06B6D4" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="B.Tech" fill="#EB8055" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Diploma" fill="#D96B3A" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             </div>
 
             {/* Chart 4: Room Status Breakdown Donut (5 cols) */}
-            <div className="lg:col-span-5 bg-white p-4 sm:p-6 rounded-2xl border border-purple-100/70 shadow-xs space-y-4 flex flex-col justify-between min-w-0">
-              <div className="border-b border-slate-100 pb-3">
-                <h4 className="text-base font-extrabold text-slate-900">Room Status Distribution</h4>
-                <p className="text-xs text-slate-500">Breakdown of {rooms.length} residential rooms</p>
+            <div className="lg:col-span-5 bg-white p-6 rounded-2xl border border-[#E8D8C4] shadow-xs space-y-4 flex flex-col justify-between">
+              <div className="border-b border-[#E8D8C4]/60 pb-3">
+                <h4 className="text-base font-extrabold text-[#2F2925]">Room Status Distribution</h4>
+                <p className="text-xs text-[#8B7355]">Breakdown of {rooms.length} residential rooms</p>
               </div>
 
               <div className="h-56 w-full flex items-center justify-center">
@@ -610,7 +610,7 @@ export default function Analytics() {
                       ))}
                     </Pie>
                     <Tooltip
-                      contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #e2e8f0" }}
+                      contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #E8D8C4" }}
                       formatter={(val, name) => [`${val} Rooms`, name]}
                     />
                     <Legend wrapperStyle={{ fontSize: 11 }} />
@@ -618,7 +618,7 @@ export default function Analytics() {
                 </ResponsiveContainer>
               </div>
 
-              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 text-center text-[10px]">
+              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-[#E8D8C4]/60 text-center text-[10px]">
                 <div className="bg-rose-50 p-2 rounded-xl">
                   <p className="font-bold text-rose-700">Full</p>
                   <p className="text-xs font-black text-rose-900">{roomStatusData[0]?.value || 0}</p>
@@ -644,21 +644,21 @@ export default function Analytics() {
         <div className="space-y-6 pt-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <CalendarCheck2 className="w-5 h-5 text-indigo-600" />
-              <h3 className="text-lg font-black text-slate-900">Attendance Analytics ({selectedMonth})</h3>
+              <CalendarCheck2 className="w-5 h-5 text-[#EB8055]" />
+              <h3 className="text-lg font-black text-[#2F2925]">Attendance Analytics ({selectedMonth})</h3>
             </div>
             {dailyAttendanceData.length === 0 && (
-              <span className="text-xs font-bold text-slate-400 italic">No attendance records logged for {selectedMonth}</span>
+              <span className="text-xs font-bold text-[#8B7355] italic">No attendance records logged for {selectedMonth}</span>
             )}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Chart 5: Daily Attendance Trend Area Chart (8 cols) */}
-            <div className="lg:col-span-8 bg-white p-4 sm:p-6 rounded-2xl border border-indigo-100/70 shadow-xs space-y-4 min-w-0">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="lg:col-span-8 bg-white p-6 rounded-2xl border border-[#E8D8C4] shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-[#E8D8C4]/60 pb-3">
                 <div>
-                  <h4 className="text-base font-extrabold text-slate-900">Daily Attendance Flow</h4>
-                  <p className="text-xs text-slate-500">Day-by-day count of present, absent, and on-leave students.</p>
+                  <h4 className="text-base font-extrabold text-[#2F2925]">Daily Attendance Flow</h4>
+                  <p className="text-xs text-[#8B7355]">Day-by-day count of present, absent, and on-leave students.</p>
                 </div>
               </div>
 
@@ -676,38 +676,38 @@ export default function Analytics() {
                           <stop offset="95%" stopColor="#EF4444" stopOpacity={0.0} />
                         </linearGradient>
                         <linearGradient id="leaveGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.4} />
-                          <stop offset="95%" stopColor="#F59E0B" stopOpacity={0.0} />
+                          <stop offset="5%" stopColor="#EB8055" stopOpacity={0.4} />
+                          <stop offset="95%" stopColor="#EB8055" stopOpacity={0.0} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                      <XAxis dataKey="date" tick={{ fill: "#64748b", fontSize: 11 }} />
-                      <YAxis tick={{ fill: "#64748b", fontSize: 11 }} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#F5E8D4" />
+                      <XAxis dataKey="date" tick={{ fill: "#8B7355", fontSize: 11 }} />
+                      <YAxis tick={{ fill: "#8B7355", fontSize: 11 }} />
                       <Tooltip
-                        contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #e2e8f0" }}
+                        contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #E8D8C4" }}
                         labelFormatter={(lbl) => `Date: ${selectedMonth}-${String(lbl).padStart(2, "0")}`}
                       />
                       <Legend wrapperStyle={{ fontSize: 12, paddingTop: 10 }} />
                       <Area type="monotone" dataKey="Present" stroke="#10B981" fillOpacity={1} fill="url(#presentGrad)" strokeWidth={2} />
                       <Area type="monotone" dataKey="Absent" stroke="#EF4444" fillOpacity={1} fill="url(#absentGrad)" strokeWidth={2} />
-                      <Area type="monotone" dataKey="Leave" stroke="#F59E0B" fillOpacity={1} fill="url(#leaveGrad)" strokeWidth={2} />
+                      <Area type="monotone" dataKey="Leave" stroke="#EB8055" fillOpacity={1} fill="url(#leaveGrad)" strokeWidth={2} />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <div className="h-72 w-full flex flex-col items-center justify-center text-slate-400 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
-                  <CalendarCheck2 className="w-10 h-10 text-slate-300 mb-2" />
+                <div className="h-72 w-full flex flex-col items-center justify-center text-[#8B7355] bg-[#FDF0DC]/30 rounded-xl border border-dashed border-[#E8D8C4]">
+                  <CalendarCheck2 className="w-10 h-10 text-[#D9C4A8] mb-2" />
                   <p className="text-xs font-bold">No daily attendance records found for {selectedMonth}.</p>
-                  <p className="text-[11px] text-slate-400 mt-1">Mark attendance in the Attendance module to populate this trend.</p>
+                  <p className="text-[11px] text-[#8B7355] mt-1">Mark attendance in the Attendance module to populate this trend.</p>
                 </div>
               )}
             </div>
 
             {/* Chart 6: Monthly Attendance Proportion Donut Chart (4 cols) */}
-            <div className="lg:col-span-4 bg-white p-4 sm:p-6 rounded-2xl border border-indigo-100/70 shadow-xs space-y-4 flex flex-col justify-between min-w-0">
-              <div className="border-b border-slate-100 pb-3">
-                <h4 className="text-base font-extrabold text-slate-900">Monthly Attendance Split</h4>
-                <p className="text-xs text-slate-500">Overall ratio of present, absent, and leave</p>
+            <div className="lg:col-span-4 bg-white p-6 rounded-2xl border border-[#E8D8C4] shadow-xs space-y-4 flex flex-col justify-between">
+              <div className="border-b border-[#E8D8C4]/60 pb-3">
+                <h4 className="text-base font-extrabold text-[#2F2925]">Monthly Attendance Split</h4>
+                <p className="text-xs text-[#8B7355]">Overall ratio of present, absent, and leave</p>
               </div>
 
               {totalMonthlyLogs > 0 ? (
@@ -729,7 +729,7 @@ export default function Analytics() {
                         ))}
                       </Pie>
                       <Tooltip
-                        contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #e2e8f0" }}
+                        contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #E8D8C4" }}
                         formatter={(val, name) => [`${val} records (${Math.round((val/totalMonthlyLogs)*100)}%)`, name]}
                       />
                       <Legend wrapperStyle={{ fontSize: 12 }} />
@@ -737,13 +737,13 @@ export default function Analytics() {
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <div className="h-60 w-full flex flex-col items-center justify-center text-slate-400 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
-                  <PieIcon className="w-8 h-8 text-slate-300 mb-2" />
+                <div className="h-60 w-full flex flex-col items-center justify-center text-[#8B7355] bg-[#FDF0DC]/30 rounded-xl border border-dashed border-[#E8D8C4]">
+                  <PieIcon className="w-8 h-8 text-[#D9C4A8] mb-2" />
                   <p className="text-xs font-bold">No Attendance Logs</p>
                 </div>
               )}
 
-              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 text-center text-[10px]">
+              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-[#E8D8C4]/60 text-center text-[10px]">
                 <div className="bg-emerald-50 p-2 rounded-xl">
                   <p className="font-bold text-emerald-700">Present</p>
                   <p className="text-xs font-black text-emerald-900">{aggregateAttendanceBreakdown[0]?.value || 0}</p>
@@ -752,9 +752,9 @@ export default function Analytics() {
                   <p className="font-bold text-rose-700">Absent</p>
                   <p className="text-xs font-black text-rose-900">{aggregateAttendanceBreakdown[1]?.value || 0}</p>
                 </div>
-                <div className="bg-amber-50 p-2 rounded-xl">
-                  <p className="font-bold text-amber-700">Leave</p>
-                  <p className="text-xs font-black text-amber-900">{aggregateAttendanceBreakdown[2]?.value || 0}</p>
+                <div className="bg-[#FDF0DC] p-2 rounded-xl">
+                  <p className="font-bold text-[#B85228]">Leave</p>
+                  <p className="text-xs font-black text-[#2F2925]">{aggregateAttendanceBreakdown[2]?.value || 0}</p>
                 </div>
               </div>
             </div>

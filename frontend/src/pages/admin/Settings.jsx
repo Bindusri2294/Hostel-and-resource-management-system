@@ -18,11 +18,11 @@ export default function Settings() {
   };
 
   return (
-    <div className="space-y-6 max-w-4xl min-w-0 w-full">
-      <div className="bg-white p-4 sm:p-6 rounded-2xl border border-purple-100/70 shadow-xs flex items-center justify-between">
+    <div className="space-y-6 max-w-4xl">
+      <div className="bg-white p-6 rounded-2xl border border-[#E8D8C4] shadow-xs flex items-center justify-between">
         <div>
-          <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900">Hostel System Settings</h2>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <h2 className="text-2xl font-extrabold text-[#2F2925]">Hostel System Settings</h2>
+          <p className="text-xs text-[#8B7355] mt-0.5">
             Configure hostel operational rules, notification triggers, and campus parameters.
           </p>
         </div>
@@ -34,47 +34,47 @@ export default function Settings() {
         </div>
       )}
 
-      <form onSubmit={handleSave} className="bg-white p-4 sm:p-6 rounded-2xl border border-purple-100/70 shadow-xs space-y-6 text-xs font-semibold min-w-0">
+      <form onSubmit={handleSave} className="bg-white p-6 rounded-2xl border border-[#E8D8C4] shadow-xs space-y-6 text-xs font-semibold">
         <div className="space-y-4">
-          <h3 className="text-sm font-extrabold text-slate-900 border-b border-slate-100 pb-2 flex items-center gap-2">
-            <Building className="w-4 h-4 text-purple-600" /> General Info
+          <h3 className="text-sm font-extrabold text-[#2F2925] border-b border-[#E8D8C4] pb-2 flex items-center gap-2">
+            <Building className="w-4 h-4 text-[#EB8055]" /> General Info
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-slate-700 mb-1 font-bold">Hostel Campus Name</label>
+              <label className="block text-[#2F2925] mb-1 font-bold">Hostel Campus Name</label>
               <input
                 type="text"
                 value={form.hostelName}
                 onChange={(e) => setForm({ ...form, hostelName: e.target.value })}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
+                className="w-full bg-[#FDF0DC]/30 border border-[#E8D8C4] rounded-xl p-2.5 outline-none focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 font-medium text-[#2F2925]"
               />
             </div>
             <div>
-              <label className="block text-slate-700 mb-1 font-bold">Academic Session</label>
+              <label className="block text-[#2F2925] mb-1 font-bold">Academic Session</label>
               <input
                 type="text"
                 value={form.academicYear}
                 onChange={(e) => setForm({ ...form, academicYear: e.target.value })}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
+                className="w-full bg-[#FDF0DC]/30 border border-[#E8D8C4] rounded-xl p-2.5 outline-none focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 font-medium text-[#2F2925]"
               />
             </div>
           </div>
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-sm font-extrabold text-slate-900 border-b border-slate-100 pb-2 flex items-center gap-2">
-            <Shield className="w-4 h-4 text-purple-600" /> Security & Curfew Rules
+          <h3 className="text-sm font-extrabold text-[#2F2925] border-b border-[#E8D8C4] pb-2 flex items-center gap-2">
+            <Shield className="w-4 h-4 text-[#EB8055]" /> Security & Curfew Rules
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-slate-700 mb-1 font-bold">Hostel Gate Curfew Time</label>
+              <label className="block text-[#2F2925] mb-1 font-bold">Hostel Gate Curfew Time</label>
               <input
                 type="text"
                 value={form.curfewTime}
                 onChange={(e) => setForm({ ...form, curfewTime: e.target.value })}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
+                className="w-full bg-[#FDF0DC]/30 border border-[#E8D8C4] rounded-xl p-2.5 outline-none focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 font-medium text-[#2F2925]"
               />
             </div>
             <div className="flex items-center gap-3 pt-6">
@@ -83,19 +83,19 @@ export default function Settings() {
                 id="guests"
                 checked={form.enableGuestVisits}
                 onChange={(e) => setForm({ ...form, enableGuestVisits: e.target.checked })}
-                className="w-4 h-4 accent-purple-600 rounded cursor-pointer"
+                className="w-4 h-4 accent-[#EB8055] rounded cursor-pointer"
               />
-              <label htmlFor="guests" className="text-slate-800 font-bold cursor-pointer">
+              <label htmlFor="guests" className="text-[#2F2925] font-bold cursor-pointer">
                 Allow Visitor / Parent Day Entry
               </label>
             </div>
           </div>
         </div>
 
-        <div className="pt-4 border-t border-slate-100 flex justify-end">
+        <div className="pt-4 border-t border-[#E8D8C4] flex justify-end">
           <button
             type="submit"
-            className="flex items-center gap-2 px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-xl shadow-md cursor-pointer transition-all"
+            className="flex items-center gap-2 px-5 py-2.5 bg-[#EB8055] hover:bg-[#D96B3A] text-white font-bold text-xs rounded-xl shadow-md cursor-pointer transition-all"
           >
             <Save className="w-4 h-4" /> Save Configuration
           </button>
