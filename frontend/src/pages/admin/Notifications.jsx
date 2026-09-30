@@ -84,8 +84,8 @@ export default function Notifications() {
     <div className="space-y-6 -mt-2 md:-mt-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Announcements</h1>
-          <p className="text-sm font-semibold text-slate-500 mt-1">
+          <h1 className="text-2xl font-extrabold text-[#2F2925] tracking-tight">Announcements</h1>
+          <p className="text-sm font-semibold text-[#8B7355] mt-1">
             Send targeted alerts and notifications to students.
           </p>
         </div>
@@ -107,47 +107,47 @@ export default function Notifications() {
         
         {/* CREATE NOTIFICATION FORM */}
         <div className="lg:col-span-5">
-          <div className="bg-white rounded-2xl shadow-xs border border-purple-100 overflow-hidden">
-            <div className="bg-purple-50 p-4 border-b border-purple-100 flex items-center gap-3">
-              <div className="p-2 bg-purple-600 text-white rounded-xl shadow-inner">
+          <div className="bg-white rounded-2xl shadow-xs border border-[#E8D8C4] overflow-hidden">
+            <div className="bg-[#FDF0DC] p-4 border-b border-[#E8D8C4] flex items-center gap-3">
+              <div className="p-2 bg-[#EB8055] text-white rounded-xl shadow-xs">
                 <Send className="w-5 h-5" />
               </div>
-              <h2 className="text-lg font-extrabold text-slate-900">Send New Alert</h2>
+              <h2 className="text-lg font-extrabold text-[#2F2925]">Send New Alert</h2>
             </div>
             
             <form onSubmit={handleSend} className="p-5 space-y-4">
               <div>
-                <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wide mb-1">Title</label>
+                <label className="block text-xs font-extrabold text-[#2F2925] uppercase tracking-wide mb-1">Title</label>
                 <input
                   type="text"
                   required
                   placeholder="E.g., Important Maintenance Update"
                   value={form.title}
                   onChange={e => setForm({ ...form, title: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-semibold text-sm"
+                  className="w-full bg-[#FEF7EE] border border-[#E8D8C4] rounded-xl p-2.5 outline-none focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055] font-semibold text-sm text-[#2F2925]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wide mb-1">Message</label>
+                <label className="block text-xs font-extrabold text-[#2F2925] uppercase tracking-wide mb-1">Message</label>
                 <textarea
                   required
                   rows="3"
                   placeholder="Type your announcement here..."
                   value={form.message}
                   onChange={e => setForm({ ...form, message: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-semibold text-sm resize-none"
+                  className="w-full bg-[#FEF7EE] border border-[#E8D8C4] rounded-xl p-2.5 outline-none focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055] font-semibold text-sm text-[#2F2925] resize-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wide mb-1">Send To</label>
+                <label className="block text-xs font-extrabold text-[#2F2925] uppercase tracking-wide mb-1">Send To</label>
                 <select
                   value={form.targetType}
                   onChange={e => {
                     setForm({ ...form, targetType: e.target.value, targetValue: "" });
                   }}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-bold text-sm text-slate-700"
+                  className="w-full bg-[#FEF7EE] border border-[#E8D8C4] rounded-xl p-2.5 outline-none focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055] font-bold text-sm text-[#2F2925]"
                 >
                   <option value="ALL">All Students</option>
                   <option value="BLOCK">Specific Block</option>
@@ -159,12 +159,12 @@ export default function Notifications() {
               {/* Dynamic Second Input based on TargetType */}
               {form.targetType === "BLOCK" && (
                 <div className="animate-in fade-in slide-in-from-top-2">
-                  <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wide mb-1">Select Block</label>
+                  <label className="block text-xs font-extrabold text-[#2F2925] uppercase tracking-wide mb-1">Select Block</label>
                   <select
                     required
                     value={form.targetValue}
                     onChange={e => setForm({ ...form, targetValue: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-bold text-sm text-purple-700"
+                    className="w-full bg-[#FEF7EE] border border-[#E8D8C4] rounded-xl p-2.5 outline-none focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055] font-bold text-sm text-[#EB8055]"
                   >
                     <option value="" disabled>Choose a block...</option>
                     {blocks.map(b => <option key={b} value={b}>{b}</option>)}
@@ -174,12 +174,12 @@ export default function Notifications() {
 
               {form.targetType === "COURSE" && (
                 <div className="animate-in fade-in slide-in-from-top-2">
-                  <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wide mb-1">Select Course</label>
+                  <label className="block text-xs font-extrabold text-[#2F2925] uppercase tracking-wide mb-1">Select Course</label>
                   <select
                     required
                     value={form.targetValue}
                     onChange={e => setForm({ ...form, targetValue: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-bold text-sm text-purple-700"
+                    className="w-full bg-[#FEF7EE] border border-[#E8D8C4] rounded-xl p-2.5 outline-none focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055] font-bold text-sm text-[#EB8055]"
                   >
                     <option value="" disabled>Choose a course...</option>
                     {courses.map(c => <option key={c} value={c}>{c}</option>)}
@@ -189,14 +189,14 @@ export default function Notifications() {
 
               {form.targetType === "SINGLE_STUDENT" && (
                 <div className="animate-in fade-in slide-in-from-top-2">
-                  <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wide mb-1">Search & Select Student</label>
+                  <label className="block text-xs font-extrabold text-[#2F2925] uppercase tracking-wide mb-1">Search & Select Student</label>
                   <input
                     list="student-list"
                     required
                     placeholder="Type name or roll no..."
                     value={form.targetValue}
                     onChange={e => setForm({ ...form, targetValue: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-bold text-sm text-purple-700"
+                    className="w-full bg-[#FEF7EE] border border-[#E8D8C4] rounded-xl p-2.5 outline-none focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055] font-bold text-sm text-[#EB8055]"
                   />
                   <datalist id="student-list">
                     {students.map(s => (
@@ -211,7 +211,7 @@ export default function Notifications() {
               <button
                 type="submit"
                 disabled={busy}
-                className="w-full mt-2 py-3 rounded-xl font-black text-sm text-white bg-purple-600 hover:bg-purple-700 transition-colors shadow-md shadow-purple-200 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full mt-2 py-3 rounded-xl font-extrabold text-sm text-white bg-[#EB8055] hover:bg-[#D96B3A] transition-colors shadow-md shadow-[#EB8055]/20 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {busy ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-4 h-4" />}
                 {busy ? "Sending..." : "Send Announcement"}
@@ -222,41 +222,41 @@ export default function Notifications() {
 
         {/* NOTIFICATION HISTORY */}
         <div className="lg:col-span-7">
-          <div className="bg-white rounded-2xl shadow-xs border border-slate-200 overflow-hidden h-full flex flex-col max-h-[600px]">
-            <div className="p-4 border-b border-slate-100 flex items-center gap-2 bg-slate-50">
-              <BellRing className="w-5 h-5 text-slate-500" />
-              <h2 className="text-sm font-extrabold text-slate-800 uppercase tracking-wider">Broadcast History</h2>
+          <div className="bg-white rounded-2xl shadow-xs border border-[#E8D8C4] overflow-hidden h-full flex flex-col max-h-[600px]">
+            <div className="p-4 border-b border-[#E8D8C4] flex items-center gap-2 bg-[#FDF0DC]">
+              <BellRing className="w-5 h-5 text-[#EB8055]" />
+              <h2 className="text-sm font-extrabold text-[#2F2925] uppercase tracking-wider">Broadcast History</h2>
             </div>
             
-            <div className="p-0 overflow-y-auto flex-1 bg-slate-50/50">
+            <div className="p-0 overflow-y-auto flex-1 bg-white">
               {loading ? (
                 <div className="flex flex-col items-center justify-center h-48 space-y-3">
-                  <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
-                  <p className="text-sm font-bold text-slate-500">Loading history...</p>
+                  <Loader2 className="w-8 h-8 animate-spin text-[#EB8055]" />
+                  <p className="text-sm font-bold text-[#8B7355]">Loading history...</p>
                 </div>
               ) : notifications.length > 0 ? (
-                <div className="divide-y divide-slate-100">
+                <div className="divide-y divide-[#E8D8C4]/60">
                   {notifications.map((notif) => (
-                    <div key={notif._id} className="p-4 hover:bg-slate-50 transition-colors group">
+                    <div key={notif._id} className="p-4 hover:bg-[#FDF0DC]/40 transition-colors group">
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-bold text-slate-900 text-sm">{notif.title}</h3>
-                            <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 flex items-center gap-1">
+                            <h3 className="font-bold text-[#2F2925] text-sm">{notif.title}</h3>
+                            <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-[#FDF0DC] text-[#8B7355] border border-[#E8D8C4] flex items-center gap-1">
                               {getTargetIcon(notif.targetType)}
                               {notif.targetType === "ALL" ? "Everyone" : `${notif.targetType}: ${notif.targetValue}`}
                             </span>
                           </div>
-                          <p className="text-xs text-slate-600 font-medium whitespace-pre-wrap">
+                          <p className="text-xs text-[#5A4A3A] font-medium whitespace-pre-wrap">
                             {notif.message}
                           </p>
-                          <p className="text-[10px] text-slate-400 font-bold mt-2">
+                          <p className="text-[10px] text-[#8B7355] font-bold mt-2">
                             {new Date(notif.createdAt).toLocaleString()}
                           </p>
                         </div>
                         <button
                           onClick={() => handleDelete(notif._id)}
-                          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer opacity-0 group-hover:opacity-100"
+                          className="p-1.5 text-[#8B7355] hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer opacity-0 group-hover:opacity-100"
                           title="Delete Notification"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -267,11 +267,11 @@ export default function Notifications() {
                 </div>
               ) : (
                 <div className="py-12 text-center space-y-2">
-                  <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-3">
-                    <BellRing className="w-8 h-8 text-slate-300" />
+                  <div className="w-16 h-16 rounded-2xl bg-[#FDF0DC] flex items-center justify-center mx-auto mb-3">
+                    <BellRing className="w-8 h-8 text-[#8B7355]" />
                   </div>
-                  <h3 className="text-sm font-bold text-slate-700">No broadcasts sent</h3>
-                  <p className="text-xs text-slate-400 font-medium">Alerts you send will appear here.</p>
+                  <h3 className="text-sm font-bold text-[#2F2925]">No broadcasts sent</h3>
+                  <p className="text-xs text-[#8B7355] font-medium">Alerts you send will appear here.</p>
                 </div>
               )}
             </div>

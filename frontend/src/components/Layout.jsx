@@ -179,8 +179,8 @@ export default function Layout() {
             <div className="min-w-0">
               <p className="text-sm font-bold tracking-tight truncate leading-tight" style={{ color: "#2F2925" }}>
                 {user?.role === "Admin"
-                  ? "Good morning, Administrator 👋"
-                  : `${getGreeting()}, ${user?.name?.split(" ")?.[0] || "Resident"} 👋`}
+                  ? `${getGreeting()}, Administrator`
+                  : `${getGreeting()}, ${user?.name?.split(" ")?.[0] || "Resident"}`}
               </p>
               <p className="text-[11px] font-medium hidden sm:block leading-tight mt-0.5" style={{ color: "#8B7355" }}>
                 {user?.role === "Admin"
