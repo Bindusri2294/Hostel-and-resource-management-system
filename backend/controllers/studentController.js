@@ -39,12 +39,12 @@ const createStudent = async (req, res, next) => {
 // Get all students
 const getStudents = async (req, res, next) => {
   try {
-    const students = await Student.find();
+    const students = await Student.find().lean();
     const users = await User.find({ role: "Student" }).select("email student");
     const emailByStudentId = new Map(users.map((user) => [String(user.student), user.email]));
     res.status(200).json(
       students.map((student) => ({
-        ...student.toObject(),
+        ...student,
         email: emailByStudentId.get(String(student._id)) || "",
       }))
     );

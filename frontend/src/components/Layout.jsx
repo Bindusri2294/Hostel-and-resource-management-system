@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { adminNavItems, studentNavItems } from "../config/navigation";
+import { notificationService } from "../services/api";
 import {
   SidebarProvider,
   Sidebar,
@@ -33,8 +34,30 @@ function LayoutInner() {
 
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
   const dropdownRef = useRef(null);
   const notifRef = useRef(null);
+
+  useEffect(() => {
+    if (user?.role !== "Admin") {
+      notificationService.list()
+        .then(res => setNotifications(res.data || []))
+        .catch(err => console.error(err));
+    }
+  }, [user]);
+
+  const handleMarkRead = async (id) => {
+    try {
+      await notificationService.markRead(id);
+      setNotifications(prev => 
+        prev.map(n => n._id === id ? { ...n, readBy: [...(n.readBy || []), user?._id] } : n)
+      );
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const unreadCount = notifications.filter(n => !n.readBy?.includes(user?._id)).length;
 
   const rawItems = user?.role === "Admin" ? adminNavItems : studentNavItems;
   const navItems = [
@@ -170,38 +193,59 @@ function LayoutInner() {
               />
             </div>
 
-            {/* Notification Bell with Dropdown */}
-            <div className="relative" ref={notifRef}>
-              <button
-                type="button"
-                onClick={() => setNotificationsOpen(!notificationsOpen)}
-                className="relative p-2 rounded-xl hover:bg-purple-50 transition-colors text-slate-600 cursor-pointer"
-              >
-                <Bell className="w-4.5 h-4.5" />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-purple-600 rounded-full animate-pulse" />
-              </button>
+            {/* Notification Bell with Dropdown (Hidden for Admins) */}
+            {user?.role !== "Admin" && (
+              <div className="relative" ref={notifRef}>
+                <button
+                  type="button"
+                  onClick={() => setNotificationsOpen(!notificationsOpen)}
+                  className="relative p-2 rounded-xl hover:bg-purple-50 transition-colors text-slate-600 cursor-pointer"
+                >
+                  <Bell className="w-4.5 h-4.5" />
+                  {unreadCount > 0 && (
+                    <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-purple-600 rounded-full animate-pulse" />
+                  )}
+                </button>
 
-              {notificationsOpen && (
-                <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] max-w-xs sm:w-80 bg-white border border-purple-100 rounded-2xl shadow-xl z-50 p-3 space-y-2">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                    <h4 className="text-xs font-bold text-slate-900">Campus Announcements</h4>
-                    <span className="text-[10px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-bold">2 New</span>
-                  </div>
-                  <div className="space-y-2 text-xs">
-                    <div className="p-2 rounded-xl bg-purple-50/60 border border-purple-100/50">
-                      <p className="font-bold text-slate-800">Mess Menu Update</p>
-                      <p className="text-slate-600 text-[11px] mt-0.5">Special dinner menu scheduled for Friday.</p>
-                      <small className="text-[10px] text-slate-400 mt-1 block">2 hours ago</small>
+                {notificationsOpen && (
+                  <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] max-w-xs sm:w-80 bg-white border border-purple-100 rounded-2xl shadow-xl z-50 p-3 space-y-2">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                      <h4 className="text-xs font-bold text-slate-900">Campus Announcements</h4>
+                      {unreadCount > 0 && (
+                        <span className="text-[10px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-bold">
+                          {unreadCount} New
+                        </span>
+                      )}
                     </div>
-                    <div className="p-2 rounded-xl bg-slate-50 border border-slate-100">
-                      <p className="font-bold text-slate-800">Room Inspection</p>
-                      <p className="text-slate-600 text-[11px] mt-0.5">Routine cleanliness inspection on Saturday morning.</p>
-                      <small className="text-[10px] text-slate-400 mt-1 block">1 day ago</small>
+                    <div className="space-y-2 text-xs max-h-80 overflow-y-auto pr-1">
+                      {notifications.length > 0 ? notifications.map(notif => {
+                        const isUnread = !notif.readBy?.includes(user?._id);
+                        return (
+                          <div 
+                            key={notif._id}
+                            onClick={() => isUnread && handleMarkRead(notif._id)}
+                            className={`p-2 rounded-xl border cursor-pointer transition-colors ${
+                              isUnread ? 'bg-purple-50/60 border-purple-100/50' : 'bg-slate-50 border-slate-100'
+                            }`}
+                          >
+                            <p className="font-bold text-slate-800 flex items-center gap-2">
+                              {notif.title}
+                              {isUnread && <span className="w-1.5 h-1.5 rounded-full bg-purple-600" />}
+                            </p>
+                            <p className="text-slate-600 text-[11px] mt-0.5">{notif.message}</p>
+                            <small className="text-[10px] text-slate-400 mt-1 block">
+                              {new Date(notif.createdAt).toLocaleDateString()}
+                            </small>
+                          </div>
+                        );
+                      }) : (
+                        <p className="text-center text-slate-400 py-4 italic">No recent announcements.</p>
+                      )}
                     </div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
 
             {/* User Avatar with Dropdown Menu */}
             <div className="relative" ref={dropdownRef}>

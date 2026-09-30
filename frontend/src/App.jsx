@@ -22,6 +22,7 @@ import Allocations from "./pages/admin/Allocations";
 import Attendance from "./pages/admin/Attendance";
 import Analytics from "./pages/admin/Analytics";
 import Settings from "./pages/admin/Settings";
+import Notifications from "./pages/admin/Notifications";
 
 export default function App() {
   const { user } = useAuth();
@@ -51,6 +52,7 @@ export default function App() {
           <Route path="allocations" element={<Allocations />} />
           <Route path="attendance" element={<Attendance />} />
           <Route path="analytics" element={<Analytics />} />
+          <Route path="notifications" element={<Notifications />} />
           <Route path="settings" element={<Settings />} />
         </Route>
       </Route>

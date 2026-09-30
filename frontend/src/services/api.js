@@ -4,6 +4,7 @@ const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api",
   headers: { "Content-Type": "application/json" },
   withCredentials: true,
+  timeout: 30000, // 30 seconds timeout to handle slow DB connection latency
 });
 
 api.interceptors.request.use((config) => {
@@ -138,7 +139,14 @@ export const leaveService = {
   updateStatus: (id, payload) => api.put(`/leave/${id}/status`, payload),
 };
 
+export const notificationService = {
+  list: () => api.get("/notifications"),
+  create: (payload) => api.post("/notifications", payload),
+  markRead: (id) => api.put(`/notifications/${id}/read`),
+  remove: (id) => api.delete(`/notifications/${id}`),
+};
+
 export const getErrorMessage = (error, fallback = "Something went wrong") =>
-  error.response?.data?.message || (error.code === "ERR_NETWORK" ? "The server is unavailable. Check that the backend is running." : fallback);
+  error.response?.data?.message || (error.code === "ERR_NETWORK" ? "The server is unavailable." : fallback);
 
 export default api;
