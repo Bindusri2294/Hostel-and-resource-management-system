@@ -2,13 +2,19 @@ import { Building, ShieldCheck, Utensils, Wifi, PhoneCall, BookOpen, Clock } fro
 
 export default function HostelInfo() {
   return (
-    <div className="space-y-6 max-w-5xl min-w-0 w-full">
+    <div className="space-y-6 max-w-6xl mx-auto">
       {/* Hero */}
-      <div className="bg-gradient-to-r from-[#2F2925] via-[#43372F] to-[#2F2925] text-white p-6 rounded-3xl shadow-xl border border-[#EB8055]/30">
-        <h2 className="text-2xl font-black">KIET Residential Hostel Facilities</h2>
-        <p className="text-xs text-[#E8D8C4] mt-1 max-w-2xl">
-          Everything you need to know about facilities, mess timings, safety regulations, and warden contacts.
-        </p>
+      <div className="bg-gradient-to-r from-[#2F2925] via-[#43372F] to-[#2F2925] text-white p-6 sm:p-8 rounded-3xl shadow-xl border border-[#E8D8C4]/20 flex flex-wrap items-center justify-between gap-6 max-md:flex-col max-md:text-center">
+        <div>
+          <h2 className="text-2xl sm:text-3xl font-black tracking-tight">KIET Residential Hostel Facilities</h2>
+          <p className="text-xs sm:text-sm text-[#E8D8C4] font-medium mt-1 max-w-2xl">
+            Everything you need to know about facilities, mess timings, safety regulations, and warden contacts.
+          </p>
+        </div>
+        <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/20 max-md:w-full max-md:justify-center">
+          <ShieldCheck className="w-4 h-4 text-[#EB8055]" />
+          <span className="text-xs font-bold text-white">Residential Campus</span>
+        </div>
       </div>
 
       {/* Facilities Grid */}

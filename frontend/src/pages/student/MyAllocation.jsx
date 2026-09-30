@@ -34,14 +34,27 @@ export default function MyAllocation() {
   const roommates = allocation?.roommates || [];
 
   return (
-    <div className="space-y-6 max-w-4xl">
-      <div className="bg-white p-6 rounded-2xl border border-[#E8D8C4] shadow-xs flex items-center justify-between">
+    <div className="space-y-6 max-w-6xl mx-auto">
+      {/* 1. Header Banner */}
+      <div className="bg-gradient-to-r from-[#2F2925] via-[#43372F] to-[#2F2925] text-white p-6 sm:p-8 rounded-3xl shadow-xl border border-[#E8D8C4]/20 flex flex-wrap items-center justify-between gap-6 max-md:flex-col max-md:text-center">
         <div>
-          <h2 className="text-2xl font-extrabold text-[#2F2925]">My Room Allocation</h2>
-          <p className="text-xs text-[#8B7355] mt-0.5">
-            Detailed overview of your current active hostel room assignment.
+          <h2 className="text-2xl sm:text-3xl font-black tracking-tight">
+            My Room Allocation
+          </h2>
+          <p className="text-xs sm:text-sm text-[#E8D8C4] font-medium mt-1">
+            Roll No: <span className="font-extrabold text-[#EB8055]">{student.Rollno || user?.rollno || "Resident"}</span> · Room:{" "}
+            <span className="font-extrabold text-white">{room.RoomNo || allocation?.roomNo || "—"}</span> (Block{" "}
+            <span className="font-extrabold text-white">{room.Block || student.Block || "D"}</span>)
           </p>
         </div>
+        {allocation && (
+          <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/20 max-md:w-full max-md:justify-center">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-xs font-extrabold uppercase tracking-wider text-white">
+              {allocation.status || "Active"} Resident
+            </span>
+          </div>
+        )}
       </div>
 
       {error && (
