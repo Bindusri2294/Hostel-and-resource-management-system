@@ -253,7 +253,7 @@ export default function LoginView() {
   };
 
   // The login form JSX — reused in hero card and floating modal
-  const LoginForm = () => (
+  const renderLoginForm = () => (
     <div className="relative z-10 space-y-4">
       <div>
         <h3 className="text-xl font-black text-[#2F2925] tracking-tight">Welcome Back!</h3>
@@ -475,7 +475,7 @@ export default function LoginView() {
           <div className="lg:col-span-5 flex justify-center lg:justify-end w-full max-lg:order-1">
             <div className="w-full max-w-[360px] bg-white rounded-2xl p-5 sm:p-6 shadow-2xl shadow-black/50 relative overflow-hidden border border-[#E8D8C4]">
               <div className="absolute -top-20 -right-20 w-40 h-40 bg-[#EB8055]/10 rounded-full blur-3xl pointer-events-none" />
-              <LoginForm />
+              {renderLoginForm()}
             </div>
           </div>
         </div>
@@ -532,7 +532,7 @@ export default function LoginView() {
             </div>
             <div className="p-5 relative overflow-hidden">
               <div className="absolute -top-16 -right-16 w-32 h-32 bg-[#EB8055]/8 rounded-full blur-3xl pointer-events-none" />
-              <LoginForm />
+              {renderLoginForm()}
             </div>
           </div>
         )}

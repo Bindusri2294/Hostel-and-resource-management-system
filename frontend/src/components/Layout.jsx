@@ -2,11 +2,13 @@ import { useState, useRef, useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { adminNavItems, studentNavItems } from "../config/navigation";
+import { notificationService } from "../services/api";
 import {
   SidebarProvider,
   Sidebar,
   SidebarHeader,
   SidebarContent,
+  SidebarFooter,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
@@ -38,19 +40,35 @@ export default function Layout() {
 
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
   const dropdownRef = useRef(null);
   const notifRef = useRef(null);
 
-  const rawItems = user?.role === "Admin" ? adminNavItems : studentNavItems;
-  const navItems = [
-    ...rawItems,
-    { label: "Sign Out", icon: LogOut, path: "#logout", isSignOut: true },
-  ];
+  const navItems = user?.role === "Admin" ? adminNavItems : studentNavItems;
 
   const handleLogout = () => {
     logout();
     navigate("/login");
   };
+
+  useEffect(() => {
+    if (!user || user.role === "Admin") return;
+    let isCancelled = false;
+    const loadNotifications = async () => {
+      try {
+        const res = await notificationService.list();
+        if (!isCancelled && Array.isArray(res.data)) {
+          setNotifications(res.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch notifications:", err);
+      }
+    };
+    loadNotifications();
+    return () => {
+      isCancelled = true;
+    };
+  }, [user]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -97,19 +115,6 @@ export default function Layout() {
         <SidebarContent className="px-2.5 py-3">
           <SidebarMenu className="space-y-0.5">
             {navItems.map((item) => {
-              if (item.isSignOut) {
-                return (
-                  <SidebarMenuItem key="signout-item" className="mt-3 pt-2 border-t" style={{ borderColor: "#E8D8C4" }}>
-                    <SidebarMenuButton
-                      onClick={handleLogout}
-                      className="text-rose-600 hover:bg-rose-50 hover:text-rose-700 transition-colors font-medium rounded-lg px-3 py-2 text-xs flex items-center gap-2.5 cursor-pointer w-full"
-                    >
-                      <LogOut className="w-4 h-4 shrink-0 text-rose-500" />
-                      <span>Sign Out</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              }
               const isActive = location.pathname === item.path;
               return (
                 <SidebarMenuItem key={item.path}>
@@ -147,6 +152,20 @@ export default function Layout() {
             })}
           </SidebarMenu>
         </SidebarContent>
+
+        <SidebarFooter className="p-2.5 border-t" style={{ borderColor: "#E8D8C4" }}>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                onClick={handleLogout}
+                className="text-rose-600 hover:bg-rose-50 hover:text-rose-700 transition-colors font-semibold rounded-lg px-3 py-2 text-xs flex items-center gap-2.5 cursor-pointer w-full"
+              >
+                <LogOut className="w-4 h-4 shrink-0 text-rose-500" />
+                <span>Sign Out</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarFooter>
       </Sidebar>
 
       <SidebarInset>
@@ -185,15 +204,17 @@ export default function Layout() {
                   style={{ color: "#5A4A3A" }}
                 >
                   <Bell className="w-4 h-4" />
-                  <span
-                    className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full"
-                    style={{ background: "#EB8055" }}
-                  />
+                  {notifications.length > 0 && (
+                    <span
+                      className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full"
+                      style={{ background: "#EB8055" }}
+                    />
+                  )}
                 </button>
 
                 {notificationsOpen && (
                   <div
-                    className="absolute right-0 mt-2 w-72 sm:w-80 bg-white rounded-xl shadow-lg z-50 p-3 space-y-2"
+                    className="absolute right-0 mt-2 w-72 sm:w-80 bg-white rounded-xl shadow-lg z-50 p-3 space-y-2 max-h-96 overflow-y-auto"
                     style={{ border: "1px solid #E8D8C4" }}
                   >
                     <div className="flex items-center justify-between border-b pb-2" style={{ borderColor: "#E8D8C4" }}>
@@ -202,20 +223,29 @@ export default function Layout() {
                         className="text-[10px] px-2 py-0.5 rounded-full font-bold text-white"
                         style={{ background: "#EB8055" }}
                       >
-                        2 New
+                        {notifications.length} {notifications.length === 1 ? "New" : "Total"}
                       </span>
                     </div>
                     <div className="space-y-2 text-xs">
-                      <div className="p-2 rounded-lg" style={{ background: "#FDF0DC", border: "1px solid #F3C694" }}>
-                        <p className="font-bold" style={{ color: "#2F2925" }}>Mess Menu Update</p>
-                        <p className="text-[11px] mt-0.5" style={{ color: "#5A4A3A" }}>Special dinner menu scheduled for Friday.</p>
-                        <small className="text-[10px] mt-1 block" style={{ color: "#8B7355" }}>2 hours ago</small>
-                      </div>
-                      <div className="p-2 rounded-lg" style={{ background: "#F9EFDE", border: "1px solid #E8D8C4" }}>
-                        <p className="font-bold" style={{ color: "#2F2925" }}>Room Inspection</p>
-                        <p className="text-[11px] mt-0.5" style={{ color: "#5A4A3A" }}>Routine cleanliness inspection on Saturday morning.</p>
-                        <small className="text-[10px] mt-1 block" style={{ color: "#8B7355" }}>1 day ago</small>
-                      </div>
+                      {notifications.length > 0 ? (
+                        notifications.map((notif) => (
+                          <div
+                            key={notif._id}
+                            className="p-2.5 rounded-lg transition-colors"
+                            style={{ background: "#FDF0DC", border: "1px solid #F3C694" }}
+                          >
+                            <p className="font-bold" style={{ color: "#2F2925" }}>{notif.title}</p>
+                            <p className="text-[11px] mt-0.5 whitespace-pre-wrap" style={{ color: "#5A4A3A" }}>{notif.message}</p>
+                            <small className="text-[10px] mt-1.5 block font-medium" style={{ color: "#8B7355" }}>
+                              {notif.createdAt ? new Date(notif.createdAt).toLocaleString() : "Recently"}
+                            </small>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="p-4 text-center text-xs font-medium" style={{ color: "#8B7355" }}>
+                          No announcements at this time.
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
