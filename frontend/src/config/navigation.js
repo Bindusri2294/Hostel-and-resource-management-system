@@ -6,7 +6,6 @@ import {
     MessageSquare,
     ClipboardCheck,
     BarChart3,
-    Settings,
     User,
     Home,
     BellRing,
@@ -21,7 +20,6 @@ export const adminNavItems = [
     { label: "Attendance", icon: ClipboardCheck, path: "/attendance" },
     { label: "Analytics", icon: BarChart3, path: "/analytics" },
     { label: "Notifications", icon: BellRing, path: "/notifications" },
-    { label: "Settings", icon: Settings, path: "/settings" },
 ];
 
 export const studentNavItems = [

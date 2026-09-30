@@ -7,7 +7,6 @@ import {
   Sidebar,
   SidebarHeader,
   SidebarContent,
-  SidebarFooter,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
@@ -121,11 +120,10 @@ export default function Layout() {
                       backgroundColor: "#FDF0DC",
                       color: "#B85228",
                     } : {}}
-                    className={`relative transition-colors duration-150 rounded-lg font-medium px-3 py-2 flex items-center gap-2.5 text-xs cursor-pointer w-full ${
-                      isActive
+                    className={`relative transition-colors duration-150 rounded-lg font-medium px-3 py-2 flex items-center gap-2.5 text-xs cursor-pointer w-full ${isActive
                         ? "font-semibold before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[3px] before:rounded-r-full"
                         : "hover:bg-[#FDF0DC]/60"
-                    }`}
+                      }`}
                   >
                     {isActive && (
                       <span
@@ -149,20 +147,6 @@ export default function Layout() {
             })}
           </SidebarMenu>
         </SidebarContent>
-
-        <SidebarFooter className="p-3 border-t" style={{ borderColor: "#E8D8C4", background: "#FDF0DC" }}>
-          <div className="flex items-center gap-2.5">
-            <Avatar className="w-8 h-8 shrink-0" style={{ border: "1px solid #F3C694" }}>
-              <AvatarFallback className="text-white text-xs font-bold" style={{ background: "#EB8055" }}>
-                {user?.name?.charAt(0)?.toUpperCase() || "U"}
-              </AvatarFallback>
-            </Avatar>
-            <div className="overflow-hidden flex-1">
-              <p className="text-xs font-bold truncate leading-tight" style={{ color: "#2F2925" }}>{user?.name || "User"}</p>
-              <p className="text-[10px] font-medium truncate leading-tight" style={{ color: "#EB8055" }}>{user?.email}</p>
-            </div>
-          </div>
-        </SidebarFooter>
       </Sidebar>
 
       <SidebarInset>

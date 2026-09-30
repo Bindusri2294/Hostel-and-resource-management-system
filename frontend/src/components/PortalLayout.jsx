@@ -164,18 +164,6 @@ function LayoutInner() {
             })}
           </SidebarMenu>
         </SidebarContent>
-
-        <SidebarFooter className="p-3 border-t border-purple-100/60 bg-slate-50/50">
-          <div className="flex items-center gap-2.5">
-            <Avatar className="w-8 h-8 border border-purple-200">
-              <AvatarFallback className="bg-purple-600 text-white text-xs font-extrabold">{user?.name?.charAt(0)?.toUpperCase() || "U"}</AvatarFallback>
-            </Avatar>
-            <div className="overflow-hidden">
-              <p className="text-xs font-bold text-slate-800 truncate">{user?.name || "User"}</p>
-              <p className="text-[10px] text-purple-600 font-medium truncate">{user?.email}</p>
-            </div>
-          </div>
-        </SidebarFooter>
       </Sidebar>
 
       <SidebarInset className="min-w-0 w-full">
