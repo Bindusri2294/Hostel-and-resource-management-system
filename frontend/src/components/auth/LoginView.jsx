@@ -233,7 +233,7 @@ export default function LoginView() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col font-sans bg-slate-50 text-slate-900 selection:bg-[#673BB7] selection:text-white">
+    <div className="min-h-screen flex flex-col font-sans bg-slate-50 text-slate-900 selection:bg-[#673BB7] selection:text-white overflow-x-hidden w-full max-w-[100vw]">
       
       {/* ================= HERO SECTION (Matches Screenshot) ================= */}
       <section id="home" className="relative h-[65vh] min-h-[500px] max-lg:h-auto max-lg:min-h-0 max-lg:pb-12 flex flex-col items-center pt-4 pb-2 px-4 sm:px-8 overflow-visible z-30">
@@ -270,7 +270,7 @@ export default function LoginView() {
           </button>
 
           {/* Centered Navigation */}
-          <nav className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-1 bg-white/95 backdrop-blur-md px-1.5 py-1.5 rounded-full shadow-lg">
+          <nav className="hidden md:flex fixed top-4 left-1/2 -translate-x-1/2 z-50 items-center gap-1 bg-white/95 backdrop-blur-md px-1.5 py-1.5 rounded-full shadow-xl border border-slate-200/50">
             {['Home', 'About', 'Contact'].map((item) => (
               <button
                 key={item}
@@ -702,23 +702,8 @@ export default function LoginView() {
 
       {/* 5. FOOTER BAR */}
       <footer className={`border-t py-6 px-4 text-xs transition-colors bg-white border-slate-200 text-slate-600`}>
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-extrabold">
-            {['Home', 'About', 'Contact'].map((item) => (
-              <button
-                key={`footer-nav-${item}`}
-                type="button"
-                onClick={() => handleNavClick(item)}
-                className={`hover:text-[#673BB7] transition-colors cursor-pointer ${
-                  activeNav === item ? 'text-[#673BB7] font-black underline' : ''
-                }`}
-              >
-                {item}
-              </button>
-            ))}
-          </div>
-
-          <div className="text-center md:text-right space-y-0.5">
+        <div className="max-w-7xl mx-auto flex flex-col items-center justify-center gap-4">
+          <div className="text-center space-y-0.5">
             <p>© {new Date().getFullYear()} KIET Group of Institutions (Kakinada Institute of Engineering & Technology). All Rights Reserved.</p>
             <p className="text-[11px] opacity-80">Yanam Road, Korangi Village, Tallarevu Mandal, Kakinada District, AP – 533461</p>
           </div>

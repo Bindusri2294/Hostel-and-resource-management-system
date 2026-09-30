@@ -248,7 +248,7 @@ export default function RoomInfo() {
       {/* Room Details Modal */}
       {detailsOpen && selected && (
         <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden space-y-4 p-6">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto space-y-4 p-6">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
                 <span className="text-[10px] font-bold text-purple-600 uppercase tracking-wider">

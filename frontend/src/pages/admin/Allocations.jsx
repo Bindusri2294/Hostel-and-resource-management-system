@@ -395,7 +395,7 @@ export default function Allocations() {
         <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
           <form
             onSubmit={handleCreateAllocation}
-            className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden p-6 space-y-4"
+            className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto p-6 space-y-4"
           >
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="text-base font-extrabold text-slate-900">Create Room Allocation</h3>
