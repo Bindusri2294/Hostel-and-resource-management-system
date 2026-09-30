@@ -207,17 +207,17 @@ export default function Students() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-white p-6 rounded-2xl border border-purple-100/70 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-white p-6 rounded-2xl border border-[#E8D8C4] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-extrabold text-slate-900">Student Management</h2>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <h2 className="text-2xl font-extrabold text-[#2F2925]">Student Management</h2>
+          <p className="text-xs text-[#8B7355] mt-0.5">
             Search, filter, edit, and manage registered hostel residents.
           </p>
         </div>
 
         <button
           onClick={() => openForm()}
-          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-xs rounded-xl shadow-md hover:from-purple-700 hover:to-indigo-700 transition-all cursor-pointer"
+          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-[#EB8055] hover:bg-[#D96B3A] text-white font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer"
         >
           <Plus className="w-4 h-4" /> Add Student
         </button>
@@ -237,16 +237,16 @@ export default function Students() {
       )}
 
       {/* FILTER & SEARCH TOOLBAR (Feedback style across all fields) */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+      <div className="bg-white p-4 rounded-2xl border border-[#E8D8C4] shadow-sm space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="relative flex-1 min-w-[240px]">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8B7355]" />
             <input
               type="text"
               placeholder="Search by student name, roll no, course, room, block, department, phone..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="w-full border rounded-xl pl-9 pr-3.5 py-2 text-xs font-medium focus:outline-none bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-[#673BB7] focus:bg-white shadow-sm"
+              className="w-full border rounded-xl pl-9 pr-3.5 py-2 text-xs font-medium focus:outline-none bg-white border-[#E8D8C4] text-[#2F2925] placeholder-[#8B7355]/60 focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 shadow-xs"
             />
           </div>
 
@@ -255,19 +255,19 @@ export default function Students() {
               loadStudents();
               loadRooms();
             }}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer border bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300"
+            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer border bg-[#FDF0DC] hover:bg-[#F5E8D4] text-[#2F2925] border-[#E8D8C4]"
           >
-            <RefreshCw className="w-3.5 h-3.5" /> Refresh
+            <RefreshCw className="w-3.5 h-3.5 text-[#EB8055]" /> Refresh
           </button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-3 border-t border-slate-200">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-3 border-t border-[#E8D8C4]/60">
           <div>
-            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-slate-600">Course Filter</label>
+            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-[#8B7355]">Course Filter</label>
             <select
               value={deptFilter}
               onChange={(e) => setDeptFilter(e.target.value)}
-              className="w-full border rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none bg-slate-50 border-slate-300 text-slate-900 focus:border-[#673BB7] focus:bg-white shadow-sm cursor-pointer"
+              className="w-full border rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none bg-white border-[#E8D8C4] text-[#2F2925] focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 shadow-xs cursor-pointer"
             >
               <option value="All">All Courses</option>
               <option value="B.TECH">B.TECH</option>
@@ -276,11 +276,11 @@ export default function Students() {
           </div>
 
           <div>
-            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-slate-600">Year Filter</label>
+            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-[#8B7355]">Year Filter</label>
             <select
               value={yearFilter}
               onChange={(e) => setYearFilter(e.target.value)}
-              className="w-full border rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none bg-slate-50 border-slate-300 text-slate-900 focus:border-[#673BB7] focus:bg-white shadow-sm cursor-pointer"
+              className="w-full border rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none bg-white border-[#E8D8C4] text-[#2F2925] focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 shadow-xs cursor-pointer"
             >
               <option value="All">All Years</option>
               <option value="1">1st Year</option>
@@ -291,11 +291,11 @@ export default function Students() {
           </div>
 
           <div>
-            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-slate-600">Block Filter</label>
+            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-[#8B7355]">Block Filter</label>
             <select
               value={blockFilter}
               onChange={(e) => setBlockFilter(e.target.value)}
-              className="w-full border rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none bg-slate-50 border-slate-300 text-slate-900 focus:border-[#673BB7] focus:bg-white shadow-sm cursor-pointer"
+              className="w-full border rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none bg-white border-[#E8D8C4] text-[#2F2925] focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 shadow-xs cursor-pointer"
             >
               <option value="All">All Blocks</option>
               <option value="D">Block D</option>
@@ -306,11 +306,11 @@ export default function Students() {
           </div>
 
           <div>
-            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-slate-600">Status Filter</label>
+            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-[#8B7355]">Status Filter</label>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full border rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none bg-slate-50 border-slate-300 text-slate-900 focus:border-[#673BB7] focus:bg-white shadow-sm cursor-pointer"
+              className="w-full border rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none bg-white border-[#E8D8C4] text-[#2F2925] focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 shadow-xs cursor-pointer"
             >
               <option value="All">All Statuses</option>
               <option value="Active">Active</option>
@@ -321,16 +321,16 @@ export default function Students() {
       </div>
 
       {/* Students Table */}
-      <div className="bg-white rounded-2xl border border-purple-100/70 shadow-xs overflow-hidden">
+      <div className="bg-white rounded-2xl border border-[#E8D8C4] shadow-xs overflow-hidden">
         {loading ? (
-          <div className="text-center py-12 text-xs font-semibold text-slate-500">
+          <div className="text-center py-12 text-xs font-semibold text-[#8B7355]">
             Loading student list...
           </div>
         ) : filteredStudents.length ? (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead>
-                <tr className="border-b border-slate-100 bg-purple-50/50 text-purple-950 text-[11px] font-extrabold uppercase tracking-wider">
+                <tr className="border-b border-[#E8D8C4] bg-[#FDF0DC] text-[#2F2925] text-[11px] font-extrabold uppercase tracking-wider">
                   <th className="py-3 px-4">Student</th>
                   <th className="py-3 px-4">Roll Number</th>
                   <th className="py-3 px-4">Course</th>
@@ -342,30 +342,30 @@ export default function Students() {
                   <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+              <tbody className="divide-y divide-[#E8D8C4]/60 font-medium text-[#5A4A3A]">
                 {filteredStudents.map((student) => (
-                  <tr key={student._id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-3 px-4 font-bold text-slate-900 flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-full bg-purple-600 text-white font-extrabold flex items-center justify-center text-xs">
+                  <tr key={student._id} className="hover:bg-[#FDF0DC]/40 transition-colors">
+                    <td className="py-3 px-4 font-bold text-[#2F2925] flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-full bg-[#EB8055] text-white font-extrabold flex items-center justify-center text-xs">
                         {student.Name?.charAt(0)?.toUpperCase()}
                       </div>
                       <span>{student.Name}</span>
                     </td>
-                    <td className="py-3 px-4 text-slate-600 font-bold">{student.Rollno || "—"}</td>
+                    <td className="py-3 px-4 text-[#8B7355] font-bold">{student.Rollno || "—"}</td>
                     <td className="py-3 px-4">
                       {student.Course || "Engineering"}
                     </td>
-                    <td className="py-3 px-4 font-bold text-slate-700">
+                    <td className="py-3 px-4 font-bold text-[#5A4A3A]">
                       {getCampusFromRollNo(student.Rollno)}
                     </td>
                     <td className="py-3 px-4">
                       {getOrdinalYear(student.Year)} . {getDeptFromRollNo(student.Rollno)}
                     </td>
-                    <td className="py-3 px-4 font-bold text-purple-700">
+                    <td className="py-3 px-4 font-bold text-[#B85228]">
                       {student.Block === "Executive" ? "Executive" : (student.Block || "D")}
                     </td>
                     <td className="py-3 px-4">
-                      <span className="px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 font-bold text-[11px]">
+                      <span className="px-2 py-0.5 rounded-md bg-[#FDF0DC] text-[#B85228] font-bold text-[11px] border border-[#E8D8C4]">
                         {student.Roomno || "Unassigned"}
                       </span>
                     </td>
@@ -374,7 +374,7 @@ export default function Students() {
                         className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${
                           (student.Status || "Active") === "Active"
                             ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
-                            : "bg-slate-100 text-slate-600 border border-slate-200"
+                            : "bg-[#FDF0DC] text-[#8B7355] border border-[#E8D8C4]"
                         }`}
                       >
                         {student.Status || "Active"}
@@ -383,7 +383,7 @@ export default function Students() {
                     <td className="py-3 px-4 flex justify-end items-center gap-1">
                       <button
                         onClick={() => openView(student)}
-                        className="p-1.5 text-slate-500 hover:text-purple-600 hover:bg-purple-50 rounded-lg cursor-pointer"
+                        className="p-1.5 text-[#8B7355] hover:text-[#EB8055] hover:bg-[#FDF0DC] rounded-lg cursor-pointer"
                         title="View Profile"
                       >
                         <Eye className="w-4 h-4" />
@@ -391,7 +391,7 @@ export default function Students() {
 
                       <button
                         onClick={() => deleteStudent(student)}
-                        className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg cursor-pointer"
+                        className="p-1.5 text-[#8B7355] hover:text-rose-600 hover:bg-rose-50 rounded-lg cursor-pointer"
                         title="Delete Student"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -440,28 +440,28 @@ export default function Students() {
                   placeholder="e.g. Rahul Sharma"
                   value={form.Name || ""}
                   onChange={(e) => setForm({ ...form, Name: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
+                  className="w-full bg-white border border-[#E8D8C4] rounded-xl p-2.5 outline-none focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 font-medium text-[#2F2925]"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-700 mb-1 font-bold">Roll Number *</label>
+                <label className="block text-[#2F2925] mb-1 font-bold">Roll Number *</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. 2026-CS-01"
                   value={form.Rollno || ""}
                   onChange={(e) => setForm({ ...form, Rollno: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
+                  className="w-full bg-white border border-[#E8D8C4] rounded-xl p-2.5 outline-none focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 font-medium text-[#2F2925]"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-700 mb-1 font-bold">Course</label>
+                <label className="block text-[#2F2925] mb-1 font-bold">Course</label>
                 <select
                   value={form.Course || "B.Tech"}
                   onChange={(e) => setForm({ ...form, Course: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
+                  className="w-full bg-white border border-[#E8D8C4] rounded-xl p-2.5 outline-none focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 font-medium text-[#2F2925]"
                 >
                   <option value="B.Tech">B.Tech</option>
                   <option value="Diploma">Diploma</option>
@@ -470,22 +470,22 @@ export default function Students() {
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-slate-700 mb-1 font-bold">Year</label>
+                  <label className="block text-[#2F2925] mb-1 font-bold">Year</label>
                   <input
                     type="number"
                     min="1"
                     max="4"
                     value={form.Year ?? 3}
                     onChange={(e) => setForm({ ...form, Year: Number(e.target.value) })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
+                    className="w-full bg-white border border-[#E8D8C4] rounded-xl p-2.5 outline-none focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 font-medium text-[#2F2925]"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-700 mb-1 font-bold">Department</label>
+                  <label className="block text-[#2F2925] mb-1 font-bold">Department</label>
                   <select
                     value={form.Department || "CSM"}
                     onChange={(e) => setForm({ ...form, Department: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
+                    className="w-full bg-white border border-[#E8D8C4] rounded-xl p-2.5 outline-none focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 font-medium text-[#2F2925]"
                   >
                     <option value="CSM">CSM</option>
                     <option value="CAI">CAI</option>
@@ -497,11 +497,11 @@ export default function Students() {
               </div>
 
               <div>
-                <label className="block text-slate-700 mb-1 font-bold">Block</label>
+                <label className="block text-[#2F2925] mb-1 font-bold">Block</label>
                 <select
                   value={form.Block || "D"}
                   onChange={(e) => setForm({ ...form, Block: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
+                  className="w-full bg-white border border-[#E8D8C4] rounded-xl p-2.5 outline-none focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 font-medium text-[#2F2925]"
                 >
                   <option value="D">Block D</option>
                   <option value="E">Block E</option>
@@ -511,7 +511,7 @@ export default function Students() {
               </div>
 
               <div>
-                <label className="block text-slate-700 mb-1 font-bold">Campus</label>
+                <label className="block text-[#2F2925] mb-1 font-bold">Campus</label>
                 <select
                   value={form.Campus || "KIET"}
                   onChange={(e) => {
@@ -519,7 +519,7 @@ export default function Students() {
                     const newDept = (newCampus === "KIET-W" && form.Department === "CSC") ? "CSM" : form.Department;
                     setForm({ ...form, Campus: newCampus, Department: newDept });
                   }}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
+                  className="w-full bg-white border border-[#E8D8C4] rounded-xl p-2.5 outline-none focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 font-medium text-[#2F2925]"
                 >
                   <option value="KIET">KIET</option>
                   <option value="KIET-W">KIET-W</option>
@@ -527,11 +527,11 @@ export default function Students() {
               </div>
 
               <div>
-                <label className="block text-slate-700 mb-1 font-bold">Room Number</label>
+                <label className="block text-[#2F2925] mb-1 font-bold">Room Number</label>
                 <select
                   value={form.Roomno || "Unassigned"}
                   onChange={(e) => setForm({ ...form, Roomno: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
+                  className="w-full bg-white border border-[#E8D8C4] rounded-xl p-2.5 outline-none focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 font-medium text-[#2F2925]"
                 >
                   <option value="Unassigned">Unassigned</option>
                   {rooms
@@ -545,11 +545,11 @@ export default function Students() {
               </div>
 
               <div>
-                <label className="block text-slate-700 mb-1 font-bold">Resident Status</label>
+                <label className="block text-[#2F2925] mb-1 font-bold">Resident Status</label>
                 <select
                   value={form.Status || "Active"}
                   onChange={(e) => setForm({ ...form, Status: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
+                  className="w-full bg-white border border-[#E8D8C4] rounded-xl p-2.5 outline-none focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 font-medium text-[#2F2925]"
                 >
                   <option value="Active">Active</option>
                   <option value="Inactive">Inactive</option>
@@ -557,18 +557,18 @@ export default function Students() {
               </div>
             </div>
 
-            <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
+            <div className="pt-3 border-t border-[#E8D8C4]/60 flex justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setFormOpen(false)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs font-semibold bg-[#FDF0DC] text-[#5A4A3A] hover:bg-[#F5E8D4] cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={busy}
-                className="px-5 py-2 rounded-xl text-xs font-bold bg-purple-600 text-white hover:bg-purple-700 cursor-pointer disabled:opacity-50"
+                className="px-5 py-2 rounded-xl text-xs font-bold bg-[#EB8055] text-white hover:bg-[#D96B3A] cursor-pointer disabled:opacity-50"
               >
                 {busy ? "Saving..." : "Save Student"}
               </button>
@@ -579,56 +579,56 @@ export default function Students() {
 
       {/* View Student Modal */}
       {viewOpen && selected && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-base font-extrabold text-slate-900">Student Profile</h3>
+        <div className="fixed inset-0 z-50 bg-[#2F2925]/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden p-6 space-y-4 border border-[#E8D8C4]">
+            <div className="flex items-center justify-between border-b border-[#E8D8C4]/60 pb-3">
+              <h3 className="text-base font-extrabold text-[#2F2925]">Student Profile</h3>
               <button
                 onClick={() => setViewOpen(false)}
-                className="text-slate-400 hover:text-slate-600 cursor-pointer"
+                className="text-[#8B7355] hover:text-[#2F2925] cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="flex items-center gap-4 bg-purple-50 p-4 rounded-2xl border border-purple-100">
-              <div className="w-14 h-14 rounded-2xl bg-purple-600 text-white font-black flex items-center justify-center text-xl">
+            <div className="flex items-center gap-4 bg-[#FDF0DC] p-4 rounded-2xl border border-[#E8D8C4]">
+              <div className="w-14 h-14 rounded-2xl bg-[#EB8055] text-white font-black flex items-center justify-center text-xl">
                 {selected.Name?.charAt(0)}
               </div>
               <div>
-                <h4 className="text-lg font-extrabold text-slate-900">{selected.Name}</h4>
-                <p className="text-xs font-semibold text-purple-700">{selected.Course}</p>
-                <p className="text-[11px] text-slate-500">Roll No: {selected.Rollno}</p>
+                <h4 className="text-lg font-extrabold text-[#2F2925]">{selected.Name}</h4>
+                <p className="text-xs font-semibold text-[#B85228]">{selected.Course}</p>
+                <p className="text-[11px] text-[#8B7355]">Roll No: {selected.Rollno}</p>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3 text-xs">
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                <span className="text-[10px] text-slate-400 font-bold block">Academic Year</span>
-                <span className="font-extrabold text-slate-900">Year {selected.Year || 1}</span>
+              <div className="p-3 bg-[#F9EFDE]/50 rounded-xl border border-[#E8D8C4]">
+                <span className="text-[10px] text-[#8B7355] font-bold block">Academic Year</span>
+                <span className="font-extrabold text-[#2F2925]">Year {selected.Year || 1}</span>
               </div>
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                <span className="text-[10px] text-slate-400 font-bold block">Department</span>
-                <span className="font-extrabold text-slate-900">{selected.Department || "CSM"}</span>
+              <div className="p-3 bg-[#F9EFDE]/50 rounded-xl border border-[#E8D8C4]">
+                <span className="text-[10px] text-[#8B7355] font-bold block">Department</span>
+                <span className="font-extrabold text-[#2F2925]">{selected.Department || "CSM"}</span>
               </div>
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                <span className="text-[10px] text-slate-400 font-bold block">Hostel Block</span>
-                <span className="font-extrabold text-purple-700">{selected.Block || "D"}</span>
+              <div className="p-3 bg-[#F9EFDE]/50 rounded-xl border border-[#E8D8C4]">
+                <span className="text-[10px] text-[#8B7355] font-bold block">Hostel Block</span>
+                <span className="font-extrabold text-[#B85228]">{selected.Block || "D"}</span>
               </div>
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                <span className="text-[10px] text-slate-400 font-bold block">Allocated Room</span>
-                <span className="font-extrabold text-slate-900">{selected.Roomno || "Unassigned"}</span>
+              <div className="p-3 bg-[#F9EFDE]/50 rounded-xl border border-[#E8D8C4]">
+                <span className="text-[10px] text-[#8B7355] font-bold block">Allocated Room</span>
+                <span className="font-extrabold text-[#2F2925]">{selected.Roomno || "Unassigned"}</span>
               </div>
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 col-span-2 flex items-center justify-between">
+              <div className="p-3 bg-[#F9EFDE]/50 rounded-xl border border-[#E8D8C4] col-span-2 flex items-center justify-between">
                 <div>
-                  <span className="text-[10px] text-slate-400 font-bold block">Resident Status</span>
-                  <span className="text-[11px] text-slate-500 font-medium">Hostel Residency State</span>
+                  <span className="text-[10px] text-[#8B7355] font-bold block">Resident Status</span>
+                  <span className="text-[11px] text-[#8B7355] font-medium">Hostel Residency State</span>
                 </div>
                 <span
                   className={`px-3 py-1 rounded-full text-xs font-extrabold ${
                     (selected.Status || "Active") === "Active"
                       ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
-                      : "bg-slate-100 text-slate-600 border border-slate-200"
+                      : "bg-[#FDF0DC] text-[#8B7355] border border-[#E8D8C4]"
                   }`}
                 >
                   {selected.Status || "Active"}
@@ -636,19 +636,19 @@ export default function Students() {
               </div>
             </div>
 
-            <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
+            <div className="pt-3 border-t border-[#E8D8C4]/60 flex justify-end gap-2">
               <button
                 onClick={() => {
                   setViewOpen(false);
                   openForm(selected);
                 }}
-                className="px-4 py-2 rounded-xl text-xs font-bold bg-purple-100 text-purple-700 hover:bg-purple-200 cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-[#FDF0DC] text-[#B85228] hover:bg-[#F5E8D4] border border-[#E8D8C4] cursor-pointer"
               >
                 Edit Student
               </button>
               <button
                 onClick={() => setViewOpen(false)}
-                className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-white text-[#5A4A3A] border border-[#E8D8C4] hover:bg-[#FDF0DC] cursor-pointer"
               >
                 Close
               </button>
