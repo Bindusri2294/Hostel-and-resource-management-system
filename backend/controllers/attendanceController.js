@@ -55,7 +55,7 @@ const getMyAttendance = async (req, res, next) => {
     const presentDays = records.filter((r) => r.status === "Present").length;
     const absentDays = records.filter((r) => r.status === "Absent").length;
     const leaveDays = records.filter((r) => r.status === "Leave").length;
-    const percentage = totalDays > 0 ? Math.round((presentDays / totalDays) * 100) : 100;
+    const percentage = totalDays > 0 ? Math.round((presentDays / totalDays) * 100) : 0;
 
     // Student summary
     res.status(200).json({
@@ -134,7 +134,7 @@ const saveDailyAttendance = async (req, res, next) => {
             date,
             student: rec.studentId,
             rollNo: (rec.rollNo || "").toUpperCase(),
-            status: rec.status || "Present",
+            status: rec.status || "Unmarked",
             remarks: rec.remarks || "",
             markedBy: req.user._id,
           },

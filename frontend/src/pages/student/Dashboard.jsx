@@ -117,7 +117,7 @@ export default function StudentDashboard({ data: propData, user: propUser }) {
   const room = myAllocation?.room || {};
   const roommates = myAllocation?.roommates || [];
   const attendanceSummary = myAttendance?.summary || {
-    percentage: 100,
+    percentage: 0,
     totalDays: 0,
     presentDays: 0,
     absentDays: 0,
@@ -170,18 +170,26 @@ export default function StudentDashboard({ data: propData, user: propUser }) {
               <h3 className="text-base font-extrabold text-slate-900">Hostel Attendance Overview</h3>
               <span
                 className={`px-2.5 py-0.5 rounded-full text-[11px] font-black ${
-                  attendanceSummary.percentage >= 75
+                  attendanceSummary.totalDays === 0
+                    ? "bg-slate-100 text-slate-600"
+                    : attendanceSummary.percentage >= 75
                     ? "bg-emerald-100 text-emerald-800"
                     : "bg-rose-100 text-rose-800"
                 }`}
               >
-                {attendanceSummary.percentage}% Rate
+                {attendanceSummary.totalDays === 0 ? "No Records Yet" : `${attendanceSummary.percentage}% Rate`}
               </span>
             </div>
             <p className="text-xs text-slate-500 mt-0.5">
-              Verified: <span className="font-bold text-slate-700">{attendanceSummary.presentDays} Days Present</span> ·{" "}
-              <span className="font-bold text-rose-600">{attendanceSummary.absentDays} Absent</span> ·{" "}
-              <span className="font-bold text-amber-600">{attendanceSummary.leaveDays} On Leave</span>
+              {attendanceSummary.totalDays === 0 ? (
+                "Attendance has not been recorded yet."
+              ) : (
+                <>
+                  Verified: <span className="font-bold text-slate-700">{attendanceSummary.presentDays} Days Present</span> ·{" "}
+                  <span className="font-bold text-rose-600">{attendanceSummary.absentDays} Absent</span> ·{" "}
+                  <span className="font-bold text-amber-600">{attendanceSummary.leaveDays} On Leave</span>
+                </>
+              )}
             </p>
           </div>
         </div>

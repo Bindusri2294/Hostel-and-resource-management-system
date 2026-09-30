@@ -105,7 +105,7 @@ export default function Attendance() {
         const mergedMap = {};
 
         students.forEach((s) => {
-          if (remoteMap[s._id] && remoteMap[s._id].status) {
+          if (remoteMap[s._id] && remoteMap[s._id].status && remoteMap[s._id].status !== "Unmarked") {
             mergedMap[s._id] = remoteMap[s._id].status;
           } else {
             mergedMap[s._id] = null; // Unmarked — admin must manually select
