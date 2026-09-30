@@ -35,6 +35,7 @@ export default function MyAttendance() {
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
   const [submittingLeave, setSubmittingLeave] = useState(false);
   const [leaveSuccessMsg, setLeaveSuccessMsg] = useState("");
+  const [leaveModalError, setLeaveModalError] = useState("");
 
   // Leave Form state
   const [leaveForm, setLeaveForm] = useState({
@@ -45,11 +46,33 @@ export default function MyAttendance() {
     parentContact: "",
   });
 
-  // Month navigation state: defaults to current month (e.g., "2026-09")
+  // Today's date string YYYY-MM-DD for validation and min attributes
   const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+  // Maximum allowable future date (up to 1 year ahead)
+  const maxDateObj = new Date();
+  maxDateObj.setFullYear(maxDateObj.getFullYear() + 1);
+  const maxDateStr = `${maxDateObj.getFullYear()}-${String(maxDateObj.getMonth() + 1).padStart(2, "0")}-${String(maxDateObj.getDate()).padStart(2, "0")}`;
+
+  const sanitizeDateInput = (val) => {
+    if (!val) return "";
+    const parts = val.split("-");
+    if (parts[0] && parts[0].length > 4) {
+      parts[0] = parts[0].slice(0, 4);
+      return parts.join("-");
+    }
+    return val;
+  };
+
+  // Month navigation state: defaults to current month (e.g., "2026-09")
   const currentMonthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
   const [selectedMonth, setSelectedMonth] = useState(currentMonthStr);
   const [selectedDateRecord, setSelectedDateRecord] = useState(null);
+
+  const openLeaveModal = () => {
+    setLeaveModalError("");
+    setIsLeaveModalOpen(true);
+  };
 
   const fetchAttendance = (month) => {
     setLoading(true);
@@ -103,11 +126,66 @@ export default function MyAttendance() {
   // Submit Leave Request
   const handleLeaveSubmit = async (e) => {
     e.preventDefault();
+    setLeaveModalError("");
+
+    // Date validations
+    if (!leaveForm.startDate || !leaveForm.endDate) {
+      setLeaveModalError("Please select both departure and return dates.");
+      return;
+    }
+
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(leaveForm.startDate) || !dateRegex.test(leaveForm.endDate)) {
+      setLeaveModalError("Please select a valid date in YYYY-MM-DD format with a 4-digit year.");
+      return;
+    }
+
+    const currentYear = today.getFullYear();
+    const startYear = parseInt(leaveForm.startDate.split("-")[0], 10);
+    const endYear = parseInt(leaveForm.endDate.split("-")[0], 10);
+
+    if (startYear < currentYear || startYear > currentYear + 1 || endYear < currentYear || endYear > currentYear + 1) {
+      setLeaveModalError(`Dates must be within the current or next academic year (${currentYear} - ${currentYear + 1}).`);
+      return;
+    }
+
+    if (leaveForm.startDate < todayStr) {
+      setLeaveModalError("Departure date cannot be in the past.");
+      return;
+    }
+
+    if (leaveForm.endDate < leaveForm.startDate) {
+      setLeaveModalError("Return date cannot be earlier than departure date.");
+      return;
+    }
+
+    if (leaveForm.startDate > maxDateStr || leaveForm.endDate > maxDateStr) {
+      setLeaveModalError("Leave cannot be applied more than 1 year in advance.");
+      return;
+    }
+
+    const startD = new Date(leaveForm.startDate);
+    const endD = new Date(leaveForm.endDate);
+    const diffDays = Math.ceil((endD - startD) / (1000 * 60 * 60 * 24));
+    if (diffDays > 90) {
+      setLeaveModalError("Hostel leave cannot exceed 90 days in a single application.");
+      return;
+    }
+
+    // Phone validation: must be exactly 10 digits starting with 6, 7, 8, or 9
+    const cleanPhone = leaveForm.parentContact.replace(/\D/g, "");
+    if (!/^[6-9]\d{9}$/.test(cleanPhone)) {
+      setLeaveModalError("Please enter a valid 10-digit mobile number starting with 6, 7, 8, or 9.");
+      return;
+    }
+
     setSubmittingLeave(true);
-    setError("");
 
     try {
-      await leaveService.apply(leaveForm);
+      await leaveService.apply({
+        ...leaveForm,
+        parentContact: cleanPhone,
+      });
       setLeaveSuccessMsg("Leave application sent to hostel warden for approval!");
       setIsLeaveModalOpen(false);
       setLeaveForm({
@@ -120,7 +198,7 @@ export default function MyAttendance() {
       fetchMyLeaves();
       setTimeout(() => setLeaveSuccessMsg(""), 5000);
     } catch (err) {
-      setError(getErrorMessage(err, "Failed to submit leave request."));
+      setLeaveModalError(getErrorMessage(err, "Failed to submit leave request."));
     } finally {
       setSubmittingLeave(false);
     }
@@ -170,7 +248,7 @@ export default function MyAttendance() {
         <div className="flex items-center gap-4 flex-wrap max-md:w-full max-md:flex-col">
           <button
             type="button"
-            onClick={() => setIsLeaveModalOpen(true)}
+            onClick={openLeaveModal}
             className="px-4 py-2.5 bg-white text-purple-900 hover:bg-purple-50 font-bold text-xs rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer max-md:w-full"
           >
             <PlusCircle className="w-4 h-4 text-purple-600" />
@@ -444,7 +522,7 @@ export default function MyAttendance() {
 
           <button
             type="button"
-            onClick={() => setIsLeaveModalOpen(true)}
+            onClick={openLeaveModal}
             className="w-full py-2.5 bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-200 rounded-xl font-bold text-xs flex items-center justify-center gap-2 cursor-pointer transition-colors"
           >
             <PlusCircle className="w-4 h-4 text-purple-600" />
@@ -636,11 +714,21 @@ export default function MyAttendance() {
             </div>
 
             <form onSubmit={handleLeaveSubmit} className="space-y-4">
+              {leaveModalError && (
+                <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-xs font-semibold flex items-center gap-2">
+                  <XCircle className="w-4 h-4 text-rose-500 shrink-0" />
+                  <span>{leaveModalError}</span>
+                </div>
+              )}
+
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">Leave Category *</label>
                 <select
                   value={leaveForm.leaveType}
-                  onChange={(e) => setLeaveForm({ ...leaveForm, leaveType: e.target.value })}
+                  onChange={(e) => {
+                    setLeaveModalError("");
+                    setLeaveForm({ ...leaveForm, leaveType: e.target.value });
+                  }}
                   className="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-800 bg-slate-50 focus:bg-white focus:border-purple-600 focus:outline-none cursor-pointer"
                 >
                   <option value="Home Visit">Home Visit</option>
@@ -658,8 +746,18 @@ export default function MyAttendance() {
                   <input
                     type="date"
                     required
+                    min={todayStr}
+                    max={maxDateStr}
                     value={leaveForm.startDate}
-                    onChange={(e) => setLeaveForm({ ...leaveForm, startDate: e.target.value })}
+                    onChange={(e) => {
+                      const newStart = sanitizeDateInput(e.target.value);
+                      setLeaveModalError("");
+                      setLeaveForm((prev) => ({
+                        ...prev,
+                        startDate: newStart,
+                        endDate: prev.endDate && prev.endDate < newStart ? newStart : prev.endDate,
+                      }));
+                    }}
                     className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 bg-slate-50 focus:bg-white focus:border-purple-600 focus:outline-none cursor-pointer"
                   />
                 </div>
@@ -668,8 +766,14 @@ export default function MyAttendance() {
                   <input
                     type="date"
                     required
+                    min={leaveForm.startDate || todayStr}
+                    max={maxDateStr}
                     value={leaveForm.endDate}
-                    onChange={(e) => setLeaveForm({ ...leaveForm, endDate: e.target.value })}
+                    onChange={(e) => {
+                      const newEnd = sanitizeDateInput(e.target.value);
+                      setLeaveModalError("");
+                      setLeaveForm((prev) => ({ ...prev, endDate: newEnd }));
+                    }}
                     className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 bg-slate-50 focus:bg-white focus:border-purple-600 focus:outline-none cursor-pointer"
                   />
                 </div>
@@ -681,12 +785,31 @@ export default function MyAttendance() {
                   <Phone className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
                     type="tel"
+                    inputMode="numeric"
+                    maxLength={10}
                     required
-                    placeholder="+91 ***** *****"
+                    placeholder="Enter number"
                     value={leaveForm.parentContact}
-                    onChange={(e) => setLeaveForm({ ...leaveForm, parentContact: e.target.value })}
+                    onChange={(e) => {
+                      const digits = e.target.value.replace(/\D/g, "").slice(0, 10);
+                      setLeaveModalError("");
+                      setLeaveForm((prev) => ({ ...prev, parentContact: digits }));
+                    }}
                     className="w-full border border-slate-300 rounded-xl pl-9 pr-3.5 py-2.5 text-xs font-medium text-slate-800 bg-slate-50 focus:bg-white focus:border-purple-600 focus:outline-none"
                   />
+                </div>
+                <div className="flex justify-between items-center mt-1 px-1">
+                  <span className="text-[10px] text-slate-400"></span>
+                  <span
+                    className={`text-[10px] font-bold ${leaveForm.parentContact.length === 10
+                      ? /^[6-9]/.test(leaveForm.parentContact)
+                        ? "text-emerald-600"
+                        : "text-amber-500"
+                      : "text-slate-400"
+                      }`}
+                  >
+                    {leaveForm.parentContact.length}/10
+                  </span>
                 </div>
               </div>
 
