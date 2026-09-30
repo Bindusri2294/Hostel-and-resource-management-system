@@ -70,6 +70,30 @@ export default function Layout() {
     };
   }, [user]);
 
+  const currentUserId = user?._id || user?.id;
+  const isNotificationRead = (notif) => {
+    if (!currentUserId || !notif.readBy) return false;
+    return notif.readBy.some((id) => String(id) === String(currentUserId));
+  };
+  const unreadCount = notifications.filter((n) => !isNotificationRead(n)).length;
+
+  const handleNotificationClick = async (notif) => {
+    if (!isNotificationRead(notif) && currentUserId) {
+      try {
+        await notificationService.markRead(notif._id);
+        setNotifications((prev) =>
+          prev.map((item) =>
+            item._id === notif._id
+              ? { ...item, readBy: [...(item.readBy || []), currentUserId] }
+              : item
+          )
+        );
+      } catch (err) {
+        console.error("Failed to mark notification as read:", err);
+      }
+    }
+  };
+
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -204,7 +228,7 @@ export default function Layout() {
                   style={{ color: "#5A4A3A" }}
                 >
                   <Bell className="w-4 h-4" />
-                  {notifications.length > 0 && (
+                  {unreadCount > 0 && (
                     <span
                       className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full"
                       style={{ background: "#EB8055" }}
@@ -219,28 +243,41 @@ export default function Layout() {
                   >
                     <div className="flex items-center justify-between border-b pb-2" style={{ borderColor: "#E8D8C4" }}>
                       <h4 className="text-xs font-bold" style={{ color: "#2F2925" }}>Campus Announcements</h4>
-                      <span
-                        className="text-[10px] px-2 py-0.5 rounded-full font-bold text-white"
-                        style={{ background: "#EB8055" }}
-                      >
-                        {notifications.length} {notifications.length === 1 ? "New" : "Total"}
-                      </span>
+                      {unreadCount > 0 && (
+                        <span
+                          className="text-[10px] px-2 py-0.5 rounded-full font-bold text-white transition-all"
+                          style={{ background: "#EB8055" }}
+                        >
+                          {unreadCount} New
+                        </span>
+                      )}
                     </div>
                     <div className="space-y-2 text-xs">
                       {notifications.length > 0 ? (
-                        notifications.map((notif) => (
-                          <div
-                            key={notif._id}
-                            className="p-2.5 rounded-lg transition-colors"
-                            style={{ background: "#FDF0DC", border: "1px solid #F3C694" }}
-                          >
-                            <p className="font-bold" style={{ color: "#2F2925" }}>{notif.title}</p>
-                            <p className="text-[11px] mt-0.5 whitespace-pre-wrap" style={{ color: "#5A4A3A" }}>{notif.message}</p>
-                            <small className="text-[10px] mt-1.5 block font-medium" style={{ color: "#8B7355" }}>
-                              {notif.createdAt ? new Date(notif.createdAt).toLocaleString() : "Recently"}
-                            </small>
-                          </div>
-                        ))
+                        notifications.map((notif) => {
+                          const isRead = isNotificationRead(notif);
+                          return (
+                            <div
+                              key={notif._id}
+                              onClick={() => handleNotificationClick(notif)}
+                              className="p-2.5 rounded-lg transition-all cursor-pointer"
+                              style={{
+                                background: isRead ? "#FFFFFF" : "#FDF0DC",
+                                border: isRead ? "1px solid #E8D8C4" : "1px solid #F3C694",
+                              }}
+                            >
+                              <p className={`text-xs ${isRead ? "font-semibold text-[#5A4A3A]" : "font-extrabold text-[#2F2925]"}`}>
+                                {notif.title}
+                              </p>
+                              <p className="text-[11px] mt-1 whitespace-pre-wrap leading-relaxed" style={{ color: "#5A4A3A" }}>
+                                {notif.message}
+                              </p>
+                              <small className="text-[10px] mt-2 block font-medium" style={{ color: "#8B7355" }}>
+                                {notif.createdAt ? new Date(notif.createdAt).toLocaleString() : "Recently"}
+                              </small>
+                            </div>
+                          );
+                        })
                       ) : (
                         <div className="p-4 text-center text-xs font-medium" style={{ color: "#8B7355" }}>
                           No announcements at this time.
