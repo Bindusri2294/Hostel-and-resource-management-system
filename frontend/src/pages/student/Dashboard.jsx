@@ -125,7 +125,7 @@ export default function StudentDashboard({ data: propData, user: propUser }) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 min-w-0 w-full">
       {/* Student Profile Hero Banner */}
       <div className="bg-gradient-to-r from-purple-700 via-indigo-700 to-purple-900 text-white rounded-3xl p-6 shadow-xl border border-purple-500/30 flex flex-wrap items-center justify-between gap-6 max-md:flex-col max-md:text-center">
         <div className="flex items-center gap-4 max-md:flex-col max-md:gap-2">

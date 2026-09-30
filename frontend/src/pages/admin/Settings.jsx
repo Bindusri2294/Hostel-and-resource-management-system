@@ -18,10 +18,10 @@ export default function Settings() {
   };
 
   return (
-    <div className="space-y-6 max-w-4xl">
-      <div className="bg-white p-6 rounded-2xl border border-purple-100/70 shadow-xs flex items-center justify-between">
+    <div className="space-y-6 max-w-4xl min-w-0 w-full">
+      <div className="bg-white p-4 sm:p-6 rounded-2xl border border-purple-100/70 shadow-xs flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-extrabold text-slate-900">Hostel System Settings</h2>
+          <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900">Hostel System Settings</h2>
           <p className="text-xs text-slate-500 mt-0.5">
             Configure hostel operational rules, notification triggers, and campus parameters.
           </p>
@@ -34,7 +34,7 @@ export default function Settings() {
         </div>
       )}
 
-      <form onSubmit={handleSave} className="bg-white p-6 rounded-2xl border border-purple-100/70 shadow-xs space-y-6 text-xs font-semibold">
+      <form onSubmit={handleSave} className="bg-white p-4 sm:p-6 rounded-2xl border border-purple-100/70 shadow-xs space-y-6 text-xs font-semibold min-w-0">
         <div className="space-y-4">
           <h3 className="text-sm font-extrabold text-slate-900 border-b border-slate-100 pb-2 flex items-center gap-2">
             <Building className="w-4 h-4 text-purple-600" /> General Info
