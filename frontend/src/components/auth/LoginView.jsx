@@ -24,7 +24,7 @@ import {
 
 import kietLogo from '../../assets/kiet_logo.webp';
 import kietCollege from '../../assets/kiet_college_login_photo.jpeg';
-import { authService } from '../../services/api';
+import { authService, getErrorMessage } from '../../services/api';
 import hostelRoom1 from '../../assets/hostel_room1.jpeg';
 import hostelRoom2 from '../../assets/hostel_room2.jpeg';
 import hostelRoom3 from '../../assets/hostel_room3.jpeg';
@@ -148,7 +148,7 @@ export default function LoginView() {
       await login(userId, loginPassword);
       navigate('/', { replace: true });
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+      setError(getErrorMessage(err, 'Login failed. Please check your credentials.'));
     } finally {
       setLoading(false);
     }

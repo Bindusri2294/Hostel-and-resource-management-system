@@ -83,7 +83,8 @@ const getAllocations = async (req, res, next) => {
     const allocations = await Allocation.find()
       .populate("studentId")
       .populate("roomId")
-      .sort({ allocatedDate: -1 });
+      .sort({ allocatedDate: -1 })
+      .lean();
 
     const formattedAllocations = allocations.map(formatAllocation);
 

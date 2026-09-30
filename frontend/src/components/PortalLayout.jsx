@@ -89,12 +89,17 @@ function LayoutInner() {
   }, [user?.role, notificationsOpen]);
 
   const handleNotificationClick = async (notification) => {
-    if (!notification.isRead) {
+    const isUnread = !notification.readBy?.includes(user?._id);
+    if (isUnread) {
       try {
         await notificationService.markRead(notification._id);
-        setNotifications((current) => current.map((item) =>
-          item._id === notification._id ? { ...item, isRead: true } : item
-        ));
+        setNotifications((current) =>
+          current.map((item) =>
+            item._id === notification._id
+              ? { ...item, readBy: [...(item.readBy || []), user?._id] }
+              : item
+          )
+        );
       } catch {
         return;
       }
@@ -103,7 +108,9 @@ function LayoutInner() {
     if (notification.relatedAction?.startsWith("/")) navigate(notification.relatedAction);
   };
 
-  const unreadNotificationCount = notifications.filter((item) => !item.isRead).length;
+  const unreadNotificationCount = notifications.filter(
+    (item) => !item.readBy?.includes(user?._id)
+  ).length;
   const today = new Date().toLocaleDateString("en-US", {
     weekday: "long",
     year: "numeric",
@@ -205,13 +212,36 @@ function LayoutInner() {
                   </div>
                   {user?.role === "Student" ? (
                     <div className="max-h-80 overflow-y-auto space-y-2 text-xs">
-                      {notificationError ? <p className="p-3 text-center text-[11px] text-rose-600">{notificationError}</p> : notifications.length ? notifications.map((notification) => (
-                        <button key={notification._id} type="button" onClick={() => handleNotificationClick(notification)} className={`w-full text-left p-2 rounded-xl border transition-colors ${notification.isRead ? "bg-white border-slate-100 hover:bg-slate-50" : "bg-purple-50/60 border-purple-100/50 hover:bg-purple-50"}`}>
-                          <p className="font-bold text-slate-800">{notification.notificationType}</p>
-                          <p className="text-slate-600 text-[11px] mt-0.5">{notification.message}</p>
-                          <small className="text-[10px] text-slate-400 mt-1 block">{new Date(notification.createdAt).toLocaleString()}</small>
-                        </button>
-                      )) : <p className="p-3 text-center text-[11px] text-slate-500">No notifications yet.</p>}
+                      {notificationError ? (
+                        <p className="p-3 text-center text-[11px] text-rose-600">{notificationError}</p>
+                      ) : notifications.length ? (
+                        notifications.map((notification) => {
+                          const isUnread = !notification.readBy?.includes(user?._id);
+                          return (
+                            <button
+                              key={notification._id}
+                              type="button"
+                              onClick={() => handleNotificationClick(notification)}
+                              className={`w-full text-left p-2 rounded-xl border transition-colors cursor-pointer ${
+                                isUnread
+                                  ? "bg-purple-50/60 border-purple-100/50 hover:bg-purple-50"
+                                  : "bg-white border-slate-100 hover:bg-slate-50"
+                              }`}
+                            >
+                              <p className="font-bold text-slate-800 flex items-center justify-between">
+                                <span>{notification.title || notification.notificationType || "Announcement"}</span>
+                                {isUnread && <span className="w-1.5 h-1.5 rounded-full bg-purple-600 shrink-0" />}
+                              </p>
+                              <p className="text-slate-600 text-[11px] mt-0.5">{notification.message}</p>
+                              <small className="text-[10px] text-slate-400 mt-1 block">
+                                {new Date(notification.createdAt).toLocaleDateString()}
+                              </small>
+                            </button>
+                          );
+                        })
+                      ) : (
+                        <p className="p-3 text-center text-[11px] text-slate-500">No notifications yet.</p>
+                      )}
                     </div>
                   ) : (
                     <div className="space-y-2 text-xs">
