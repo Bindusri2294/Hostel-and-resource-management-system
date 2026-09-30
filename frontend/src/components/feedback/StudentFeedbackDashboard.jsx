@@ -27,7 +27,7 @@ export default function StudentFeedbackDashboard() {
   // Form State derived strictly from authenticated student profile
   const [studentId, setStudentId] = useState(user?.student?.Rollno || '');
   const [roomNo, setRoomNo] = useState(user?.student?.Roomno || '');
-  const [block, setBlock] = useState(user?.student?.Campus || 'Block A');
+  const [block, setBlock] = useState(user?.student?.Block || 'Block A');
   const [category, setCategory] = useState('Overall Experience');
   const [message, setMessage] = useState('');
   const [rating, setRating] = useState(5);
@@ -59,7 +59,7 @@ export default function StudentFeedbackDashboard() {
     if (user?.student) {
       if (user.student.Rollno) setStudentId(user.student.Rollno);
       if (user.student.Roomno) setRoomNo(user.student.Roomno);
-      if (user.student.Campus) setBlock(user.student.Campus);
+      if (user.student.Block) setBlock(user.student.Block);
     }
   }, [user]);
 
@@ -120,7 +120,7 @@ export default function StudentFeedbackDashboard() {
 
     const activeStudentId = user?.student?.Rollno || studentId;
     const activeRoomNo = user?.student?.Roomno || roomNo;
-    const activeBlock = user?.student?.Campus || block || 'Block A';
+    const activeBlock = user?.student?.Block || block || 'Block A';
 
     if (!activeStudentId || !activeRoomNo || !message.trim()) {
       setFormError('Student details are incomplete or message is empty.');
@@ -290,7 +290,7 @@ export default function StudentFeedbackDashboard() {
                         type="text"
                         readOnly
                         disabled
-                        value={user?.student?.Campus || block || 'Block A'}
+                        value={user?.student?.Block || block || 'Block A'}
                         className="w-full border rounded-xl px-3.5 py-2.5 text-xs font-bold select-none bg-[#FDF0DC]/30 border-[#E8D8C4] text-[#8B7355]"
                       />
                     </div>

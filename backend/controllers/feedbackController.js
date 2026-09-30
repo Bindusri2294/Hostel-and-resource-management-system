@@ -14,7 +14,7 @@ const createFeedback = async (req, res, next) => {
     if (req.user && req.user.role === "Student" && req.user.student) {
       if (req.user.student?.Rollno) studentId = req.user.student.Rollno;
       if (req.user.student?.Roomno) RoomNo = req.user.student.Roomno;
-      if (req.user.student?.Campus) Block = req.user.student.Campus;
+      if (req.user.student?.Block) Block = req.user.student.Block;
     }
 
     if (!studentId) {
@@ -57,7 +57,7 @@ const createFeedback = async (req, res, next) => {
     const feedback = await Feedback.create({
       studentId: student.Rollno || String(studentId).trim().toUpperCase(),
       RoomNo: RoomNo || student.Roomno || "Unassigned",
-      Block: Block || student.Campus || "Main Campus",
+      Block: Block || student.Block || student.Campus || "Main Campus",
       category: category || "Overall Experience",
       message: message ? message.trim() : "",
       rating: Number(rating) || 5,
