@@ -30,9 +30,68 @@ const applyLeave = async (req, res, next) => {
       });
     }
 
+    // Validate phone number: only digits, 10 digits
+    let cleanPhone = String(parentContact).trim().replace(/\D/g, "");
+    if (cleanPhone.length === 12 && cleanPhone.startsWith("91")) {
+      cleanPhone = cleanPhone.slice(2);
+    }
+    if (!/^[6-9]\d{9}$/.test(cleanPhone)) {
+      return res.status(400).json({
+        message: "Please provide a valid 10-digit mobile number for parent contact (starts with 6, 7, 8, or 9).",
+      });
+    }
+
+    // Validate date format YYYY-MM-DD with strict 4-digit year
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(startDate) || !dateRegex.test(endDate)) {
+      return res.status(400).json({
+        message: "Invalid date format. Expected YYYY-MM-DD with a 4-digit year.",
+      });
+    }
+
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const startYear = parseInt(startDate.split("-")[0], 10);
+    const endYear = parseInt(endDate.split("-")[0], 10);
+
+    // Only allow current year or next year (no arbitrary years like 2006 or 222222)
+    if (startYear < currentYear || startYear > currentYear + 1 || endYear < currentYear || endYear > currentYear + 1) {
+      return res.status(400).json({
+        message: `Leave dates must be in the current or upcoming academic year (${currentYear} - ${currentYear + 1}).`,
+      });
+    }
+
+    // Validate start date is not in the past
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    if (startDate < todayStr) {
+      return res.status(400).json({
+        message: "Departure date cannot be in the past.",
+      });
+    }
+
     if (endDate < startDate) {
       return res.status(400).json({
         message: "End date cannot be earlier than start date.",
+      });
+    }
+
+    // Maximum 1 year in advance
+    const maxDate = new Date();
+    maxDate.setFullYear(maxDate.getFullYear() + 1);
+    const maxDateStr = `${maxDate.getFullYear()}-${String(maxDate.getMonth() + 1).padStart(2, "0")}-${String(maxDate.getDate()).padStart(2, "0")}`;
+    if (startDate > maxDateStr || endDate > maxDateStr) {
+      return res.status(400).json({
+        message: "Leave requests can only be submitted up to 1 year in advance.",
+      });
+    }
+
+    // Maximum 90 days duration for hostel leave
+    const startD = new Date(startDate);
+    const endD = new Date(endDate);
+    const diffDays = Math.ceil((endD - startD) / (1000 * 60 * 60 * 24));
+    if (diffDays > 90) {
+      return res.status(400).json({
+        message: "Hostel leave cannot exceed 90 days in a single application.",
       });
     }
 
@@ -60,7 +119,7 @@ const applyLeave = async (req, res, next) => {
       startDate,
       endDate,
       reason: reason.trim(),
-      parentContact: parentContact.trim(),
+      parentContact: cleanPhone,
       status: "Pending",
     });
 
