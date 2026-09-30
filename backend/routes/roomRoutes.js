@@ -8,11 +8,13 @@ const {
   deleteRoom,
   getRoomsByStatus,
   getRoomsStats,
+  syncRoomCounts,
 } = require("../controllers/roomController");
 
 const router = express.Router();
 
 router.post("/", protect, authorize("Admin"), createRoom);
+router.post("/sync", protect, authorize("Admin"), syncRoomCounts);
 router.get("/", protect, authorize("Admin", "Student"), getRooms);
 router.get("/stats", protect, authorize("Admin"), getRoomsStats);
 router.get("/status/:status", protect, authorize("Admin", "Student"), getRoomsByStatus);

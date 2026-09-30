@@ -148,7 +148,7 @@ export default function MyAttendance() {
     presentDays: 0,
     absentDays: 0,
     leaveDays: 0,
-    percentage: 100,
+    percentage: 0,
   };
 
   return (
@@ -180,7 +180,7 @@ export default function MyAttendance() {
           <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/20 max-md:w-full max-md:justify-center">
             <div className="text-right">
               <p className="text-[10px] text-purple-200 font-bold uppercase tracking-wider">Attendance Rate</p>
-              <p className="text-2xl font-black text-white">{summary.percentage}%</p>
+              <p className="text-2xl font-black text-white">{summary.totalDays === 0 ? "—" : `${summary.percentage}%`}</p>
             </div>
             <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
               <CalendarCheck2 className="w-5 h-5 text-white" />
