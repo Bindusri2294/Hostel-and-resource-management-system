@@ -17,7 +17,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Bell, Search, LogOut, ChevronDown, User, Settings, ShieldCheck, Home } from "lucide-react";
+import { Bell, LogOut, ChevronDown, User, Settings, ShieldCheck, Home } from "lucide-react";
 
 const getGreeting = () => {
   const hour = new Date().getHours();
@@ -191,26 +191,32 @@ function LayoutInner() {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-            <div className="hidden md:flex items-center gap-2 bg-slate-100/80 border border-slate-200/80 rounded-xl px-3 py-1.5 focus-within:border-purple-500 focus-within:bg-white transition-all">
-              <Search className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-              <input type="text" placeholder="Search portal..." className="bg-transparent text-xs text-slate-800 placeholder-slate-400 outline-none w-36 lg:w-48 font-medium" />
-            </div>
+            {user?.role !== "Admin" && (
+              <div className="relative" ref={notifRef}>
+                <button
+                  type="button"
+                  onClick={() => setNotificationsOpen((open) => !open)}
+                  className="relative p-2 rounded-xl hover:bg-purple-50 transition-colors text-slate-600 cursor-pointer"
+                  aria-label="Open notifications"
+                >
+                  <Bell className="w-4.5 h-4.5" />
+                  {unreadNotificationCount > 0 && (
+                    <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 bg-purple-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                      {unreadNotificationCount > 9 ? "9+" : unreadNotificationCount}
+                    </span>
+                  )}
+                </button>
 
-            <div className="relative" ref={notifRef}>
-              <button type="button" onClick={() => setNotificationsOpen((open) => !open)} className="relative p-2 rounded-xl hover:bg-purple-50 transition-colors text-slate-600 cursor-pointer" aria-label="Open notifications">
-                <Bell className="w-4.5 h-4.5" />
-                {user?.role === "Student" ? (unreadNotificationCount > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 bg-purple-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center">{unreadNotificationCount > 9 ? "9+" : unreadNotificationCount}</span>
-                )) : <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-purple-600 rounded-full animate-pulse" />}
-              </button>
-
-              {notificationsOpen && (
-                <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] max-w-xs sm:w-80 bg-white border border-purple-100 rounded-2xl shadow-xl z-50 p-3 space-y-2">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                    <h4 className="text-xs font-bold text-slate-900">{user?.role === "Student" ? "Notifications" : "Campus Announcements"}</h4>
-                    {user?.role === "Student" && unreadNotificationCount > 0 && <span className="text-[10px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-bold">{unreadNotificationCount} new</span>}
-                  </div>
-                  {user?.role === "Student" ? (
+                {notificationsOpen && (
+                  <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] max-w-xs sm:w-80 bg-white border border-purple-100 rounded-2xl shadow-xl z-50 p-3 space-y-2">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                      <h4 className="text-xs font-bold text-slate-900">Notifications</h4>
+                      {unreadNotificationCount > 0 && (
+                        <span className="text-[10px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-bold">
+                          {unreadNotificationCount} new
+                        </span>
+                      )}
+                    </div>
                     <div className="max-h-80 overflow-y-auto space-y-2 text-xs">
                       {notificationError ? (
                         <p className="p-3 text-center text-[11px] text-rose-600">{notificationError}</p>
@@ -243,15 +249,10 @@ function LayoutInner() {
                         <p className="p-3 text-center text-[11px] text-slate-500">No notifications yet.</p>
                       )}
                     </div>
-                  ) : (
-                    <div className="space-y-2 text-xs">
-                      <div className="p-2 rounded-xl bg-purple-50/60 border border-purple-100/50"><p className="font-bold text-slate-800">Mess Menu Update</p><p className="text-slate-600 text-[11px] mt-0.5">Special dinner menu scheduled for Friday.</p><small className="text-[10px] text-slate-400 mt-1 block">2 hours ago</small></div>
-                      <div className="p-2 rounded-xl bg-slate-50 border border-slate-100"><p className="font-bold text-slate-800">Room Inspection</p><p className="text-slate-600 text-[11px] mt-0.5">Routine cleanliness inspection on Saturday morning.</p><small className="text-[10px] text-slate-400 mt-1 block">1 day ago</small></div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="relative" ref={dropdownRef}>
               <button type="button" onClick={() => setUserDropdownOpen(!userDropdownOpen)} className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-purple-50 transition-colors cursor-pointer border border-slate-200/60">
