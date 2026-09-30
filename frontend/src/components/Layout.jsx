@@ -17,7 +17,6 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Bell,
-  Search,
   LogOut,
   ChevronDown,
   User,
@@ -192,67 +191,52 @@ export default function Layout() {
           </div>
 
           <div className="flex items-center gap-2.5 shrink-0">
-            {/* Search Bar */}
-            <div
-              className="hidden md:flex items-center gap-2 rounded-lg px-3 py-1.5 transition-all w-48 lg:w-64 focus-within:shadow-sm"
-              style={{
-                background: "#F9EFDE",
-                border: "1px solid #E8D8C4",
-              }}
-            >
-              <Search className="w-3.5 h-3.5 shrink-0" style={{ color: "#8B7355" }} />
-              <input
-                type="text"
-                placeholder={user?.role === "Admin" ? "Search students, rooms..." : "Search portal..."}
-                className="bg-transparent text-xs outline-none w-full font-medium"
-                style={{ color: "#2F2925" }}
-              />
-            </div>
-
-            {/* Notification Bell */}
-            <div className="relative" ref={notifRef}>
-              <button
-                type="button"
-                onClick={() => setNotificationsOpen(!notificationsOpen)}
-                className="relative p-2 rounded-lg transition-colors cursor-pointer hover:bg-[#FDF0DC]"
-                style={{ color: "#5A4A3A" }}
-              >
-                <Bell className="w-4 h-4" />
-                <span
-                  className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full"
-                  style={{ background: "#EB8055" }}
-                />
-              </button>
-
-              {notificationsOpen && (
-                <div
-                  className="absolute right-0 mt-2 w-72 sm:w-80 bg-white rounded-xl shadow-lg z-50 p-3 space-y-2"
-                  style={{ border: "1px solid #E8D8C4" }}
+            {/* Notification Bell (Residents only; Admin manages notifications from sidebar) */}
+            {user?.role !== "Admin" && (
+              <div className="relative" ref={notifRef}>
+                <button
+                  type="button"
+                  onClick={() => setNotificationsOpen(!notificationsOpen)}
+                  className="relative p-2 rounded-lg transition-colors cursor-pointer hover:bg-[#FDF0DC]"
+                  style={{ color: "#5A4A3A" }}
                 >
-                  <div className="flex items-center justify-between border-b pb-2" style={{ borderColor: "#E8D8C4" }}>
-                    <h4 className="text-xs font-bold" style={{ color: "#2F2925" }}>Campus Announcements</h4>
-                    <span
-                      className="text-[10px] px-2 py-0.5 rounded-full font-bold text-white"
-                      style={{ background: "#EB8055" }}
-                    >
-                      2 New
-                    </span>
-                  </div>
-                  <div className="space-y-2 text-xs">
-                    <div className="p-2 rounded-lg" style={{ background: "#FDF0DC", border: "1px solid #F3C694" }}>
-                      <p className="font-bold" style={{ color: "#2F2925" }}>Mess Menu Update</p>
-                      <p className="text-[11px] mt-0.5" style={{ color: "#5A4A3A" }}>Special dinner menu scheduled for Friday.</p>
-                      <small className="text-[10px] mt-1 block" style={{ color: "#8B7355" }}>2 hours ago</small>
+                  <Bell className="w-4 h-4" />
+                  <span
+                    className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full"
+                    style={{ background: "#EB8055" }}
+                  />
+                </button>
+
+                {notificationsOpen && (
+                  <div
+                    className="absolute right-0 mt-2 w-72 sm:w-80 bg-white rounded-xl shadow-lg z-50 p-3 space-y-2"
+                    style={{ border: "1px solid #E8D8C4" }}
+                  >
+                    <div className="flex items-center justify-between border-b pb-2" style={{ borderColor: "#E8D8C4" }}>
+                      <h4 className="text-xs font-bold" style={{ color: "#2F2925" }}>Campus Announcements</h4>
+                      <span
+                        className="text-[10px] px-2 py-0.5 rounded-full font-bold text-white"
+                        style={{ background: "#EB8055" }}
+                      >
+                        2 New
+                      </span>
                     </div>
-                    <div className="p-2 rounded-lg" style={{ background: "#F9EFDE", border: "1px solid #E8D8C4" }}>
-                      <p className="font-bold" style={{ color: "#2F2925" }}>Room Inspection</p>
-                      <p className="text-[11px] mt-0.5" style={{ color: "#5A4A3A" }}>Routine cleanliness inspection on Saturday morning.</p>
-                      <small className="text-[10px] mt-1 block" style={{ color: "#8B7355" }}>1 day ago</small>
+                    <div className="space-y-2 text-xs">
+                      <div className="p-2 rounded-lg" style={{ background: "#FDF0DC", border: "1px solid #F3C694" }}>
+                        <p className="font-bold" style={{ color: "#2F2925" }}>Mess Menu Update</p>
+                        <p className="text-[11px] mt-0.5" style={{ color: "#5A4A3A" }}>Special dinner menu scheduled for Friday.</p>
+                        <small className="text-[10px] mt-1 block" style={{ color: "#8B7355" }}>2 hours ago</small>
+                      </div>
+                      <div className="p-2 rounded-lg" style={{ background: "#F9EFDE", border: "1px solid #E8D8C4" }}>
+                        <p className="font-bold" style={{ color: "#2F2925" }}>Room Inspection</p>
+                        <p className="text-[11px] mt-0.5" style={{ color: "#5A4A3A" }}>Routine cleanliness inspection on Saturday morning.</p>
+                        <small className="text-[10px] mt-1 block" style={{ color: "#8B7355" }}>1 day ago</small>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
 
             {/* User Dropdown */}
             <div className="relative" ref={dropdownRef}>

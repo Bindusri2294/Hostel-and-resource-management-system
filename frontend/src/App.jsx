@@ -1,7 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
-import Layout from "./components/PortalLayout";
+import Layout from "./components/Layout";
 
 // Shared / Root pages
 import Login from "./pages/Login";

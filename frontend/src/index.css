@@ -102,7 +102,7 @@ body {
   --muted-foreground: #8B7355;
   --accent: #FDF0DC;
   --accent-foreground: #2F2925;
-  --destructive: oklch(0.577 0.245 27.325);
+  --destructive: #DC2626;
   --border: #E8D8C4;
   --input: #E8D8C4;
   --ring: #EB8055;
