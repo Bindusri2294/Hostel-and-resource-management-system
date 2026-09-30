@@ -113,21 +113,39 @@ async function importData() {
       console.log(`✓ Students in sheet: ${students.length}`);
       console.log(`✓ Rooms in sheet: ${rooms.length}`);
 
+      const studentsByRoom = new Map();
+      students.forEach((student) => {
+        const roomNo = String(student.Roomno).trim();
+        studentsByRoom.set(roomNo, (studentsByRoom.get(roomNo) || 0) + 1);
+      });
+
       // 1. Insert Rooms from current sheet
       const roomDocs = await Room.insertMany(
-        rooms.map((r) => ({
-          RoomNo: String(r.RoomNo).trim(),
-          Block: String(r.Block).trim(),
-          Floor: Number(r.Floor),
-          Capacity: Number(r.Capacity),
-          OccupiedCount: Number(r.OccupiedCount),
-          Status: String(r.Status).trim(),
-        }))
+        rooms.map((r) => {
+          const roomNo = String(r.RoomNo).trim();
+          const sourceBlock = String(r.Block).trim();
+          const block = sourceBlock === "Exective" ? "Executive" : sourceBlock;
+          const capacity = Number(r.Capacity);
+          const occupiedCount = block === "Executive"
+            ? studentsByRoom.get(roomNo) || 0
+            : Number(r.OccupiedCount);
+
+          return {
+            RoomNo: roomNo,
+            Block: block,
+            Floor: Number(r.Floor),
+            Capacity: capacity,
+            OccupiedCount: occupiedCount,
+            Status: block === "Executive"
+              ? occupiedCount >= capacity ? "Full" : "Available"
+              : String(r.Status).trim(),
+          };
+        })
       );
 
       // Map RoomNo -> Room Document _id for this specific sheet
       const sheetRoomMap = new Map();
-      roomDocs.forEach((r) => sheetRoomMap.set(r.RoomNo, r._id));
+      roomDocs.forEach((r) => sheetRoomMap.set(r.RoomNo, r));
       totalRoomsCount += roomDocs.length;
 
       // 2. Bulk Upsert Students from current sheet
@@ -142,6 +160,9 @@ async function importData() {
               Campus: String(s.Campus).trim(),
               Year: Number(s.Year),
               Roomno: String(s.Roomno).trim(),
+              ...(sheetRoomMap.has(String(s.Roomno).trim())
+                ? { Block: sheetRoomMap.get(String(s.Roomno).trim()).Block }
+                : {}),
             },
           },
           upsert: true,
@@ -164,7 +185,7 @@ async function importData() {
         const rollNo = String(s.Rollno).trim();
         const roomNo = String(s.Roomno).trim();
         const studentId = studentDocMap.get(rollNo);
-        const roomId = sheetRoomMap.get(roomNo);
+        const roomId = sheetRoomMap.get(roomNo)?._id;
 
         if (studentId && roomId) {
           allocationOps.push({

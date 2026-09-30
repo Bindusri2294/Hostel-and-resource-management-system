@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { notificationService } from "../services/api";
 import { adminNavItems, studentNavItems } from "../config/navigation";
 import {
   SidebarProvider,
@@ -15,7 +16,7 @@ import {
   SidebarInset,
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Bell, Search, LogOut, ChevronDown, User, Settings, ShieldCheck, Home } from "lucide-react";
+import { Bell, LogOut, ChevronDown, User, Settings, ShieldCheck, Home } from "lucide-react";
 
 const getGreeting = () => {
   const hour = new Date().getHours();
@@ -31,6 +32,8 @@ export default function Layout() {
 
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [notificationError, setNotificationError] = useState("");
   const dropdownRef = useRef(null);
   const notifRef = useRef(null);
 
@@ -57,6 +60,53 @@ export default function Layout() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (user?.role !== "Student") {
+      setNotifications([]);
+      return undefined;
+    }
+
+    let cancelled = false;
+    const loadNotifications = async () => {
+      try {
+        const response = await notificationService.list();
+        if (!cancelled) {
+          setNotifications(Array.isArray(response.data) ? response.data : []);
+          setNotificationError("");
+        }
+      } catch {
+        if (!cancelled) setNotificationError("Unable to load notifications. Please try again.");
+      }
+    };
+
+    loadNotifications();
+    const intervalId = window.setInterval(loadNotifications, 30000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, [user?.role, notificationsOpen]);
+
+  const handleNotificationClick = async (notification) => {
+    if (!notification.isRead) {
+      try {
+        await notificationService.markRead(notification._id);
+        setNotifications((current) =>
+          current.map((item) =>
+            item._id === notification._id ? { ...item, isRead: true } : item
+          )
+        );
+      } catch {
+      }
+    }
+    setNotificationsOpen(false);
+    if (notification.relatedAction?.startsWith("/")) {
+      navigate(notification.relatedAction);
+    }
+  };
+
+  const unreadNotificationCount = notifications.filter((item) => !item.isRead).length;
 
   const today = new Date().toLocaleDateString("en-US", {
     weekday: "long",
@@ -148,45 +198,77 @@ export default function Layout() {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Search Bar */}
-            <div className="hidden md:flex items-center gap-2 bg-slate-100/80 border border-slate-200/80 rounded-xl px-3 py-1.5 focus-within:border-purple-500 focus-within:bg-white transition-all">
-              <Search className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-              <input
-                type="text"
-                placeholder="Search portal..."
-                className="bg-transparent text-xs text-slate-800 placeholder-slate-400 outline-none w-36 lg:w-48 font-medium"
-              />
-            </div>
-
             {/* Notification Bell with Dropdown */}
             <div className="relative" ref={notifRef}>
               <button
                 type="button"
-                onClick={() => setNotificationsOpen(!notificationsOpen)}
+                onClick={() => setNotificationsOpen((open) => !open)}
                 className="relative p-2 rounded-xl hover:bg-purple-50 transition-colors text-slate-600 cursor-pointer"
+                aria-label="Open notifications"
               >
                 <Bell className="w-4.5 h-4.5" />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-purple-600 rounded-full animate-pulse" />
+                {user?.role === "Student" ? (
+                  unreadNotificationCount > 0 && (
+                    <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 bg-purple-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                      {unreadNotificationCount > 9 ? "9+" : unreadNotificationCount}
+                    </span>
+                  )
+                ) : (
+                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-purple-600 rounded-full animate-pulse" />
+                )}
               </button>
 
               {notificationsOpen && (
                 <div className="absolute right-0 mt-2 w-72 sm:w-80 bg-white border border-purple-100 rounded-2xl shadow-xl z-50 p-3 space-y-2">
                   <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                    <h4 className="text-xs font-bold text-slate-900">Campus Announcements</h4>
-                    <span className="text-[10px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-bold">2 New</span>
+                    <h4 className="text-xs font-bold text-slate-900">
+                      {user?.role === "Student" ? "Notifications" : "Campus Announcements"}
+                    </h4>
+                    {user?.role === "Student" && unreadNotificationCount > 0 && (
+                      <span className="text-[10px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-bold">
+                        {unreadNotificationCount} new
+                      </span>
+                    )}
                   </div>
-                  <div className="space-y-2 text-xs">
-                    <div className="p-2 rounded-xl bg-purple-50/60 border border-purple-100/50">
-                      <p className="font-bold text-slate-800">Mess Menu Update</p>
-                      <p className="text-slate-600 text-[11px] mt-0.5">Special dinner menu scheduled for Friday.</p>
-                      <small className="text-[10px] text-slate-400 mt-1 block">2 hours ago</small>
+                  {user?.role === "Student" ? (
+                    <div className="max-h-80 overflow-y-auto space-y-2 text-xs">
+                      {notificationError ? (
+                        <p className="p-3 text-center text-[11px] text-rose-600">{notificationError}</p>
+                      ) : notifications.length ? notifications.map((notification) => (
+                        <button
+                          key={notification._id}
+                          type="button"
+                          onClick={() => handleNotificationClick(notification)}
+                          className={`w-full text-left p-2 rounded-xl border transition-colors ${
+                            notification.isRead
+                              ? "bg-white border-slate-100 hover:bg-slate-50"
+                              : "bg-purple-50/60 border-purple-100/50 hover:bg-purple-50"
+                          }`}
+                        >
+                          <p className="font-bold text-slate-800">{notification.notificationType}</p>
+                          <p className="text-slate-600 text-[11px] mt-0.5">{notification.message}</p>
+                          <small className="text-[10px] text-slate-400 mt-1 block">
+                            {new Date(notification.createdAt).toLocaleString()}
+                          </small>
+                        </button>
+                      )) : (
+                        <p className="p-3 text-center text-[11px] text-slate-500">No notifications yet.</p>
+                      )}
                     </div>
-                    <div className="p-2 rounded-xl bg-slate-50 border border-slate-100">
-                      <p className="font-bold text-slate-800">Room Inspection</p>
-                      <p className="text-slate-600 text-[11px] mt-0.5">Routine cleanliness inspection on Saturday morning.</p>
-                      <small className="text-[10px] text-slate-400 mt-1 block">1 day ago</small>
+                  ) : (
+                    <div className="space-y-2 text-xs">
+                      <div className="p-2 rounded-xl bg-purple-50/60 border border-purple-100/50">
+                        <p className="font-bold text-slate-800">Mess Menu Update</p>
+                        <p className="text-slate-600 text-[11px] mt-0.5">Special dinner menu scheduled for Friday.</p>
+                        <small className="text-[10px] text-slate-400 mt-1 block">2 hours ago</small>
+                      </div>
+                      <div className="p-2 rounded-xl bg-slate-50 border border-slate-100">
+                        <p className="font-bold text-slate-800">Room Inspection</p>
+                        <p className="text-slate-600 text-[11px] mt-0.5">Routine cleanliness inspection on Saturday morning.</p>
+                        <small className="text-[10px] text-slate-400 mt-1 block">1 day ago</small>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               )}
             </div>

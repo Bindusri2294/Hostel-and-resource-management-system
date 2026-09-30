@@ -138,6 +138,11 @@ export const leaveService = {
   updateStatus: (id, payload) => api.put(`/leave/${id}/status`, payload),
 };
 
+export const notificationService = {
+  list: () => api.get("/notifications"),
+  markRead: (id) => api.patch(`/notifications/${id}/read`),
+};
+
 export const getErrorMessage = (error, fallback = "Something went wrong") =>
   error.response?.data?.message || (error.code === "ERR_NETWORK" ? "The server is unavailable. Check that the backend is running." : fallback);
 

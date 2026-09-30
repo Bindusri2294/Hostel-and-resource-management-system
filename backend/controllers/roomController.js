@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Room = require("../models/Room");
+const Allocation = require("../models/Allocation");
 
 // Create a new room
 const createRoom = async (req, res, next) => {
@@ -42,7 +43,36 @@ const createRoom = async (req, res, next) => {
 const getRooms = async (req, res, next) => {
     try {
         const rooms = await Room.find().sort({ Block: 1, Floor: 1, RoomNo: 1 });
-        res.status(200).json(rooms);
+        const executiveRooms = rooms.filter((room) => room.Block === "Executive");
+        const allocations = executiveRooms.length
+            ? await Allocation.find({
+                roomId: { $in: executiveRooms.map((room) => room._id) },
+                status: "Active",
+            }).populate("studentId", "Name Rollno Course").lean()
+            : [];
+        const allocationsByRoom = new Map();
+
+        allocations.forEach((allocation) => {
+            const roomId = String(allocation.roomId);
+            const roomAllocations = allocationsByRoom.get(roomId) || [];
+            roomAllocations.push(allocation);
+            allocationsByRoom.set(roomId, roomAllocations);
+        });
+
+        res.status(200).json(rooms.map((room) => {
+            if (room.Block !== "Executive") {
+                return room;
+            }
+
+            const roomAllocations = allocationsByRoom.get(String(room._id)) || [];
+            return {
+                ...room.toObject(),
+                OccupiedCount: roomAllocations.length,
+                AllocatedStudents: roomAllocations
+                    .filter((allocation) => allocation.studentId)
+                    .map((allocation) => allocation.studentId),
+            };
+        }));
     } catch (error) {
         next(error);
     }

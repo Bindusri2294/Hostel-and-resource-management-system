@@ -6,13 +6,13 @@ const {
   markAllNotificationsRead,
   deleteNotification,
 } = require("../controllers/notificationController");
-const { protect, admin } = require("../middleware/authMiddleware");
+const { protect, authorize } = require("../middleware/authMiddleware");
 
 const router = express.Router();
-router.post("/", protect, admin, createNotification);
-router.get("/", protect, getNotifications);
-router.patch("/:id/read", protect, markNotificationRead);
-router.patch("/read-all", protect, markAllNotificationsRead);
-router.delete("/:id", protect, deleteNotification);
+router.post("/", protect, authorize("Admin"), createNotification);
+router.get("/", protect, authorize("Student"), getNotifications);
+router.patch("/:id/read", protect, authorize("Student"), markNotificationRead);
+router.patch("/read-all", protect, authorize("Student"), markAllNotificationsRead);
+router.delete("/:id", protect, authorize("Student"), deleteNotification);
 
 module.exports = router;

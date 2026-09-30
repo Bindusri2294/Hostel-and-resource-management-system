@@ -177,7 +177,7 @@ export default function RoomInfo() {
           {filteredRooms.map((room) => {
             const occupied = Number(room.OccupiedCount || 0);
             const capacity = Number(room.Capacity || 1);
-            const availableBeds = Math.max(0, capacity - occupied);
+            const availableBeds = capacity - occupied;
             const statusBadge = getCalculatedStatus(occupied, capacity);
 
             return (
@@ -248,7 +248,7 @@ export default function RoomInfo() {
       {/* Room Details Modal */}
       {detailsOpen && selected && (
         <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden space-y-4 p-6">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[85vh] overflow-y-auto space-y-4 p-6">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
                 <span className="text-[10px] font-bold text-purple-600 uppercase tracking-wider">
@@ -264,21 +264,35 @@ export default function RoomInfo() {
               </button>
             </div>
 
-            <div className="grid grid-cols-3 gap-3 text-xs text-center font-semibold">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs text-center font-semibold">
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                <span className="text-slate-400 text-[10px] block font-bold">Room Number</span>
+                <strong className="text-slate-900 font-extrabold">{selected.RoomNo}</strong>
+              </div>
               <div className="p-3 bg-purple-50 rounded-xl border border-purple-100">
-                <span className="text-slate-400 text-[10px] block font-bold">Block / Floor</span>
+                <span className="text-slate-400 text-[10px] block font-bold">Block</span>
                 <strong className="text-purple-900 font-extrabold">
-                  {selected.Block === "Executive" ? "Executive Block" : `Block ${selected.Block}`} · Floor {selected.Floor}
+                  {selected.Block === "Executive" ? "Executive Block" : `Block ${selected.Block}`}
                 </strong>
               </div>
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                <span className="text-slate-400 text-[10px] block font-bold">Total Beds</span>
+                <span className="text-slate-400 text-[10px] block font-bold">Floor</span>
+                <strong className="text-slate-900 font-extrabold">{selected.Floor}</strong>
+              </div>
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                <span className="text-slate-400 text-[10px] block font-bold">Capacity</span>
                 <strong className="text-slate-900 font-extrabold">{selected.Capacity}</strong>
               </div>
+              <div className="p-3 bg-purple-50 rounded-xl border border-purple-100">
+                <span className="text-slate-400 text-[10px] block font-bold">Occupied</span>
+                <strong className="text-purple-900 font-extrabold">
+                  {Number(selected.OccupiedCount || 0)}
+                </strong>
+              </div>
               <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-100">
-                <span className="text-slate-400 text-[10px] block font-bold">Available Beds</span>
+                <span className="text-slate-400 text-[10px] block font-bold">Available</span>
                 <strong className="text-emerald-900 font-extrabold">
-                  {Math.max(0, (selected.Capacity || 0) - (selected.OccupiedCount || 0))}
+                  {Number(selected.Capacity || 0) - Number(selected.OccupiedCount || 0)}
                 </strong>
               </div>
             </div>
@@ -309,6 +323,34 @@ export default function RoomInfo() {
                 </span>
               </div>
             </div>
+
+            {selected.Block === "Executive" && (
+              <div>
+                <h4 className="text-xs font-extrabold text-slate-800 mb-2">Allocated Students</h4>
+                {selected.AllocatedStudents?.length ? (
+                  <div className="space-y-2">
+                    {selected.AllocatedStudents.map((student, index) => (
+                      <div
+                        key={student.Rollno || index}
+                        className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between gap-3 text-xs"
+                      >
+                        <div>
+                          <p className="font-bold text-slate-900">{student.Name}</p>
+                          <p className="text-[10px] text-slate-500">{student.Course}</p>
+                        </div>
+                        <span className="text-[11px] font-semibold text-slate-600 bg-white px-2 py-0.5 rounded-md border border-slate-200">
+                          {student.Rollno}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-400 italic py-4 text-center">
+                    No active student allocations currently assigned to this room.
+                  </p>
+                )}
+              </div>
+            )}
 
             <div className="pt-3 border-t border-slate-100 flex justify-end">
               <button

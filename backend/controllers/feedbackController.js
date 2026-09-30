@@ -1,5 +1,8 @@
 const Feedback = require("../models/Feedback");
 const Student = require("../models/student");
+const Notification = require("../models/Notification");
+
+const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 // Create feedback
 const createFeedback = async (req, res, next) => {
@@ -125,17 +128,37 @@ const updateFeedback = async (req, res, next) => {
       return res.status(400).json({ message: "Status field is required for update" });
     }
 
-    const feedback = await Feedback.findByIdAndUpdate(
-      req.params.id,
-      { status },
-      {
-        returnDocument: "after",
-        runValidators: true,
-      }
-    );
+    const feedback = await Feedback.findById(req.params.id);
     if (!feedback) {
       return res.status(404).json({ message: "Feedback not found" });
     }
+
+    const statusChanged = feedback.status !== status;
+    let student;
+    if (statusChanged) {
+      const rollNumber = String(feedback.studentId || "").trim();
+      student = await Student.findOne({
+        Rollno: { $regex: `^${escapeRegex(rollNumber)}$`, $options: "i" },
+      });
+      if (!student) {
+        return res.status(404).json({
+          message: `Student ${feedback.studentId} could not be found; feedback status was not changed`,
+        });
+      }
+    }
+
+    feedback.status = status;
+    await feedback.save();
+
+    if (student) {
+      await Notification.create({
+        studentId: student._id,
+        message: `Your feedback "${feedback.message}" is now marked as ${status}.`,
+        notificationType: "Feedback Update",
+        relatedAction: "/feedback",
+      });
+    }
+
     res.status(200).json(feedback);
   } catch (error) {
     next(error);
