@@ -152,7 +152,7 @@ export default function MyAttendance() {
   };
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
+    <div className="space-y-6 max-w-6xl mx-auto w-full min-w-0">
       {/* 1. Header Banner */}
       <div className="bg-gradient-to-r from-purple-800 via-indigo-800 to-purple-900 text-white p-6 sm:p-8 rounded-3xl shadow-xl flex flex-wrap items-center justify-between gap-6 max-md:flex-col max-md:text-center">
         <div>
@@ -249,10 +249,10 @@ export default function MyAttendance() {
       {/* 3. Monthly Attendance Calendar & Day Inspector */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Calendar Grid (2 cols) */}
-        <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-purple-100/70 shadow-xs space-y-4">
+        <div className="lg:col-span-2 bg-white p-4 sm:p-6 rounded-2xl border border-purple-100/70 shadow-xs space-y-4 min-w-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <CalendarIcon className="w-5 h-5 text-purple-600" />
+              <CalendarIcon className="w-5 h-5 text-purple-600 shrink-0" />
               <h3 className="text-base font-extrabold text-slate-900">{monthLabel}</h3>
             </div>
             <div className="flex items-center gap-1.5">
@@ -282,78 +282,82 @@ export default function MyAttendance() {
             </div>
           </div>
 
-          {/* Calendar Day Labels */}
-          <div className="grid grid-cols-7 gap-1.5 text-center text-[11px] font-bold text-slate-400 uppercase py-1 border-b border-slate-100">
-            <span>Sun</span>
-            <span>Mon</span>
-            <span>Tue</span>
-            <span>Wed</span>
-            <span>Thu</span>
-            <span>Fri</span>
-            <span>Sat</span>
-          </div>
+          <div className="overflow-x-auto">
+            <div className="min-w-[500px] space-y-2">
+              {/* Calendar Day Labels */}
+              <div className="grid grid-cols-7 gap-1.5 text-center text-[11px] font-bold text-slate-400 uppercase py-1 border-b border-slate-100">
+                <span>Sun</span>
+                <span>Mon</span>
+                <span>Tue</span>
+                <span>Wed</span>
+                <span>Thu</span>
+                <span>Fri</span>
+                <span>Sat</span>
+              </div>
 
-          {/* Days Matrix */}
-          <div className="grid grid-cols-7 gap-1.5">
-            {/* Empty slots before first day */}
-            {Array.from({ length: firstDayOfWeek }).map((_, i) => (
-              <div key={`empty-${i}`} className="h-14 rounded-xl bg-slate-50/50" />
-            ))}
+              {/* Days Matrix */}
+              <div className="grid grid-cols-7 gap-1.5">
+                {/* Empty slots before first day */}
+                {Array.from({ length: firstDayOfWeek }).map((_, i) => (
+                  <div key={`empty-${i}`} className="h-14 rounded-xl bg-slate-50/50" />
+                ))}
 
-            {/* Days of the month */}
-            {Array.from({ length: daysInMonth }).map((_, i) => {
-              const dayNum = i + 1;
-              const dateStr = `${selectedMonth}-${String(dayNum).padStart(2, "0")}`;
-              const record = recordsMap[dateStr];
-              const isToday =
-                today.getFullYear() === currentYear &&
-                today.getMonth() + 1 === currentMonthNum &&
-                today.getDate() === dayNum;
-              const isSelected = selectedDateRecord?.date === dateStr;
+                {/* Days of the month */}
+                {Array.from({ length: daysInMonth }).map((_, i) => {
+                  const dayNum = i + 1;
+                  const dateStr = `${selectedMonth}-${String(dayNum).padStart(2, "0")}`;
+                  const record = recordsMap[dateStr];
+                  const isToday =
+                    today.getFullYear() === currentYear &&
+                    today.getMonth() + 1 === currentMonthNum &&
+                    today.getDate() === dayNum;
+                  const isSelected = selectedDateRecord?.date === dateStr;
 
-              let statusBg = "bg-slate-50 text-slate-600 hover:bg-slate-100";
-              let statusDot = null;
+                  let statusBg = "bg-slate-50 text-slate-600 hover:bg-slate-100";
+                  let statusDot = null;
 
-              if (record) {
-                if (record.status === "Present") {
-                  statusBg = "bg-emerald-50 text-emerald-900 border border-emerald-200 hover:bg-emerald-100";
-                  statusDot = <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>;
-                } else if (record.status === "Absent") {
-                  statusBg = "bg-rose-50 text-rose-900 border border-rose-200 hover:bg-rose-100";
-                  statusDot = <span className="w-2 h-2 rounded-full bg-rose-500 inline-block"></span>;
-                } else if (record.status === "Leave") {
-                  statusBg = "bg-amber-50 text-amber-900 border border-amber-200 hover:bg-amber-100";
-                  statusDot = <span className="w-2 h-2 rounded-full bg-amber-500 inline-block"></span>;
-                }
-              }
+                  if (record) {
+                    if (record.status === "Present") {
+                      statusBg = "bg-emerald-50 text-emerald-900 border border-emerald-200 hover:bg-emerald-100";
+                      statusDot = <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>;
+                    } else if (record.status === "Absent") {
+                      statusBg = "bg-rose-50 text-rose-900 border border-rose-200 hover:bg-rose-100";
+                      statusDot = <span className="w-2 h-2 rounded-full bg-rose-500 inline-block"></span>;
+                    } else if (record.status === "Leave") {
+                      statusBg = "bg-amber-50 text-amber-900 border border-amber-200 hover:bg-amber-100";
+                      statusDot = <span className="w-2 h-2 rounded-full bg-amber-500 inline-block"></span>;
+                    }
+                  }
 
-              return (
-                <button
-                  key={dateStr}
-                  type="button"
-                  onClick={() => setSelectedDateRecord(record ? { ...record, dayNum } : { date: dateStr, dayNum, status: "Not Logged" })}
-                  className={`h-14 p-1.5 rounded-xl text-left flex flex-col justify-between transition-all cursor-pointer ${statusBg} ${isSelected ? "ring-2 ring-purple-600 shadow-md font-bold" : ""
-                    } ${isToday ? "border-2 border-purple-500" : ""}`}
-                >
-                  <div className="flex items-center justify-between w-full">
-                    <span className={`text-xs font-bold ${isToday ? "text-purple-700" : ""}`}>
-                      {dayNum}
-                    </span>
-                    {isToday && (
-                      <span className="text-[9px] font-black uppercase text-purple-600 bg-purple-100 px-1 rounded">
-                        Today
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center justify-between mt-auto">
-                    {statusDot}
-                    <span className="text-[10px] font-bold capitalize">
-                      {record ? record.status : "—"}
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
+                  return (
+                    <button
+                      key={dateStr}
+                      type="button"
+                      onClick={() => setSelectedDateRecord(record ? { ...record, dayNum } : { date: dateStr, dayNum, status: "Not Logged" })}
+                      className={`h-14 p-1.5 rounded-xl text-left flex flex-col justify-between transition-all cursor-pointer ${statusBg} ${isSelected ? "ring-2 ring-purple-600 shadow-md font-bold" : ""
+                        } ${isToday ? "border-2 border-purple-500" : ""}`}
+                    >
+                      <div className="flex items-center justify-between w-full">
+                        <span className={`text-xs font-bold ${isToday ? "text-purple-700" : ""}`}>
+                          {dayNum}
+                        </span>
+                        {isToday && (
+                          <span className="text-[9px] font-black uppercase text-purple-600 bg-purple-100 px-1 rounded">
+                            Today
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center justify-between mt-auto">
+                        {statusDot}
+                        <span className="text-[10px] font-bold capitalize">
+                          {record ? record.status : "—"}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
 
           {/* Calendar Legend */}
@@ -610,8 +614,8 @@ export default function MyAttendance() {
 
       {/* 6. Apply Leave Modal */}
       {isLeaveModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl border border-purple-100 space-y-5 animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
+          <div className="bg-white rounded-3xl p-5 sm:p-8 max-w-[calc(100vw-2rem)] sm:max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-purple-100 space-y-5 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">

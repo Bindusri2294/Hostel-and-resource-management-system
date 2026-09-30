@@ -34,7 +34,7 @@ export default function MyAllocation() {
   const roommates = allocation?.roommates || [];
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="space-y-6 max-w-4xl min-w-0 w-full">
       <div className="bg-white p-6 rounded-2xl border border-purple-100/70 shadow-xs flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-extrabold text-slate-900">My Room Allocation</h2>
