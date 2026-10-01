@@ -106,6 +106,26 @@ const getRoomById = async (req, res, next) => {
         if (!room) {
             return res.status(404).json({ message: "Room not found" });
         }
+
+        if (room.Block === "Executive") {
+            const activeAllocationFilter = { roomId: room._id, status: "Active" };
+            const [occupiedCount, allocations] = await Promise.all([
+                Allocation.countDocuments(activeAllocationFilter),
+                Allocation.find(activeAllocationFilter)
+                    .populate("studentId", "Name Rollno Course")
+                    .lean(),
+            ]);
+
+            return res.status(200).json({
+                ...room.toObject(),
+                OccupiedCount: occupiedCount,
+                Status: occupiedCount >= room.Capacity ? "Full" : "Available",
+                AllocatedStudents: allocations
+                    .filter((allocation) => allocation.studentId)
+                    .map((allocation) => allocation.studentId),
+            });
+        }
+
         res.status(200).json(room);
     } catch (error) {
         next(error);
