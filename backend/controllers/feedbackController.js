@@ -1,6 +1,8 @@
 const Feedback = require("../models/Feedback");
 const Student = require("../models/student");
 const Notification = require("../models/Notification");
+const { PutObjectCommand } = require("@aws-sdk/client-s3");
+const s3Client = require("../config/r2");
 
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
@@ -33,25 +35,20 @@ const createFeedback = async (req, res, next) => {
     let imageUrl = null;
     
     if (req.file) {
-      const db = mongoose.connection.db;
-      const bucket = new mongoose.mongo.GridFSBucket(db, {
-        bucketName: "feedbackImages",
-      });
-
       const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-      const filename = `feedback-${uniqueSuffix}-${req.file.originalname}`;
+      const filename = `feedback-${uniqueSuffix}-${req.file.originalname.replace(/\s+/g, '-')}`;
 
-      const uploadStream = bucket.openUploadStream(filename, {
-        contentType: req.file.mimetype,
-      });
+      await s3Client.send(
+        new PutObjectCommand({
+          Bucket: process.env.R2_BUCKET_NAME,
+          Key: filename,
+          Body: req.file.buffer,
+          ContentType: req.file.mimetype,
+          CacheControl: "public, max-age=604800",
+        })
+      );
 
-      await new Promise((resolve, reject) => {
-        uploadStream.on("error", reject);
-        uploadStream.on("finish", resolve);
-        uploadStream.end(req.file.buffer);
-      });
-
-      imageUrl = `/api/images/${filename}`;
+      imageUrl = `${process.env.R2_PUBLIC_URL}/${filename}`;
     }
 
     const feedback = await Feedback.create({
