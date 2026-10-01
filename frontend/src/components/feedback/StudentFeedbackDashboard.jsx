@@ -1,26 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { useTheme } from '../../context/ThemeContext';
 import { feedbackService } from '../../services/feedbackService';
 import {
   MessageSquarePlus,
   History,
   Star,
   Send,
-  LogOut,
-  UserCheck,
-  Building,
   CheckCircle2,
   Clock,
   RefreshCw,
-  Sparkles, Lock,
+  Sparkles,
   UploadCloud,
-  ImageIcon,
   X
 } from 'lucide-react';
 
 export default function StudentFeedbackDashboard() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
   const [activeTab, setActiveTab] = useState('submit'); // 'submit' | 'my-feedbacks'
 
@@ -192,12 +187,8 @@ export default function StudentFeedbackDashboard() {
   };
 
   return (
-    <div className={`min-h-screen flex flex-col transition-colors duration-200 bg-slate-50 text-slate-900`}>
-
-
-      {/* Main Container */}
-      <main className="flex-1 max-w-6xl w-full mx-auto p-4 md:p-6 space-y-6">
-        {/* Navigation Tabs */}
+    <div className="space-y-6 max-w-6xl mx-auto">
+      {/* Navigation Tabs */}
         <div className="flex border-b gap-4 border-[#E8D8C4]">
           <button
             onClick={() => setActiveTab('submit')}
@@ -224,9 +215,7 @@ export default function StudentFeedbackDashboard() {
 
         {/* TAB 1: SUBMIT FEEDBACK */}
         {activeTab === 'submit' && (
-          <div className="grid md:grid-cols-3 gap-6">
-            {/* Form */}
-            <div className="md:col-span-2 border rounded-2xl p-6 shadow-xs bg-white border-[#E8D8C4]">
+          <div className="border rounded-2xl p-6 shadow-xs bg-white border-[#E8D8C4]">
               <div className="mb-6">
                 <h2 className="text-lg font-bold flex items-center gap-2 text-[#2F2925]">
                   <Sparkles className="w-5 h-5 text-[#EB8055]" /> Express Your Feedback
@@ -409,33 +398,6 @@ export default function StudentFeedbackDashboard() {
                   )}
                 </button>
               </form>
-            </div>
-
-            {/* Sidebar Student Profile Card */}
-            <div className="space-y-4">
-              <div className="border rounded-2xl p-5 shadow-xs bg-white border-[#E8D8C4]">
-                <h3 className="text-xs font-bold uppercase tracking-wider mb-3 flex items-center gap-1.5 text-[#2F2925]">
-                  <UserCheck className="w-4 h-4 text-[#EB8055]" /> Student Account Profile
-                </h3>
-
-                <div className="space-y-2 text-xs">
-                  <div className="p-2.5 rounded-lg border bg-[#FDF0DC]/30 border-[#E8D8C4]">
-                    <span className="block text-[10px] text-[#8B7355]">Name</span>
-                    <span className="font-bold text-[#2F2925]">{user?.name || 'Student'}</span>
-                  </div>
-                  <div className="p-2.5 rounded-lg border bg-[#FDF0DC]/30 border-[#E8D8C4]">
-                    <span className="block text-[10px] text-[#8B7355]">Roll Number</span>
-                    <span className="font-bold text-[#EB8055]">{user?.student?.Rollno || studentId || 'N/A'}</span>
-                  </div>
-                  <div className="p-2.5 rounded-lg border bg-[#FDF0DC]/30 border-[#E8D8C4]">
-                    <span className="block text-[10px] text-[#8B7355]">Room & Hostel</span>
-                    <span className="font-bold text-emerald-700">
-                      {user?.student?.Roomno ? `Room ${user.student.Roomno}` : roomNo ? `Room ${roomNo}` : 'General'} ({user?.student?.Campus || 'Main Campus'})
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         )}
 
@@ -534,7 +496,6 @@ export default function StudentFeedbackDashboard() {
             )}
           </div>
         )}
-      </main>
 
       {/* IMAGE LIGHTBOX MODAL */}
       {lightboxImage && (

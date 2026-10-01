@@ -30,7 +30,13 @@ const applyLeave = async (req, res, next) => {
       });
     }
 
-    // Validate phone number: only digits, 10 digits
+    // Validate phone number: no letters, exactly 10 digits starting with 6-9
+    if (/[a-zA-Z]/.test(parentContact)) {
+      return res.status(400).json({
+        message: "Phone number cannot contain letters. Please enter a valid 10-digit mobile number.",
+      });
+    }
+
     let cleanPhone = String(parentContact).trim().replace(/\D/g, "");
     if (cleanPhone.length === 12 && cleanPhone.startsWith("91")) {
       cleanPhone = cleanPhone.slice(2);

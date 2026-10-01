@@ -33,6 +33,13 @@ export default function MyAllocation() {
   const room = allocation?.room || {};
   const roommates = allocation?.roommates || [];
 
+  const capacity = Number(room.Capacity) || 4;
+  // Real-time occupied beds based on database records (including the logged-in student)
+  const occupiedCount = room.OccupiedCount !== undefined
+    ? Number(room.OccupiedCount)
+    : (roommates.length + 1);
+  const remainingCount = Math.max(0, capacity - occupiedCount);
+
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
       {/* 1. Header Banner */}
@@ -91,16 +98,16 @@ export default function MyAllocation() {
               </div>
               <div className="p-3 bg-[#FDF0DC]/30 rounded-xl border border-[#E8D8C4]">
                 <span className="text-[#8B7355] font-bold block text-[10px] uppercase">Capacity</span>
-                <span className="font-extrabold text-[#2F2925]">{room.Capacity || 4} Beds</span>
+                <span className="font-extrabold text-[#2F2925]">{capacity} Beds</span>
               </div>
               <div className="p-3 bg-[#FDF0DC]/30 rounded-xl border border-[#E8D8C4]">
                 <span className="text-[#8B7355] font-bold block text-[10px] uppercase">Occupied</span>
-                <span className="font-extrabold text-[#EB8055]">{room.OccupiedCount || 1} Beds</span>
+                <span className="font-extrabold text-[#EB8055]">{occupiedCount} Beds</span>
               </div>
               <div className="p-3 bg-[#FDF0DC]/30 rounded-xl border border-[#E8D8C4]">
                 <span className="text-[#8B7355] font-bold block text-[10px] uppercase">Remaining</span>
                 <span className="font-extrabold text-emerald-700">
-                  {Math.max(0, (room.Capacity || 4) - (room.OccupiedCount || 1))} Beds
+                  {remainingCount} Beds
                 </span>
               </div>
             </div>

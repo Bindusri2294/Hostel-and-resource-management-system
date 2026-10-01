@@ -144,8 +144,22 @@ const getMyAllocation = async (req, res, next) => {
       .populate("studentId")
       .populate("roomId");
 
+    // Live count of active occupants for this room based directly on database
+    const liveOccupiedCount = await Allocation.countDocuments({
+      roomId: myAllocation.roomId._id,
+      status: "Active",
+    });
+
+    const formatted = formatAllocation(myAllocation);
+    const roomObj = myAllocation.roomId
+      ? (myAllocation.roomId.toObject ? myAllocation.roomId.toObject() : { ...myAllocation.roomId._doc || myAllocation.roomId })
+      : {};
+    roomObj.OccupiedCount = liveOccupiedCount;
+    roomObj.Status = liveOccupiedCount >= (roomObj.Capacity || 0) ? "Full" : "Available";
+
     res.status(200).json({
-      ...formatAllocation(myAllocation),
+      ...formatted,
+      room: roomObj,
       roommates: roommates.map(formatAllocation),
     });
   } catch (error) {
