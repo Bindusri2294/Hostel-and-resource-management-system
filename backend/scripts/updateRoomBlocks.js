@@ -31,7 +31,7 @@ mongoose.connect(process.env.MONGO_URI).then(async () => {
     { match: { RoomNo: "202", Capacity: 6 }, set: { Block: "E", Floor: 2 } },
     { match: { RoomNo: "203", Capacity: 6 }, set: { Block: "E", Floor: 2 } },
     { match: { RoomNo: "204", Capacity: 6 }, set: { Block: "E", Floor: 2 } },
-    { match: { RoomNo: "406", Capacity: 6, OccupiedCount: 1 }, set: { Block: "E", Floor: 4 } },
+    { match: { RoomNo: "406", Capacity: 6, OccupiedCount: 1, Block: "E" }, set: { Block: "E", Floor: 4 } },
 
     // --- Block KW ---
     { match: { RoomNo: "203", Capacity: 8 }, set: { Block: "KW", Floor: 2 } },
@@ -77,13 +77,11 @@ mongoose.connect(process.env.MONGO_URI).then(async () => {
     { match: { RoomNo: "350" }, set: { Block: "KW", Floor: 3 } },
 
     // --- Block Executive ---
-    { match: { RoomNo: "406", Capacity: 6, OccupiedCount: 4 }, set: { Block: "Executive", Floor: 1 } },
-    { match: { RoomNo: "409", OccupiedCount: 2 }, set: { Block: "Executive", Floor: 1 } },
-    { match: { RoomNo: "409", OccupiedCount: 3 }, set: { Block: "Executive", Floor: 1 } },
-    { match: { RoomNo: "410" }, set: { Block: "Executive", Floor: 1 } },
-    { match: { RoomNo: "411", Capacity: 6 }, set: { Block: "Executive", Floor: 1 } },
-    { match: { RoomNo: "417", Capacity: 9 }, set: { Block: "Executive", Floor: 2 } },
-    { match: { RoomNo: "417", Capacity: 8 }, set: { Block: "Executive", Floor: 2 } },
+    { match: { RoomNo: "406", Block: "Executive", Capacity: 6 }, set: { Floor: 1 } },
+    { match: { RoomNo: "409", Block: "Executive" }, set: { Floor: 4 } },
+    { match: { RoomNo: "410", Block: "Executive" }, set: { Floor: 4 } },
+    { match: { RoomNo: "411", Block: "Executive" }, set: { Floor: 4 } },
+    { match: { RoomNo: "417", Block: "Executive" }, set: { Floor: 4 } },
 
     // --- A-101 (unassigned test rooms -> E block) ---
     { match: { RoomNo: "A-101" }, set: { Block: "E", Floor: 1 } },

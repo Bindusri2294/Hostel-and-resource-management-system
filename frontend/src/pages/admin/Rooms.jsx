@@ -169,7 +169,9 @@ export default function Rooms() {
       .filter(
         (a) =>
           a.status === "Active" &&
-          (String(a.roomId) === String(room._id) || String(a.roomNo) === String(room.RoomNo))
+          (room._id
+            ? String(a.roomId) === String(room._id)
+            : String(a.roomNo) === String(room.RoomNo))
       )
       .map((a) => {
         const found = students.find((s) => String(s._id) === String(a.studentId));
@@ -182,7 +184,7 @@ export default function Rooms() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="max-h-[calc(100vh-56px)] overflow-y-auto space-y-6">
       {/* Hierarchy Breadcrumb Banner */}
       <div className="bg-white p-6 rounded-2xl border border-[#E8D8C4] shadow-xs space-y-3">
 
@@ -487,7 +489,7 @@ export default function Rooms() {
       {/* Room Details Modal */}
       {detailsOpen && selected && (
         <div className="fixed inset-0 z-50 bg-[#2F2925]/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden space-y-4 p-6 border border-[#E8D8C4]">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col space-y-4 p-6 border border-[#E8D8C4]">
             <div className="flex items-center justify-between border-b border-[#E8D8C4] pb-3">
               <div>
                 <span className="text-[10px] font-bold text-[#EB8055] uppercase tracking-wider">
@@ -503,19 +505,27 @@ export default function Rooms() {
               </button>
             </div>
 
-            <div className="grid grid-cols-3 gap-3 text-xs text-center font-semibold">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-center font-semibold">
               <div className="p-3 bg-[#FDF0DC] rounded-xl border border-[#E8D8C4]">
-                <span className="text-[#8B7355] text-[10px] block font-bold">Block / Floor</span>
+                <span className="text-[#8B7355] text-[10px] block font-bold">Block</span>
                 <strong className="text-[#B85228] font-extrabold">
-                  {selected.Block === "Executive" ? "Executive Block" : `Block ${selected.Block}`} · Floor {selected.Floor}
+                  {selected.Block === "Executive" ? "Executive Block" : `Block ${selected.Block}`}
                 </strong>
               </div>
               <div className="p-3 bg-[#FDF0DC]/50 rounded-xl border border-[#E8D8C4]">
-                <span className="text-[#8B7355] text-[10px] block font-bold">Total Beds</span>
+                <span className="text-[#8B7355] text-[10px] block font-bold">Floor</span>
+                <strong className="text-[#2F2925] font-extrabold">{selected.Floor}</strong>
+              </div>
+              <div className="p-3 bg-[#FDF0DC]/50 rounded-xl border border-[#E8D8C4]">
+                <span className="text-[#8B7355] text-[10px] block font-bold">Capacity</span>
                 <strong className="text-[#2F2925] font-extrabold">{selected.Capacity}</strong>
               </div>
+              <div className="p-3 bg-[#FDF0DC]/50 rounded-xl border border-[#E8D8C4]">
+                <span className="text-[#8B7355] text-[10px] block font-bold">Occupied</span>
+                <strong className="text-[#EB8055] font-extrabold">{selected.OccupiedCount || 0}</strong>
+              </div>
               <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200">
-                <span className="text-emerald-700 text-[10px] block font-bold">Available Beds</span>
+                <span className="text-emerald-700 text-[10px] block font-bold">Available</span>
                 <strong className="text-emerald-900 font-extrabold">
                   {Math.max(0, (selected.Capacity || 0) - (selected.OccupiedCount || 0))}
                 </strong>
@@ -525,7 +535,7 @@ export default function Rooms() {
             <div>
               <h4 className="text-xs font-extrabold text-[#2F2925] mb-2">Current Active Residents</h4>
               {getResidentsForRoom(selected).length ? (
-                <div className="space-y-2">
+                <div className="max-h-[300px] overflow-y-auto overscroll-contain scroll-smooth pr-2 space-y-2">
                   {getResidentsForRoom(selected).map((res, i) => (
                     <div
                       key={i}

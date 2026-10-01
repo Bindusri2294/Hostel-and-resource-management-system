@@ -72,9 +72,18 @@ export default function RoomInfo() {
     return matchesStatus && matchesBlock && matchesFloor && matchesQuery;
   });
 
-  const openDetails = (room) => {
+  const openDetails = async (room) => {
     setSelected(room);
     setDetailsOpen(true);
+
+    if (room.Block === "Executive") {
+      try {
+        const response = await roomService.get(room._id);
+        setSelected(response.data);
+      } catch {
+        // Keep the live room-list data if the detail request fails.
+      }
+    }
   };
 
   return (
@@ -248,11 +257,11 @@ export default function RoomInfo() {
       {/* Room Details Modal */}
       {detailsOpen && selected && (
         <div className="fixed inset-0 z-50 bg-[#2F2925]/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden space-y-4 p-6 border border-[#E8D8C4]">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col space-y-4 p-6 border border-[#E8D8C4]">
             <div className="flex items-center justify-between border-b border-[#E8D8C4]/60 pb-3">
               <div>
                 <span className="text-[10px] font-bold text-[#EB8055] uppercase tracking-wider">
-                  Room Details & Occupancy
+                  Room Number
                 </span>
                 <h3 className="text-xl font-extrabold text-[#2F2925] mt-1">Room {selected.RoomNo}</h3>
               </div>
@@ -266,20 +275,16 @@ export default function RoomInfo() {
 
             <div className="grid grid-cols-3 gap-3 text-xs text-center font-semibold">
               <div className="p-3 bg-[#FDF0DC] rounded-xl border border-[#E8D8C4]">
-                <span className="text-[#8B7355] text-[10px] block font-bold">Block / Floor</span>
-                <strong className="text-[#2F2925] font-extrabold">
-                  {selected.Block === "Executive" ? "Executive Block" : `Block ${selected.Block}`} · Floor {selected.Floor}
-                </strong>
+                <span className="text-[#8B7355] text-[10px] block font-bold">Block</span>
+                <strong className="text-[#2F2925] font-extrabold">{selected.Block === "Executive" ? "Executive" : selected.Block}</strong>
               </div>
               <div className="p-3 bg-[#FDF0DC]/30 rounded-xl border border-[#E8D8C4]">
-                <span className="text-[#8B7355] text-[10px] block font-bold">Total Beds</span>
-                <strong className="text-[#2F2925] font-extrabold">{selected.Capacity}</strong>
+                <span className="text-[#8B7355] text-[10px] block font-bold">Floor</span>
+                <strong className="text-[#2F2925] font-extrabold">{selected.Floor}</strong>
               </div>
-              <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-100">
-                <span className="text-[#8B7355] text-[10px] block font-bold">Available Beds</span>
-                <strong className="text-emerald-900 font-extrabold">
-                  {Math.max(0, (selected.Capacity || 0) - (selected.OccupiedCount || 0))}
-                </strong>
+              <div className="p-3 bg-[#FDF0DC]/30 rounded-xl border border-[#E8D8C4]">
+                <span className="text-[#8B7355] text-[10px] block font-bold">Capacity</span>
+                <strong className="text-[#2F2925] font-extrabold">{selected.Capacity}</strong>
               </div>
             </div>
 
@@ -299,16 +304,34 @@ export default function RoomInfo() {
                 </span>
               </div>
               <div className="flex justify-between items-center text-[#2F2925] font-semibold">
-                <span>Occupied Beds</span>
+                <span>Occupied</span>
                 <span className="font-extrabold text-[#EB8055]">{selected.OccupiedCount || 0}</span>
               </div>
               <div className="flex justify-between items-center text-[#2F2925] font-semibold">
-                <span>Vacant Beds Available</span>
+                <span>Available</span>
                 <span className="font-extrabold text-emerald-700">
                   {Math.max(0, (selected.Capacity || 0) - (selected.OccupiedCount || 0))}
                 </span>
               </div>
             </div>
+
+            {selected.Block === "Executive" && (
+              <div className="p-4 bg-[#FDF0DC]/20 rounded-xl border border-[#E8D8C4] space-y-2 text-xs">
+                <h4 className="font-bold text-[#2F2925]">Allocated Students</h4>
+                {selected.AllocatedStudents?.length ? (
+                  <div className="max-h-[300px] overflow-y-auto overscroll-contain scroll-smooth pr-2 divide-y divide-[#E8D8C4]/70">
+                    {selected.AllocatedStudents.map((student) => (
+                      <div key={student._id} className="py-2 first:pt-0 last:pb-0">
+                        <p className="font-semibold text-[#2F2925]">{student.Name}</p>
+                        <p className="text-[#8B7355]">{student.Rollno} · {student.Course}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-[#8B7355]">No active student allocations.</p>
+                )}
+              </div>
+            )}
 
             <div className="pt-3 border-t border-[#E8D8C4]/60 flex justify-end">
               <button
