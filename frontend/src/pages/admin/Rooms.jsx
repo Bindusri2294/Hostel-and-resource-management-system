@@ -76,11 +76,79 @@ export default function Rooms() {
     return "Available";
   };
 
+  const getResidentsForRoom = (room) => {
+    if (!room) return [];
+
+    // 1. From Allocations
+    const fromAllocations = allocations
+      .filter((a) => {
+        if (a.status && a.status !== "Active") return false;
+        const matchRoomId = room._id && (String(a.roomId?._id || a.roomId) === String(room._id));
+        const matchRoomNo = (String(a.roomNo || a.room?.RoomNo).trim().toLowerCase() === String(room.RoomNo).trim().toLowerCase()) &&
+                            (!a.room?.Block && !a.block ? true : (a.room?.Block || a.block) === room.Block);
+        return matchRoomId || matchRoomNo;
+      })
+      .map((a) => {
+        const found = students.find(
+          (s) =>
+            String(s._id) === String(a.studentId?._id || a.studentId) ||
+            (s.Rollno && (s.Rollno.toUpperCase() === (a.student?.Rollno || a.studentName || "").toUpperCase()))
+        );
+        return {
+          _id: found?._id || a.studentId?._id || a.studentId || a.id,
+          Name: found?.Name || a.studentName || a.student?.Name || a.studentId?.Name || "Resident",
+          Rollno: found?.Rollno || a.student?.Rollno || a.studentId?.Rollno || "—",
+          Course: found?.Course || a.student?.Course || a.studentId?.Course || "—",
+          Department: found?.Department || a.student?.Department || a.studentId?.Department || "—",
+          Year: found?.Year || a.student?.Year || a.studentId?.Year,
+        };
+      });
+
+    // 2. From Students directory directly mapped to this Room & Block
+    const fromStudents = students
+      .filter(
+        (s) =>
+          String(s.Roomno || "").trim().toLowerCase() === String(room.RoomNo || "").trim().toLowerCase() &&
+          s.Roomno !== "Unassigned" &&
+          s.Roomno !== "" &&
+          (!s.Block || !room.Block || s.Block.trim().toUpperCase() === room.Block.trim().toUpperCase())
+      )
+      .map((s) => ({
+        _id: s._id,
+        Name: s.Name || "Resident",
+        Rollno: s.Rollno || "—",
+        Course: s.Course || "—",
+        Department: s.Department || "—",
+        Year: s.Year,
+      }));
+
+    // 3. From backend populated AllocatedStudents
+    const fromBackend = (room.AllocatedStudents || []).map((s) => ({
+      _id: s._id,
+      Name: s.Name || "Resident",
+      Rollno: s.Rollno || "—",
+      Course: s.Course || "—",
+      Department: s.Department || "—",
+      Year: s.Year,
+    }));
+
+    // Merge and deduplicate by Rollno / _id
+    const merged = [...fromAllocations, ...fromStudents, ...fromBackend];
+    const seen = new Set();
+    return merged.filter((item) => {
+      const key = item.Rollno !== "—" ? item.Rollno.toUpperCase() : String(item._id || item.Name);
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  };
+
   const filteredRooms = rooms.filter((room) => {
-    const roomStatus = getCalculatedStatus(
-      Number(room.OccupiedCount || 0),
-      Number(room.Capacity || 1)
-    );
+    const residents = getResidentsForRoom(room);
+    const occupiedCount = residents.length > 0 ? Math.max(residents.length, Number(room.OccupiedCount || 0)) : Number(room.OccupiedCount || 0);
+    const capacity = Number(room.Capacity || 1);
+    const roomStatus = getCalculatedStatus(occupiedCount, capacity);
+
     const matchesStatus = selectedStatus === "All" || roomStatus === selectedStatus;
     const matchesBlock = selectedBlock === "All" || room.Block === selectedBlock;
     const matchesFloor = selectedFloor === "All" || String(room.Floor || "") === String(selectedFloor);
@@ -93,11 +161,27 @@ export default function Rooms() {
     const matchRoomNo = String(room.RoomNo || "").toLowerCase().includes(q);
     const matchBlock = String(room.Block || "").toLowerCase().includes(q);
     const matchFloor = `floor ${room.Floor || ""}`.toLowerCase().includes(q) || String(room.Floor || "").toLowerCase().includes(q);
-    const matchCapacity = `${room.Capacity || ""} beds`.toLowerCase().includes(q) || String(room.Capacity || "").toLowerCase().includes(q);
-    const matchOccupied = `${room.OccupiedCount || ""} occupied`.toLowerCase().includes(q);
+    const matchCapacity = `${capacity} beds`.toLowerCase().includes(q) || String(capacity).toLowerCase().includes(q);
+    const matchOccupied = `${occupiedCount} occupied`.toLowerCase().includes(q);
     const matchStatus = roomStatus.toLowerCase().includes(q);
 
-    const matchesQuery = matchRoomNo || matchBlock || matchFloor || matchCapacity || matchOccupied || matchStatus;
+    // Check if any student/resident inside this room matches the query
+    const matchResident = residents.some(
+      (r) =>
+        String(r.Name || "").toLowerCase().includes(q) ||
+        String(r.Rollno || "").toLowerCase().includes(q) ||
+        String(r.Course || "").toLowerCase().includes(q) ||
+        String(r.Department || "").toLowerCase().includes(q)
+    );
+
+    const matchesQuery =
+      matchRoomNo ||
+      matchBlock ||
+      matchFloor ||
+      matchCapacity ||
+      matchOccupied ||
+      matchStatus ||
+      matchResident;
 
     return matchesStatus && matchesBlock && matchesFloor && matchesQuery;
   });
@@ -163,26 +247,6 @@ export default function Rooms() {
     }
   };
 
-  const getResidentsForRoom = (room) => {
-    if (!room) return [];
-    return allocations
-      .filter(
-        (a) =>
-          a.status === "Active" &&
-          (room._id
-            ? String(a.roomId) === String(room._id)
-            : String(a.roomNo) === String(room.RoomNo))
-      )
-      .map((a) => {
-        const found = students.find((s) => String(s._id) === String(a.studentId));
-        return {
-          Name: found?.Name || a.studentName || "Resident",
-          Rollno: found?.Rollno || a.student?.Rollno || "—",
-          Course: found?.Course || "—",
-        };
-      });
-  };
-
   return (
     <div className="max-h-[calc(100vh-56px)] overflow-y-auto space-y-6">
       {/* Hierarchy Breadcrumb Banner */}
@@ -192,7 +256,7 @@ export default function Rooms() {
           <div>
             <h2 className="text-2xl font-extrabold text-[#2F2925]">Room Management</h2>
             <p className="text-xs text-[#8B7355]">
-              Browse room cards, inspect bed availability, and manage residential space.
+              Browse room cards, inspect resident student details, and manage bed allocations.
             </p>
           </div>
           <button
@@ -272,7 +336,7 @@ export default function Rooms() {
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8B7355]/60" />
             <input
               type="text"
-              placeholder="Search by room no, block, floor, capacity, status..."
+              placeholder="Search by room no, student name/roll no, block, floor, status..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               className="w-full border rounded-xl pl-9 pr-3.5 py-2 text-xs font-medium focus:outline-none bg-[#FDF0DC]/40 border-[#E8D8C4] text-[#2F2925] placeholder-[#8B7355]/60 focus:border-[#EB8055] focus:bg-white focus:ring-1 focus:ring-[#EB8055]/20 shadow-sm"
@@ -342,7 +406,8 @@ export default function Rooms() {
       ) : filteredRooms.length ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {filteredRooms.map((room) => {
-            const occupied = Number(room.OccupiedCount || 0);
+            const residents = getResidentsForRoom(room);
+            const occupied = residents.length > 0 ? Math.max(residents.length, Number(room.OccupiedCount || 0)) : Number(room.OccupiedCount || 0);
             const capacity = Number(room.Capacity || 1);
             const availableBeds = Math.max(0, capacity - occupied);
             const statusBadge = getCalculatedStatus(occupied, capacity);
@@ -375,7 +440,6 @@ export default function Rooms() {
                     <h3 className="text-xl font-extrabold text-[#2F2925]">Room {room.RoomNo}</h3>
                     <span className="text-xs font-semibold text-[#8B7355]">Floor {room.Floor ?? 1}</span>
                   </div>
-
 
                   <div className="mt-4 pt-3 border-t border-[#E8D8C4]/60 grid grid-cols-3 gap-2 text-center text-xs">
                     <div className="p-2 bg-[#FDF0DC]/50 rounded-xl border border-[#E8D8C4]/50">
@@ -553,63 +617,84 @@ export default function Rooms() {
               </button>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-center font-semibold">
-              <div className="p-3 bg-[#FDF0DC] rounded-xl border border-[#E8D8C4]">
-                <span className="text-[#8B7355] text-[10px] block font-bold">Block</span>
-                <strong className="text-[#B85228] font-extrabold">
-                  {selected.Block === "Executive" ? "Executive Block" : `Block ${selected.Block}`}
-                </strong>
-              </div>
-              <div className="p-3 bg-[#FDF0DC]/50 rounded-xl border border-[#E8D8C4]">
-                <span className="text-[#8B7355] text-[10px] block font-bold">Floor</span>
-                <strong className="text-[#2F2925] font-extrabold">{selected.Floor}</strong>
-              </div>
-              <div className="p-3 bg-[#FDF0DC]/50 rounded-xl border border-[#E8D8C4]">
-                <span className="text-[#8B7355] text-[10px] block font-bold">Capacity</span>
-                <strong className="text-[#2F2925] font-extrabold">{selected.Capacity}</strong>
-              </div>
-              <div className="p-3 bg-[#FDF0DC]/50 rounded-xl border border-[#E8D8C4]">
-                <span className="text-[#8B7355] text-[10px] block font-bold">Occupied</span>
-                <strong className="text-[#EB8055] font-extrabold">{selected.OccupiedCount || 0}</strong>
-              </div>
-              <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200">
-                <span className="text-emerald-700 text-[10px] block font-bold">Available</span>
-                <strong className="text-emerald-900 font-extrabold">
-                  {Math.max(0, (selected.Capacity || 0) - (selected.OccupiedCount || 0))}
-                </strong>
-              </div>
-            </div>
+            {(() => {
+              const residents = getResidentsForRoom(selected);
+              const occupiedCount = residents.length > 0 ? Math.max(residents.length, Number(selected.OccupiedCount || 0)) : Number(selected.OccupiedCount || 0);
+              const availableCount = Math.max(0, (selected.Capacity || 0) - occupiedCount);
 
-            <div>
-              <h4 className="text-xs font-extrabold text-[#2F2925] mb-2">Current Active Residents</h4>
-              {getResidentsForRoom(selected).length ? (
-                <div className="max-h-[300px] overflow-y-auto overscroll-contain scroll-smooth pr-2 space-y-2">
-                  {getResidentsForRoom(selected).map((res, i) => (
-                    <div
-                      key={i}
-                      className="p-3 rounded-xl bg-[#FDF0DC]/40 border border-[#E8D8C4] flex items-center justify-between text-xs"
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-full bg-[#EB8055] text-white font-bold flex items-center justify-center text-xs">
-                          {res.Name?.charAt(0)}
-                        </div>
-                        <div>
-                          <p className="font-bold text-[#2F2925]">{res.Name}</p>
-                          <p className="text-[10px] text-[#8B7355]">{res.Course}</p>
-                        </div>
-                      </div>
-                      <span className="text-[11px] font-semibold text-[#2F2925] bg-white px-2 py-0.5 rounded-md border border-[#E8D8C4]">
-                        Roll: {res.Rollno}
-                      </span>
+              return (
+                <>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-center font-semibold">
+                    <div className="p-3 bg-[#FDF0DC] rounded-xl border border-[#E8D8C4]">
+                      <span className="text-[#8B7355] text-[10px] block font-bold">Block</span>
+                      <strong className="text-[#B85228] font-extrabold">
+                        {selected.Block === "Executive" ? "Executive Block" : `Block ${selected.Block}`}
+                      </strong>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-xs text-[#8B7355] italic py-4 text-center">
-                  No active student allocations currently assigned to this room.
-                </p>
-              )}
-            </div>
+                    <div className="p-3 bg-[#FDF0DC]/50 rounded-xl border border-[#E8D8C4]">
+                      <span className="text-[#8B7355] text-[10px] block font-bold">Floor</span>
+                      <strong className="text-[#2F2925] font-extrabold">{selected.Floor}</strong>
+                    </div>
+                    <div className="p-3 bg-[#FDF0DC]/50 rounded-xl border border-[#E8D8C4]">
+                      <span className="text-[#8B7355] text-[10px] block font-bold">Capacity</span>
+                      <strong className="text-[#2F2925] font-extrabold">{selected.Capacity}</strong>
+                    </div>
+                    <div className="p-3 bg-[#FDF0DC]/50 rounded-xl border border-[#E8D8C4]">
+                      <span className="text-[#8B7355] text-[10px] block font-bold">Occupied</span>
+                      <strong className="text-[#EB8055] font-extrabold">{occupiedCount}</strong>
+                    </div>
+                    <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200">
+                      <span className="text-emerald-700 text-[10px] block font-bold">Available</span>
+                      <strong className="text-emerald-900 font-extrabold">{availableCount}</strong>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-xs font-extrabold text-[#2F2925] mb-2 flex items-center justify-between">
+                      <span>Current Active Residents ({residents.length})</span>
+                      {availableCount > 0 && (
+                        <span className="text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md font-bold">
+                          {availableCount} {availableCount === 1 ? "bed" : "beds"} vacant
+                        </span>
+                      )}
+                    </h4>
+                    {residents.length ? (
+                      <div className="max-h-[300px] overflow-y-auto overscroll-contain scroll-smooth pr-2 space-y-2">
+                        {residents.map((res, i) => (
+                          <div
+                            key={i}
+                            className="p-3.5 rounded-xl bg-[#FDF0DC]/50 border border-[#E8D8C4] flex items-center justify-between gap-3 text-xs"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="w-9 h-9 rounded-full bg-[#EB8055] text-white font-extrabold flex items-center justify-center text-sm shadow-xs">
+                                {res.Name?.charAt(0)?.toUpperCase()}
+                              </div>
+                              <div>
+                                <p className="font-extrabold text-[#2F2925] text-xs">{res.Name}</p>
+                                <p className="text-[11px] text-[#8B7355] font-semibold">
+                                  {res.Course && res.Course !== "—" ? res.Course : "B.Tech"} 
+                                  {res.Department && res.Department !== "—" ? ` · ${res.Department}` : ""} 
+                                  {res.Year && res.Year !== "—" ? ` · Year ${res.Year}` : ""}
+                                </p>
+                              </div>
+                            </div>
+                            <span className="text-xs font-extrabold text-[#B85228] bg-white px-2.5 py-1 rounded-lg border border-[#E8D8C4] shadow-2xs">
+                              {res.Rollno}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="p-6 bg-[#FDF0DC]/30 rounded-xl border border-dashed border-[#E8D8C4] text-center space-y-1">
+                        <Users className="w-7 h-7 text-[#8B7355]/40 mx-auto" />
+                        <p className="text-xs font-bold text-[#2F2925]">No students currently assigned</p>
+                        <p className="text-[10px] text-[#8B7355]">All {selected.Capacity || 2} beds are available in this room.</p>
+                      </div>
+                    )}
+                  </div>
+                </>
+              );
+            })()}
 
             <div className="pt-3 border-t border-[#E8D8C4] flex justify-end">
               <button
