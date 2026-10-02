@@ -68,6 +68,7 @@ const getRooms = async (req, res, next) => {
             allocationsByRoom.set(roomId, roomAllocations);
         });
 
+        res.status(200).json(rooms.map((room) => {
             const allocList = (allocationsByRoom.get(String(room._id)) || [])
                 .filter((allocation) => allocation.studentId)
                 .map((allocation) => allocation.studentId);

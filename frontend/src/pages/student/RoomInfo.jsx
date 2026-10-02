@@ -8,6 +8,8 @@ import {
   X,
   AlertCircle,
   RefreshCw,
+  LayoutGrid,
+  Table,
 } from "lucide-react";
 
 export default function RoomInfo() {
@@ -16,6 +18,7 @@ export default function RoomInfo() {
   const [selectedBlock, setSelectedBlock] = useState("All");
   const [selectedStatus, setSelectedStatus] = useState("All");
   const [selectedFloor, setSelectedFloor] = useState("All");
+  const [viewMode, setViewMode] = useState("table"); // 'table' | 'grid'
 
   const [selected, setSelected] = useState(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -92,7 +95,7 @@ export default function RoomInfo() {
       <div className="bg-white p-6 rounded-2xl border border-[#E8D8C4] shadow-xs space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-extrabold text-[#2F2925]">Room Management</h2>
+            <h2 className="text-2xl font-extrabold text-[#2F2925]">Room Directory</h2>
             <p className="text-xs text-[#8B7355]">
               Browse room cards, inspect bed availability, and explore residential space.
             </p>
@@ -121,12 +124,42 @@ export default function RoomInfo() {
             />
           </div>
 
-          <button
-            onClick={loadRooms}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer border bg-[#FDF0DC] hover:bg-[#F5E8D4] text-[#2F2925] border-[#E8D8C4]"
-          >
-            <RefreshCw className="w-3.5 h-3.5" /> Refresh
-          </button>
+          <div className="flex items-center gap-2">
+            {/* View Switcher */}
+            <div className="flex items-center bg-[#FDF0DC]/60 p-1 rounded-xl border border-[#E8D8C4]">
+              <button
+                type="button"
+                onClick={() => setViewMode("table")}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  viewMode === "table"
+                    ? "bg-white text-[#B85228] shadow-2xs border border-[#E8D8C4]"
+                    : "text-[#8B7355] hover:text-[#2F2925]"
+                }`}
+                title="Table View"
+              >
+                <Table className="w-3.5 h-3.5" /> Table
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("grid")}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  viewMode === "grid"
+                    ? "bg-white text-[#B85228] shadow-2xs border border-[#E8D8C4]"
+                    : "text-[#8B7355] hover:text-[#2F2925]"
+                }`}
+                title="Grid View"
+              >
+                <LayoutGrid className="w-3.5 h-3.5" /> Grid
+              </button>
+            </div>
+
+            <button
+              onClick={loadRooms}
+              className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer border bg-[#FDF0DC] hover:bg-[#F5E8D4] text-[#2F2925] border-[#E8D8C4]"
+            >
+              <RefreshCw className="w-3.5 h-3.5" /> Refresh
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-[#E8D8C4]/60">
@@ -176,76 +209,173 @@ export default function RoomInfo() {
         </div>
       </div>
 
-      {/* Room Cards Grid */}
+      {/* Room Directory View */}
       {loading ? (
         <div className="text-center py-12 text-xs font-semibold text-[#8B7355]">
           Loading room inventory...
         </div>
       ) : filteredRooms.length ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-          {filteredRooms.map((room) => {
-            const occupied = Number(room.OccupiedCount || 0);
-            const capacity = Number(room.Capacity || 1);
-            const availableBeds = Math.max(0, capacity - occupied);
-            const statusBadge = getCalculatedStatus(occupied, capacity);
+        viewMode === "table" ? (
+          /* TABLE VIEW */
+          <div className="bg-white rounded-2xl border border-[#E8D8C4] shadow-xs overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-[#FDF0DC]/50 border-b border-[#E8D8C4] text-[11px] font-bold uppercase text-[#8B7355] tracking-wider">
+                    <th className="p-3.5 pl-5">Room No</th>
+                    <th className="p-3.5">Block</th>
+                    <th className="p-3.5">Floor</th>
+                    <th className="p-3.5">Capacity & Occupancy</th>
+                    <th className="p-3.5">Status</th>
+                    <th className="p-3.5 pr-5 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#E8D8C4]/60 font-medium text-[#2F2925]">
+                  {filteredRooms.map((room) => {
+                    const occupied = Number(room.OccupiedCount || 0);
+                    const capacity = Number(room.Capacity || 1);
+                    const statusBadge = getCalculatedStatus(occupied, capacity);
+                    const pct = Math.min(100, Math.round((occupied / capacity) * 100));
 
-            return (
-              <div
-                key={room._id}
-                className="bg-white rounded-2xl border border-[#E8D8C4] p-5 shadow-xs hover:shadow-md transition-all space-y-4 flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-2 gap-2">
-                    <span className="text-[11px] font-bold text-[#B85228] bg-[#FDF0DC] px-2.5 py-1 rounded-lg border border-[#E8D8C4] flex items-center gap-1.5 shadow-2xs">
-                      <Building className="w-3.5 h-3.5 text-[#EB8055]" />
-                      {room.Block === "Executive" ? "Executive Block" : `Block ${room.Block || "D"}`}
-                    </span>
-                    <span
-                      className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border ${
-                        statusBadge === "Available"
-                          ? "bg-emerald-100 text-emerald-800 border-emerald-200"
-                          : statusBadge === "Partial"
-                          ? "bg-amber-100 text-amber-800 border-amber-200"
-                          : "bg-rose-100 text-rose-800 border-rose-200"
-                      }`}
+                    return (
+                      <tr key={room._id} className="hover:bg-[#FDF0DC]/20 transition-colors">
+                        {/* 1. Room No */}
+                        <td className="p-3.5 pl-5 font-extrabold text-sm text-[#2F2925]">
+                          Room {room.RoomNo}
+                        </td>
+
+                        {/* 2. Block */}
+                        <td className="p-3.5">
+                          <span className="text-[11px] font-bold text-[#B85228] bg-[#FDF0DC] px-2.5 py-1 rounded-lg border border-[#E8D8C4] inline-block shadow-2xs">
+                            {room.Block === "Executive" ? "Executive Block" : `Block ${room.Block || "D"}`}
+                          </span>
+                        </td>
+
+                        {/* 3. Floor */}
+                        <td className="p-3.5 font-semibold text-[#8B7355]">
+                          Floor {room.Floor ?? 1}
+                        </td>
+
+                        {/* 4. Capacity & Occupancy */}
+                        <td className="p-3.5">
+                          <div className="space-y-1 max-w-[160px]">
+                            <div className="flex items-center justify-between text-xs font-bold">
+                              <span>{occupied} / {capacity} Beds</span>
+                              <span className="text-[10px] text-[#8B7355]">{pct}%</span>
+                            </div>
+                            <div className="w-full bg-[#FDF0DC] rounded-full h-1.5 overflow-hidden border border-[#E8D8C4]/60">
+                              <div
+                                className={`h-full rounded-full transition-all ${
+                                  statusBadge === "Full"
+                                    ? "bg-rose-500"
+                                    : statusBadge === "Partial"
+                                    ? "bg-amber-500"
+                                    : "bg-emerald-500"
+                                }`}
+                                style={{ width: `${pct}%` }}
+                              />
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* 5. Status */}
+                        <td className="p-3.5">
+                          <span
+                            className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border ${
+                              statusBadge === "Available"
+                                ? "bg-emerald-100 text-emerald-800 border-emerald-200"
+                                : statusBadge === "Partial"
+                                ? "bg-amber-100 text-amber-800 border-amber-200"
+                                : "bg-rose-100 text-rose-800 border-rose-200"
+                            }`}
+                          >
+                            {statusBadge}
+                          </span>
+                        </td>
+
+                        {/* 6. View Room Button */}
+                        <td className="p-3.5 pr-5 text-right">
+                          <button
+                            type="button"
+                            onClick={() => openDetails(room)}
+                            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#FDF0DC] hover:bg-[#F5E8D4] text-[#B85228] border border-[#E8D8C4] rounded-xl font-bold text-xs transition-colors cursor-pointer shadow-2xs"
+                          >
+                            <Eye className="w-3.5 h-3.5 text-[#EB8055]" /> View Room
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ) : (
+          /* GRID VIEW */
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            {filteredRooms.map((room) => {
+              const occupied = Number(room.OccupiedCount || 0);
+              const capacity = Number(room.Capacity || 1);
+              const availableBeds = Math.max(0, capacity - occupied);
+              const statusBadge = getCalculatedStatus(occupied, capacity);
+
+              return (
+                <div
+                  key={room._id}
+                  className="bg-white rounded-2xl border border-[#E8D8C4] p-5 shadow-xs hover:shadow-md transition-all space-y-4 flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-2 gap-2">
+                      <span className="text-[11px] font-bold text-[#B85228] bg-[#FDF0DC] px-2.5 py-1 rounded-lg border border-[#E8D8C4] shadow-2xs">
+                        {room.Block === "Executive" ? "Executive Block" : `Block ${room.Block || "D"}`}
+                      </span>
+                      <span
+                        className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border ${
+                          statusBadge === "Available"
+                            ? "bg-emerald-100 text-emerald-800 border-emerald-200"
+                            : statusBadge === "Partial"
+                            ? "bg-amber-100 text-amber-800 border-amber-200"
+                            : "bg-rose-100 text-rose-800 border-rose-200"
+                        }`}
+                      >
+                        {statusBadge}
+                      </span>
+                    </div>
+
+                    <div className="flex items-baseline justify-between mt-1">
+                      <h3 className="text-xl font-extrabold text-[#2F2925]">Room {room.RoomNo}</h3>
+                      <span className="text-xs font-semibold text-[#8B7355]">Floor {room.Floor ?? 1}</span>
+                    </div>
+
+                    <div className="mt-4 pt-3 border-t border-[#E8D8C4]/60 grid grid-cols-3 gap-2 text-center text-xs">
+                      <div className="p-2 bg-[#FDF0DC]/30 rounded-xl">
+                        <span className="text-[10px] text-[#8B7355] block font-bold">Capacity</span>
+                        <strong className="text-[#2F2925] font-extrabold">{capacity}</strong>
+                      </div>
+                      <div className="p-2 bg-[#FDF0DC]/30 rounded-xl">
+                        <span className="text-[10px] text-[#8B7355] block font-bold">Occupied</span>
+                        <strong className="text-[#EB8055] font-extrabold">{occupied}</strong>
+                      </div>
+                      <div className="p-2 bg-[#FDF0DC]/30 rounded-xl">
+                        <span className="text-[10px] text-[#8B7355] block font-bold">Available</span>
+                        <strong className="text-emerald-700 font-extrabold">{availableBeds}</strong>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-3 border-t border-[#E8D8C4]/60 flex items-center justify-between gap-2">
+                    <button
+                      onClick={() => openDetails(room)}
+                      className="flex-1 py-1.5 px-2 bg-[#FDF0DC] hover:bg-[#F5E8D4] text-[#B85228] font-bold text-xs rounded-xl border border-[#E8D8C4] transition-colors flex items-center justify-center gap-1 cursor-pointer"
                     >
-                      {statusBadge}
-                    </span>
-                  </div>
-
-                  <div className="flex items-baseline justify-between mt-1">
-                    <h3 className="text-xl font-extrabold text-[#2F2925]">Room {room.RoomNo}</h3>
-                    <span className="text-xs font-semibold text-[#8B7355]">Floor {room.Floor ?? 1}</span>
-                  </div>
-
-                  <div className="mt-4 pt-3 border-t border-[#E8D8C4]/60 grid grid-cols-3 gap-2 text-center text-xs">
-                    <div className="p-2 bg-[#FDF0DC]/30 rounded-xl">
-                      <span className="text-[10px] text-[#8B7355] block font-bold">Capacity</span>
-                      <strong className="text-[#2F2925] font-extrabold">{capacity}</strong>
-                    </div>
-                    <div className="p-2 bg-[#FDF0DC]/30 rounded-xl">
-                      <span className="text-[10px] text-[#8B7355] block font-bold">Occupied</span>
-                      <strong className="text-[#EB8055] font-extrabold">{occupied}</strong>
-                    </div>
-                    <div className="p-2 bg-[#FDF0DC]/30 rounded-xl">
-                      <span className="text-[10px] text-[#8B7355] block font-bold">Available</span>
-                      <strong className="text-emerald-700 font-extrabold">{availableBeds}</strong>
-                    </div>
+                      <Eye className="w-3.5 h-3.5" /> View Room
+                    </button>
                   </div>
                 </div>
-
-                <div className="pt-3 border-t border-[#E8D8C4]/60 flex items-center justify-between gap-2">
-                  <button
-                    onClick={() => openDetails(room)}
-                    className="flex-1 py-1.5 px-2 bg-[#FDF0DC] hover:bg-[#F5E8D4] text-[#B85228] font-bold text-xs rounded-xl border border-[#E8D8C4] transition-colors flex items-center justify-center gap-1 cursor-pointer"
-                  >
-                    <Eye className="w-3.5 h-3.5" /> View Room
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )
       ) : (
         <div className="bg-white p-12 rounded-2xl border border-[#E8D8C4] text-center space-y-2">
           <DoorOpen className="w-10 h-10 text-[#8B7355]/40 mx-auto" />
