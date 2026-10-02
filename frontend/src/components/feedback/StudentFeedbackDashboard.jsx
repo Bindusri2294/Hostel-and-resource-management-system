@@ -452,11 +452,11 @@ export default function StudentFeedbackDashboard() {
                           <div className="mt-2.5">
                             <button
                               type="button"
-                              onClick={() => setLightboxImage(`http://localhost:5000${item.imageUrl}`)}
+                              onClick={() => setLightboxImage(item.imageUrl.startsWith("http") ? item.imageUrl : `http://localhost:5000${item.imageUrl}`)}
                               className="inline-block border rounded-xl overflow-hidden shadow hover:opacity-90 transition-all cursor-pointer"
                             >
                               <img
-                                src={`http://localhost:5000${item.imageUrl}`}
+                                src={item.imageUrl.startsWith("http") ? item.imageUrl : `http://localhost:5000${item.imageUrl}`}
                                 alt="Issue attachment"
                                 className="h-32 w-auto object-cover rounded-xl block"
                               />

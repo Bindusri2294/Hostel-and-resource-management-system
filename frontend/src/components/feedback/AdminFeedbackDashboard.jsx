@@ -302,7 +302,7 @@ import {
                               type="button"
                               onClick={(e) => {
                                 e.preventDefault();
-                                setLightboxImage(`http://localhost:5000${item.imageUrl}`);
+                                setLightboxImage(item.imageUrl.startsWith("http") ? item.imageUrl : `http://localhost:5000${item.imageUrl}`);
                               }}
                               className="inline-flex items-center gap-1 text-[11px] font-bold text-[#EB8055] hover:text-[#D96B3A] cursor-pointer"
                             >
