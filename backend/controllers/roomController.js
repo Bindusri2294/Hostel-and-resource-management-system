@@ -70,10 +70,11 @@ const getRooms = async (req, res, next) => {
 
         res.status(200).json(rooms.map((room) => {
             const liveOccupied = countMap.get(String(room._id)) || 0;
+            const liveStatus = liveOccupied >= room.Capacity ? "Full" : (liveOccupied > 0 ? "Partial" : "Available");
             const enrichedRoom = {
                 ...room,
                 OccupiedCount: liveOccupied,
-                Status: liveOccupied >= room.Capacity ? "Full" : "Available",
+                Status: liveStatus,
             };
 
             if (room.Block === "Executive") {
@@ -260,9 +261,10 @@ const syncRoomCounts = async (req, res, next) => {
 
         for (const room of rooms) {
             const liveCount = countMap[String(room._id)] || 0;
-            if (room.OccupiedCount !== liveCount) {
+            const newStatus = liveCount >= room.Capacity ? "Full" : (liveCount > 0 ? "Partial" : "Available");
+            if (room.OccupiedCount !== liveCount || room.Status !== newStatus) {
                 room.OccupiedCount = liveCount;
-                room.Status = liveCount >= room.Capacity ? "Full" : "Available";
+                room.Status = newStatus;
                 await room.save();
                 updated++;
             }

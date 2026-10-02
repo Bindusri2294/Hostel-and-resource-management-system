@@ -198,6 +198,7 @@ export default function Allocations() {
           <div>
             <p className="text-xs font-bold text-[#8B7355] uppercase">Active Allocations</p>
             <p className="text-2xl font-extrabold text-[#2F2925]">{activeAllocations.length}</p>
+            <p className="text-[10px] text-[#8B7355] mt-0.5">Students with room assigned</p>
           </div>
           <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
             <CheckCircle2 className="w-5 h-5" />
@@ -206,8 +207,9 @@ export default function Allocations() {
 
         <div className="p-4 bg-white rounded-2xl border border-[#E8D8C4] shadow-xs flex items-center justify-between">
           <div>
-            <p className="text-xs font-bold text-[#8B7355] uppercase">Vacated Rooms</p>
+            <p className="text-xs font-bold text-[#8B7355] uppercase">Vacated Count</p>
             <p className="text-2xl font-extrabold text-[#2F2925]">{vacatedAllocations.length}</p>
+            <p className="text-[10px] text-[#8B7355] mt-0.5">Past allocation records</p>
           </div>
           <div className="w-10 h-10 rounded-xl bg-[#FDF0DC] text-[#8B7355] flex items-center justify-center font-bold">
             <LogOut className="w-5 h-5" />
@@ -218,6 +220,7 @@ export default function Allocations() {
           <div>
             <p className="text-xs font-bold text-[#8B7355] uppercase">Available Rooms</p>
             <p className="text-2xl font-extrabold text-[#B85228]">{availableRooms.length}</p>
+            <p className="text-[10px] text-[#8B7355] mt-0.5">Rooms with free beds</p>
           </div>
           <div className="w-10 h-10 rounded-xl bg-[#FDF0DC] text-[#EB8055] flex items-center justify-center font-bold">
             <Building className="w-5 h-5" />

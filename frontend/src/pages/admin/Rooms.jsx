@@ -217,6 +217,54 @@ export default function Rooms() {
         </div>
       )}
 
+      {/* Stats Summary */}
+      {!loading && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="p-4 bg-white rounded-2xl border border-[#E8D8C4] shadow-xs flex items-center justify-between">
+            <div>
+              <p className="text-xs font-bold text-[#8B7355] uppercase">Total Rooms</p>
+              <p className="text-2xl font-extrabold text-[#2F2925]">{rooms.length}</p>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-[#FDF0DC] flex items-center justify-center">
+              <Layers className="w-5 h-5 text-[#EB8055]" />
+            </div>
+          </div>
+          <div className="p-4 bg-white rounded-2xl border border-[#E8D8C4] shadow-xs flex items-center justify-between">
+            <div>
+              <p className="text-xs font-bold text-[#8B7355] uppercase">Occupied Beds</p>
+              <p className="text-2xl font-extrabold text-[#2F2925]">
+                {rooms.reduce((s, r) => s + Number(r.OccupiedCount || 0), 0)}
+              </p>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-rose-50 flex items-center justify-center">
+              <Users className="w-5 h-5 text-rose-600" />
+            </div>
+          </div>
+          <div className="p-4 bg-white rounded-2xl border border-[#E8D8C4] shadow-xs flex items-center justify-between">
+            <div>
+              <p className="text-xs font-bold text-[#8B7355] uppercase">Available Beds</p>
+              <p className="text-2xl font-extrabold text-emerald-700">
+                {rooms.reduce((s, r) => s + Math.max(0, Number(r.Capacity || 0) - Number(r.OccupiedCount || 0)), 0)}
+              </p>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
+              <DoorOpen className="w-5 h-5 text-emerald-600" />
+            </div>
+          </div>
+          <div className="p-4 bg-white rounded-2xl border border-[#E8D8C4] shadow-xs flex items-center justify-between">
+            <div>
+              <p className="text-xs font-bold text-[#8B7355] uppercase">Total Capacity</p>
+              <p className="text-2xl font-extrabold text-[#2F2925]">
+                {rooms.reduce((s, r) => s + Number(r.Capacity || 0), 0)}
+              </p>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-[#FDF0DC] flex items-center justify-center">
+              <Building className="w-5 h-5 text-[#8B7355]" />
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* FILTER & SEARCH TOOLBAR (Feedback style across all fields) */}
       <div className="bg-white p-4 rounded-2xl border border-[#E8D8C4] shadow-sm space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
