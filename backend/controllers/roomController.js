@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const Room = require("../models/Room");
 const Allocation = require("../models/Allocation");
+const Student = require("../models/student");
 
 // Create a new room
 const createRoom = async (req, res, next) => {
@@ -39,48 +40,58 @@ const createRoom = async (req, res, next) => {
     }
 };
 
-// Get all rooms — with live occupied counts from active allocations
+// Get all rooms — with live occupied counts and full resident student details
 const getRooms = async (req, res, next) => {
     try {
         const rooms = await Room.find().sort({ Block: 1, Floor: 1, RoomNo: 1 }).lean();
-        const executiveRooms = rooms.filter((room) => room.Block === "Executive");
-        const [allocCounts, executiveAllocations] = await Promise.all([
+        const [allocCounts, activeAllocations, directStudents] = await Promise.all([
             Allocation.aggregate([
                 { $match: { status: "Active" } },
                 { $group: { _id: "$roomId", count: { $sum: 1 } } },
             ]),
-            executiveRooms.length
-                ? Allocation.find({
-                    roomId: { $in: executiveRooms.map((room) => room._id) },
-                    status: "Active",
-                }).populate("studentId", "Name Rollno Course").lean()
-                : Promise.resolve([]),
+            Allocation.find({ status: "Active" })
+                .populate("studentId", "Name Rollno Course Department Campus Roomno Block Year")
+                .lean(),
+            Student.find({
+                Roomno: { $exists: true, $ne: "Unassigned", $nin: ["", null] },
+            }).lean(),
         ]);
 
         const countMap = new Map(
             allocCounts.map((allocation) => [String(allocation._id), allocation.count])
         );
         const allocationsByRoom = new Map();
-        executiveAllocations.forEach((allocation) => {
-            const roomId = String(allocation.roomId);
+        activeAllocations.forEach((allocation) => {
+            const roomId = String(allocation.roomId?._id || allocation.roomId);
             const roomAllocations = allocationsByRoom.get(roomId) || [];
             roomAllocations.push(allocation);
             allocationsByRoom.set(roomId, roomAllocations);
         });
 
         res.status(200).json(rooms.map((room) => {
-            const liveOccupied = countMap.get(String(room._id)) || 0;
+            const allocList = (allocationsByRoom.get(String(room._id)) || [])
+                .filter((allocation) => allocation.studentId)
+                .map((allocation) => allocation.studentId);
+
+            const directMatching = directStudents.filter(
+                (s) =>
+                    String(s.Roomno).trim().toLowerCase() === String(room.RoomNo).trim().toLowerCase() &&
+                    (!s.Block || !room.Block || s.Block.trim().toUpperCase() === room.Block.trim().toUpperCase())
+            );
+
+            // Merge and deduplicate by Rollno / _id
+            const studentMap = new Map();
+            allocList.forEach((s) => studentMap.set(String(s.Rollno || s._id).toUpperCase(), s));
+            directMatching.forEach((s) => studentMap.set(String(s.Rollno || s._id).toUpperCase(), s));
+            const mergedStudents = Array.from(studentMap.values());
+
+            const liveOccupied = Math.max(mergedStudents.length, countMap.get(String(room._id)) || 0);
             const enrichedRoom = {
                 ...room,
                 OccupiedCount: liveOccupied,
                 Status: liveOccupied >= room.Capacity ? "Full" : "Available",
+                AllocatedStudents: mergedStudents,
             };
-
-            if (room.Block === "Executive") {
-                enrichedRoom.AllocatedStudents = (allocationsByRoom.get(String(room._id)) || [])
-                    .filter((allocation) => allocation.studentId)
-                    .map((allocation) => allocation.studentId);
-            }
 
             return enrichedRoom;
         }));
@@ -107,26 +118,35 @@ const getRoomById = async (req, res, next) => {
             return res.status(404).json({ message: "Room not found" });
         }
 
-        if (room.Block === "Executive") {
-            const activeAllocationFilter = { roomId: room._id, status: "Active" };
-            const [occupiedCount, allocations] = await Promise.all([
-                Allocation.countDocuments(activeAllocationFilter),
-                Allocation.find(activeAllocationFilter)
-                    .populate("studentId", "Name Rollno Course")
-                    .lean(),
-            ]);
+        const activeAllocationFilter = { roomId: room._id, status: "Active" };
+        const [occupiedCount, allocations, directStudents] = await Promise.all([
+            Allocation.countDocuments(activeAllocationFilter),
+            Allocation.find(activeAllocationFilter)
+                .populate("studentId", "Name Rollno Course Department Campus Roomno Block Year")
+                .lean(),
+            Student.find({
+                Roomno: room.RoomNo,
+                ...(room.Block ? { Block: room.Block } : {}),
+            }).lean(),
+        ]);
 
-            return res.status(200).json({
-                ...room.toObject(),
-                OccupiedCount: occupiedCount,
-                Status: occupiedCount >= room.Capacity ? "Full" : "Available",
-                AllocatedStudents: allocations
-                    .filter((allocation) => allocation.studentId)
-                    .map((allocation) => allocation.studentId),
-            });
-        }
+        const allocList = allocations
+            .filter((allocation) => allocation.studentId)
+            .map((allocation) => allocation.studentId);
 
-        res.status(200).json(room);
+        const studentMap = new Map();
+        allocList.forEach((s) => studentMap.set(String(s.Rollno || s._id).toUpperCase(), s));
+        directStudents.forEach((s) => studentMap.set(String(s.Rollno || s._id).toUpperCase(), s));
+        const mergedStudents = Array.from(studentMap.values());
+
+        const liveOccupied = Math.max(mergedStudents.length, occupiedCount);
+
+        return res.status(200).json({
+            ...room.toObject(),
+            OccupiedCount: liveOccupied,
+            Status: liveOccupied >= room.Capacity ? "Full" : "Available",
+            AllocatedStudents: mergedStudents,
+        });
     } catch (error) {
         next(error);
     }
