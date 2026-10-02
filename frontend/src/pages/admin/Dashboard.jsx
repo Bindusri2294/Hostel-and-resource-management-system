@@ -422,35 +422,35 @@ export default function AdminDashboard({ data: propData }) {
       </div>
 
       {/* ── 4. PENDING PASSWORD RESETS ── */}
-      <div className="bg-white rounded-xl border border-amber-200/80 p-5 sm:p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-amber-50 rounded-lg flex items-center justify-center text-amber-600">
-              <RotateCcw className="w-4 h-4" />
+      {data.resetRequests?.length > 0 && (
+        <div className="bg-white rounded-xl border border-amber-200/80 p-5 sm:p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 bg-amber-50 rounded-lg flex items-center justify-center text-amber-600">
+                <RotateCcw className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 leading-tight">Pending Password Resets</h3>
+                <p className="text-xs text-slate-500 mt-0.5">Students who requested password reset</p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-sm font-bold text-slate-900 leading-tight">Pending Password Resets</h3>
-              <p className="text-xs text-slate-500 mt-0.5">Students who requested password reset</p>
-            </div>
+            <span className="bg-amber-100 text-amber-700 font-bold px-2 py-0.5 rounded-full text-xs">
+              {data.resetRequests.length} pending
+            </span>
           </div>
-          <span className="bg-amber-100 text-amber-700 font-bold px-2 py-0.5 rounded-full text-xs">
-            {data.resetRequests?.length || 0} pending
-          </span>
-        </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead>
-              <tr className="border-b border-slate-100 text-[10px] font-bold uppercase text-slate-400 tracking-wider">
-                <th className="pb-2.5 pr-2">Student Name</th>
-                <th className="pb-2.5 px-2">Roll No</th>
-                <th className="pb-2.5 px-2">Course</th>
-                <th className="pb-2.5 pl-2 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
-              {data.resetRequests?.length > 0 ? (
-                data.resetRequests.map((req) => (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr className="border-b border-slate-100 text-[10px] font-bold uppercase text-slate-400 tracking-wider">
+                  <th className="pb-2.5 pr-2">Student Name</th>
+                  <th className="pb-2.5 px-2">Roll No</th>
+                  <th className="pb-2.5 px-2">Course</th>
+                  <th className="pb-2.5 pl-2 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+                {data.resetRequests.map((req) => (
                   <tr key={req._id}>
                     <td className="py-2.5 pr-2 font-bold text-slate-900">{req.student?.Name}</td>
                     <td className="py-2.5 px-2 text-slate-600">{req.student?.Rollno}</td>
@@ -464,18 +464,12 @@ export default function AdminDashboard({ data: propData }) {
                       </button>
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="4" className="py-6 text-center text-slate-400 italic">
-                    No pending password reset requests.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
 
     </div>
   );

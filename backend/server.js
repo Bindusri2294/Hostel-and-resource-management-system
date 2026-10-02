@@ -45,6 +45,29 @@ app.use(cookieParser());
 const mongoose = require("mongoose");
 
 
+let gfs;
+mongoose.connection.once("open", () => {
+  gfs = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
+    bucketName: "uploads",
+  });
+});
+
+app.get("/api/images/:filename", async (req, res) => {
+  try {
+    if (!gfs) {
+      return res.status(500).json({ message: "GridFS storage not initialized yet" });
+    }
+    const files = await gfs.find({ filename: req.params.filename }).toArray();
+    if (!files || files.length === 0) {
+      return res.status(404).json({ message: "File not found" });
+    }
+    const readStream = gfs.openDownloadStreamByName(req.params.filename);
+    readStream.pipe(res);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 app.get("/", (req, res) => {
   res.json({ message: "Hostel Management System API is running" });
 });
