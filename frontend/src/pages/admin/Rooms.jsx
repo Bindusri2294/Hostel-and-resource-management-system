@@ -14,6 +14,8 @@ import {
   AlertCircle,
   Building,
   RefreshCw,
+  LayoutGrid,
+  Table,
 } from "lucide-react";
 
 const blankRoom = {
@@ -35,6 +37,7 @@ export default function Rooms() {
   const [selectedBlock, setSelectedBlock] = useState("All");
   const [selectedStatus, setSelectedStatus] = useState("All");
   const [selectedFloor, setSelectedFloor] = useState("All");
+  const [viewMode, setViewMode] = useState("table"); // 'table' | 'grid'
 
   // Modal states
   const [selected, setSelected] = useState(null);
@@ -76,11 +79,79 @@ export default function Rooms() {
     return "Available";
   };
 
+  const getResidentsForRoom = (room) => {
+    if (!room) return [];
+
+    // 1. From Allocations
+    const fromAllocations = allocations
+      .filter((a) => {
+        if (a.status && a.status !== "Active") return false;
+        const matchRoomId = room._id && (String(a.roomId?._id || a.roomId) === String(room._id));
+        const matchRoomNo = (String(a.roomNo || a.room?.RoomNo).trim().toLowerCase() === String(room.RoomNo).trim().toLowerCase()) &&
+                            (!a.room?.Block && !a.block ? true : (a.room?.Block || a.block) === room.Block);
+        return matchRoomId || matchRoomNo;
+      })
+      .map((a) => {
+        const found = students.find(
+          (s) =>
+            String(s._id) === String(a.studentId?._id || a.studentId) ||
+            (s.Rollno && (s.Rollno.toUpperCase() === (a.student?.Rollno || a.studentName || "").toUpperCase()))
+        );
+        return {
+          _id: found?._id || a.studentId?._id || a.studentId || a.id,
+          Name: found?.Name || a.studentName || a.student?.Name || a.studentId?.Name || "Resident",
+          Rollno: found?.Rollno || a.student?.Rollno || a.studentId?.Rollno || "—",
+          Course: found?.Course || a.student?.Course || a.studentId?.Course || "—",
+          Department: found?.Department || a.student?.Department || a.studentId?.Department || "—",
+          Year: found?.Year || a.student?.Year || a.studentId?.Year,
+        };
+      });
+
+    // 2. From Students directory directly mapped to this Room & Block
+    const fromStudents = students
+      .filter(
+        (s) =>
+          String(s.Roomno || "").trim().toLowerCase() === String(room.RoomNo || "").trim().toLowerCase() &&
+          s.Roomno !== "Unassigned" &&
+          s.Roomno !== "" &&
+          (!s.Block || !room.Block || s.Block.trim().toUpperCase() === room.Block.trim().toUpperCase())
+      )
+      .map((s) => ({
+        _id: s._id,
+        Name: s.Name || "Resident",
+        Rollno: s.Rollno || "—",
+        Course: s.Course || "—",
+        Department: s.Department || "—",
+        Year: s.Year,
+      }));
+
+    // 3. From backend populated AllocatedStudents
+    const fromBackend = (room.AllocatedStudents || []).map((s) => ({
+      _id: s._id,
+      Name: s.Name || "Resident",
+      Rollno: s.Rollno || "—",
+      Course: s.Course || "—",
+      Department: s.Department || "—",
+      Year: s.Year,
+    }));
+
+    // Merge and deduplicate by Rollno / _id
+    const merged = [...fromAllocations, ...fromStudents, ...fromBackend];
+    const seen = new Set();
+    return merged.filter((item) => {
+      const key = item.Rollno !== "—" ? item.Rollno.toUpperCase() : String(item._id || item.Name);
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  };
+
   const filteredRooms = rooms.filter((room) => {
-    const roomStatus = getCalculatedStatus(
-      Number(room.OccupiedCount || 0),
-      Number(room.Capacity || 1)
-    );
+    const residents = getResidentsForRoom(room);
+    const occupiedCount = residents.length > 0 ? Math.max(residents.length, Number(room.OccupiedCount || 0)) : Number(room.OccupiedCount || 0);
+    const capacity = Number(room.Capacity || 1);
+    const roomStatus = getCalculatedStatus(occupiedCount, capacity);
+
     const matchesStatus = selectedStatus === "All" || roomStatus === selectedStatus;
     const matchesBlock = selectedBlock === "All" || room.Block === selectedBlock;
     const matchesFloor = selectedFloor === "All" || String(room.Floor || "") === String(selectedFloor);
@@ -93,11 +164,27 @@ export default function Rooms() {
     const matchRoomNo = String(room.RoomNo || "").toLowerCase().includes(q);
     const matchBlock = String(room.Block || "").toLowerCase().includes(q);
     const matchFloor = `floor ${room.Floor || ""}`.toLowerCase().includes(q) || String(room.Floor || "").toLowerCase().includes(q);
-    const matchCapacity = `${room.Capacity || ""} beds`.toLowerCase().includes(q) || String(room.Capacity || "").toLowerCase().includes(q);
-    const matchOccupied = `${room.OccupiedCount || ""} occupied`.toLowerCase().includes(q);
+    const matchCapacity = `${capacity} beds`.toLowerCase().includes(q) || String(capacity).toLowerCase().includes(q);
+    const matchOccupied = `${occupiedCount} occupied`.toLowerCase().includes(q);
     const matchStatus = roomStatus.toLowerCase().includes(q);
 
-    const matchesQuery = matchRoomNo || matchBlock || matchFloor || matchCapacity || matchOccupied || matchStatus;
+    // Check if any student/resident inside this room matches the query
+    const matchResident = residents.some(
+      (r) =>
+        String(r.Name || "").toLowerCase().includes(q) ||
+        String(r.Rollno || "").toLowerCase().includes(q) ||
+        String(r.Course || "").toLowerCase().includes(q) ||
+        String(r.Department || "").toLowerCase().includes(q)
+    );
+
+    const matchesQuery =
+      matchRoomNo ||
+      matchBlock ||
+      matchFloor ||
+      matchCapacity ||
+      matchOccupied ||
+      matchStatus ||
+      matchResident;
 
     return matchesStatus && matchesBlock && matchesFloor && matchesQuery;
   });
@@ -163,39 +250,21 @@ export default function Rooms() {
     }
   };
 
-  const getResidentsForRoom = (room) => {
-    if (!room) return [];
-    return allocations
-      .filter(
-        (a) =>
-          a.status === "Active" &&
-          (String(a.roomId) === String(room._id) || String(a.roomNo) === String(room.RoomNo))
-      )
-      .map((a) => {
-        const found = students.find((s) => String(s._id) === String(a.studentId));
-        return {
-          Name: found?.Name || a.studentName || "Resident",
-          Rollno: found?.Rollno || a.student?.Rollno || "—",
-          Course: found?.Course || "—",
-        };
-      });
-  };
-
   return (
-    <div className="space-y-6">
+    <div className="max-h-[calc(100vh-56px)] overflow-y-auto space-y-6">
       {/* Hierarchy Breadcrumb Banner */}
-      <div className="bg-white p-6 rounded-2xl border border-purple-100/70 shadow-xs space-y-3">
+      <div className="bg-white p-6 rounded-2xl border border-[#E8D8C4] shadow-xs space-y-3">
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-extrabold text-slate-900">Room Management</h2>
-            <p className="text-xs text-slate-500">
-              Browse room cards, inspect bed availability, and manage residential space.
+            <h2 className="text-2xl font-extrabold text-[#2F2925]">Room Management</h2>
+            <p className="text-xs text-[#8B7355]">
+              Browse room cards, inspect resident student details, and manage bed allocations.
             </p>
           </div>
           <button
             onClick={() => openForm()}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-xs rounded-xl shadow-md hover:from-purple-700 hover:to-indigo-700 transition-all cursor-pointer"
+            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-[#EB8055] text-white font-bold text-xs rounded-xl shadow-sm hover:bg-[#D96B3A] transition-all cursor-pointer"
           >
             <Plus className="w-4 h-4" /> Add New Room
           </button>
@@ -215,35 +284,113 @@ export default function Rooms() {
         </div>
       )}
 
+      {/* Stats Summary */}
+      {!loading && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="p-4 bg-white rounded-2xl border border-[#E8D8C4] shadow-xs flex items-center justify-between">
+            <div>
+              <p className="text-xs font-bold text-[#8B7355] uppercase">Total Rooms</p>
+              <p className="text-2xl font-extrabold text-[#2F2925]">{rooms.length}</p>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-[#FDF0DC] flex items-center justify-center">
+              <Layers className="w-5 h-5 text-[#EB8055]" />
+            </div>
+          </div>
+          <div className="p-4 bg-white rounded-2xl border border-[#E8D8C4] shadow-xs flex items-center justify-between">
+            <div>
+              <p className="text-xs font-bold text-[#8B7355] uppercase">Occupied Beds</p>
+              <p className="text-2xl font-extrabold text-[#2F2925]">
+                {rooms.reduce((s, r) => s + Number(r.OccupiedCount || 0), 0)}
+              </p>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-rose-50 flex items-center justify-center">
+              <Users className="w-5 h-5 text-rose-600" />
+            </div>
+          </div>
+          <div className="p-4 bg-white rounded-2xl border border-[#E8D8C4] shadow-xs flex items-center justify-between">
+            <div>
+              <p className="text-xs font-bold text-[#8B7355] uppercase">Available Beds</p>
+              <p className="text-2xl font-extrabold text-emerald-700">
+                {rooms.reduce((s, r) => s + Math.max(0, Number(r.Capacity || 0) - Number(r.OccupiedCount || 0)), 0)}
+              </p>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
+              <DoorOpen className="w-5 h-5 text-emerald-600" />
+            </div>
+          </div>
+          <div className="p-4 bg-white rounded-2xl border border-[#E8D8C4] shadow-xs flex items-center justify-between">
+            <div>
+              <p className="text-xs font-bold text-[#8B7355] uppercase">Total Capacity</p>
+              <p className="text-2xl font-extrabold text-[#2F2925]">
+                {rooms.reduce((s, r) => s + Number(r.Capacity || 0), 0)}
+              </p>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-[#FDF0DC] flex items-center justify-center">
+              <Building className="w-5 h-5 text-[#8B7355]" />
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* FILTER & SEARCH TOOLBAR (Feedback style across all fields) */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+      <div className="bg-white p-4 rounded-2xl border border-[#E8D8C4] shadow-sm space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="relative flex-1 min-w-[240px]">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8B7355]/60" />
             <input
               type="text"
-              placeholder="Search by room no, block, floor, capacity, status..."
+              placeholder="Search by room no, student name/roll no, block, floor, status..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="w-full border rounded-xl pl-9 pr-3.5 py-2 text-xs font-medium focus:outline-none bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-[#673BB7] focus:bg-white shadow-sm"
+              className="w-full border rounded-xl pl-9 pr-3.5 py-2 text-xs font-medium focus:outline-none bg-[#FDF0DC]/40 border-[#E8D8C4] text-[#2F2925] placeholder-[#8B7355]/60 focus:border-[#EB8055] focus:bg-white focus:ring-1 focus:ring-[#EB8055]/20 shadow-sm"
             />
           </div>
 
-          <button
-            onClick={loadData}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer border bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300"
-          >
-            <RefreshCw className="w-3.5 h-3.5" /> Refresh
-          </button>
+          <div className="flex items-center gap-2">
+            {/* View Mode Switcher */}
+            <div className="flex items-center bg-[#FDF0DC]/60 p-1 rounded-xl border border-[#E8D8C4]">
+              <button
+                type="button"
+                onClick={() => setViewMode("table")}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  viewMode === "table"
+                    ? "bg-white text-[#B85228] shadow-2xs border border-[#E8D8C4]"
+                    : "text-[#8B7355] hover:text-[#2F2925]"
+                }`}
+                title="Table View"
+              >
+                <Table className="w-3.5 h-3.5" /> Table
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("grid")}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  viewMode === "grid"
+                    ? "bg-white text-[#B85228] shadow-2xs border border-[#E8D8C4]"
+                    : "text-[#8B7355] hover:text-[#2F2925]"
+                }`}
+                title="Grid View"
+              >
+                <LayoutGrid className="w-3.5 h-3.5" /> Grid
+              </button>
+            </div>
+
+            <button
+              onClick={loadData}
+              className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer border bg-[#FDF0DC] hover:bg-[#F5E8D4] text-[#2F2925] border-[#E8D8C4]"
+            >
+              <RefreshCw className="w-3.5 h-3.5" /> Refresh
+            </button>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-slate-200">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-[#E8D8C4]">
           <div>
-            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-slate-600">Block Filter</label>
+            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-[#8B7355]">Block Filter</label>
             <select
               value={selectedBlock}
               onChange={(e) => setSelectedBlock(e.target.value)}
-              className="w-full border rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none bg-slate-50 border-slate-300 text-slate-900 focus:border-[#673BB7] focus:bg-white shadow-sm cursor-pointer"
+              className="w-full border rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none bg-white border-[#E8D8C4] text-[#2F2925] focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 shadow-sm cursor-pointer"
             >
               <option value="All">All Blocks</option>
               <option value="D">Block D</option>
@@ -254,11 +401,11 @@ export default function Rooms() {
           </div>
 
           <div>
-            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-slate-600">Status Filter</label>
+            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-[#8B7355]">Status Filter</label>
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="w-full border rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none bg-slate-50 border-slate-300 text-slate-900 focus:border-[#673BB7] focus:bg-white shadow-sm cursor-pointer"
+              className="w-full border rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none bg-white border-[#E8D8C4] text-[#2F2925] focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 shadow-sm cursor-pointer"
             >
               <option value="All">All Statuses</option>
               <option value="Available">Available</option>
@@ -268,11 +415,11 @@ export default function Rooms() {
           </div>
 
           <div>
-            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-slate-600">Floor Filter</label>
+            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-[#8B7355]">Floor Filter</label>
             <select
               value={selectedFloor}
               onChange={(e) => setSelectedFloor(e.target.value)}
-              className="w-full border rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none bg-slate-50 border-slate-300 text-slate-900 focus:border-[#673BB7] focus:bg-white shadow-sm cursor-pointer"
+              className="w-full border rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none bg-white border-[#E8D8C4] text-[#2F2925] focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 shadow-sm cursor-pointer"
             >
               <option value="All">All Floors</option>
               <option value="1">Floor 1</option>
@@ -284,114 +431,237 @@ export default function Rooms() {
         </div>
       </div>
 
-      {/* Room Cards Grid */}
+      {/* Room Inventory View */}
       {loading ? (
         <div className="text-center py-12 text-xs font-semibold text-slate-500">
           Loading room inventory...
         </div>
       ) : filteredRooms.length ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-          {filteredRooms.map((room) => {
-            const occupied = Number(room.OccupiedCount || 0);
-            const capacity = Number(room.Capacity || 1);
-            const availableBeds = Math.max(0, capacity - occupied);
-            const statusBadge = getCalculatedStatus(occupied, capacity);
+        viewMode === "table" ? (
+          /* TABLE VIEW */
+          <div className="bg-white rounded-2xl border border-[#E8D8C4] shadow-xs overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-[#FDF0DC]/50 border-b border-[#E8D8C4] text-[11px] font-bold uppercase text-[#8B7355] tracking-wider">
+                    <th className="p-3.5 pl-5">Room No</th>
+                    <th className="p-3.5">Block</th>
+                    <th className="p-3.5">Floor</th>
+                    <th className="p-3.5">Capacity & Occupancy</th>
+                    <th className="p-3.5">Status</th>
+                    <th className="p-3.5">Active Residents</th>
+                    <th className="p-3.5 pr-5 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#E8D8C4]/60 font-medium text-[#2F2925]">
+                  {filteredRooms.map((room) => {
+                    const residents = getResidentsForRoom(room);
+                    const occupied = residents.length > 0 ? Math.max(residents.length, Number(room.OccupiedCount || 0)) : Number(room.OccupiedCount || 0);
+                    const capacity = Number(room.Capacity || 1);
+                    const statusBadge = getCalculatedStatus(occupied, capacity);
+                    const pct = Math.min(100, Math.round((occupied / capacity) * 100));
 
-            return (
-              <div
-                key={room._id}
-                className="bg-white rounded-2xl border border-purple-100/70 p-5 shadow-xs hover:shadow-md transition-all space-y-4 flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-2 gap-2">
-                    <span className="text-[11px] font-bold text-purple-700 bg-purple-50 px-2.5 py-1 rounded-lg border border-purple-100/80 flex items-center gap-1.5 shadow-2xs">
-                      <Building className="w-3.5 h-3.5 text-purple-600" />
-                      {room.Block === "Executive" ? "Executive Block" : `Block ${room.Block || "D"}`}
-                    </span>
-                    <span
-                      className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border ${
-                        statusBadge === "Available"
-                          ? "bg-emerald-100 text-emerald-800 border-emerald-200"
-                          : statusBadge === "Partial"
-                          ? "bg-amber-100 text-amber-800 border-amber-200"
-                          : "bg-rose-100 text-rose-800 border-rose-200"
-                      }`}
+                    return (
+                      <tr key={room._id} className="hover:bg-[#FDF0DC]/20 transition-colors">
+                        {/* 1. Room No */}
+                        <td className="p-3.5 pl-5 font-extrabold text-sm text-[#2F2925]">
+                          Room {room.RoomNo}
+                        </td>
+
+                        {/* 2. Block */}
+                        <td className="p-3.5">
+                          <span className="text-[11px] font-bold text-[#B85228] bg-[#FDF0DC] px-2.5 py-1 rounded-lg border border-[#E8D8C4] inline-block shadow-2xs">
+                            {room.Block === "Executive" ? "Executive Block" : `Block ${room.Block || "D"}`}
+                          </span>
+                        </td>
+
+                        {/* 3. Floor */}
+                        <td className="p-3.5 font-semibold text-[#8B7355]">
+                          Floor {room.Floor ?? 1}
+                        </td>
+
+                        {/* 4. Capacity & Occupancy */}
+                        <td className="p-3.5">
+                          <div className="space-y-1 max-w-[160px]">
+                            <div className="flex items-center justify-between text-xs font-bold">
+                              <span>{occupied} / {capacity} Beds</span>
+                              <span className="text-[10px] text-[#8B7355]">{pct}%</span>
+                            </div>
+                            <div className="w-full bg-[#FDF0DC] rounded-full h-1.5 overflow-hidden border border-[#E8D8C4]/60">
+                              <div
+                                className={`h-full rounded-full transition-all ${
+                                  statusBadge === "Full"
+                                    ? "bg-rose-500"
+                                    : statusBadge === "Partial"
+                                    ? "bg-amber-500"
+                                    : "bg-emerald-500"
+                                }`}
+                                style={{ width: `${pct}%` }}
+                              />
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* 5. Status */}
+                        <td className="p-3.5">
+                          <span
+                            className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border ${
+                              statusBadge === "Available"
+                                ? "bg-emerald-100 text-emerald-800 border-emerald-200"
+                                : statusBadge === "Partial"
+                                ? "bg-amber-100 text-amber-800 border-amber-200"
+                                : "bg-rose-100 text-rose-800 border-rose-200"
+                            }`}
+                          >
+                            {statusBadge}
+                          </span>
+                        </td>
+
+                        {/* 6. Active Residents (Opens View Room Modal) */}
+                        <td className="p-3.5">
+                          <button
+                            type="button"
+                            onClick={() => openDetails(room)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#FDF0DC] hover:bg-[#F5E8D4] text-[#B85228] border border-[#E8D8C4] rounded-xl font-bold text-xs transition-colors cursor-pointer shadow-2xs"
+                          >
+                            <Eye className="w-3.5 h-3.5 text-[#EB8055]" />
+                            <span>View Room</span>
+                            <span className="text-[10px] font-extrabold bg-white text-[#2F2925] px-1.5 py-0.2 rounded-md border border-[#E8D8C4]">
+                              {residents.length} {residents.length === 1 ? "resident" : "residents"}
+                            </span>
+                          </button>
+                        </td>
+
+                        {/* 7. Actions (Edit & Delete) */}
+                        <td className="p-3.5 pr-5 text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <button
+                              onClick={() => openForm(room)}
+                              className="p-1.5 text-[#8B7355] hover:text-[#EB8055] hover:bg-[#FDF0DC] rounded-lg transition-colors cursor-pointer"
+                              title="Edit Room"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => deleteRoom(room)}
+                              className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                              title="Delete Room"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ) : (
+          /* GRID VIEW */
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            {filteredRooms.map((room) => {
+              const residents = getResidentsForRoom(room);
+              const occupied = residents.length > 0 ? Math.max(residents.length, Number(room.OccupiedCount || 0)) : Number(room.OccupiedCount || 0);
+              const capacity = Number(room.Capacity || 1);
+              const availableBeds = Math.max(0, capacity - occupied);
+              const statusBadge = getCalculatedStatus(occupied, capacity);
+
+              return (
+                <div
+                  key={room._id}
+                  className="bg-white rounded-2xl border border-[#E8D8C4] p-5 shadow-xs hover:shadow-md transition-all space-y-4 flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-2 gap-2">
+                      <span className="text-[11px] font-bold text-[#B85228] bg-[#FDF0DC] px-2.5 py-1 rounded-lg border border-[#E8D8C4] shadow-2xs">
+                        {room.Block === "Executive" ? "Executive Block" : `Block ${room.Block || "D"}`}
+                      </span>
+                      <span
+                        className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border ${
+                          statusBadge === "Available"
+                            ? "bg-emerald-100 text-emerald-800 border-emerald-200"
+                            : statusBadge === "Partial"
+                            ? "bg-amber-100 text-amber-800 border-amber-200"
+                            : "bg-rose-100 text-rose-800 border-rose-200"
+                        }`}
+                      >
+                        {statusBadge}
+                      </span>
+                    </div>
+
+                    <div className="flex items-baseline justify-between mt-1">
+                      <h3 className="text-xl font-extrabold text-[#2F2925]">Room {room.RoomNo}</h3>
+                      <span className="text-xs font-semibold text-[#8B7355]">Floor {room.Floor ?? 1}</span>
+                    </div>
+
+                    <div className="mt-4 pt-3 border-t border-[#E8D8C4]/60 grid grid-cols-3 gap-2 text-center text-xs">
+                      <div className="p-2 bg-[#FDF0DC]/50 rounded-xl border border-[#E8D8C4]/50">
+                        <span className="text-[10px] text-[#8B7355] block font-bold">Capacity</span>
+                        <strong className="text-[#2F2925] font-extrabold">{capacity}</strong>
+                      </div>
+                      <div className="p-2 bg-[#FDF0DC]/50 rounded-xl border border-[#E8D8C4]/50">
+                        <span className="text-[10px] text-[#8B7355] block font-bold">Occupied</span>
+                        <strong className="text-[#EB8055] font-extrabold">{occupied}</strong>
+                      </div>
+                      <div className="p-2 bg-[#FDF0DC]/50 rounded-xl border border-[#E8D8C4]/50">
+                        <span className="text-[10px] text-[#8B7355] block font-bold">Available</span>
+                        <strong className="text-emerald-700 font-extrabold">{availableBeds}</strong>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-3 border-t border-[#E8D8C4]/60 flex items-center justify-between gap-2">
+                    <button
+                      onClick={() => openDetails(room)}
+                      className="flex-1 py-1.5 px-2 bg-[#FDF0DC] text-[#B85228] font-bold text-xs rounded-xl hover:bg-[#F5E8D4] border border-[#E8D8C4] transition-colors flex items-center justify-center gap-1 cursor-pointer"
                     >
-                      {statusBadge}
-                    </span>
-                  </div>
-
-                  <div className="flex items-baseline justify-between mt-1">
-                    <h3 className="text-xl font-extrabold text-slate-900">Room {room.RoomNo}</h3>
-                    <span className="text-xs font-semibold text-slate-500">Floor {room.Floor ?? 1}</span>
-                  </div>
-
-
-                  <div className="mt-4 pt-3 border-t border-slate-100 grid grid-cols-3 gap-2 text-center text-xs">
-                    <div className="p-2 bg-slate-50 rounded-xl">
-                      <span className="text-[10px] text-slate-400 block font-bold">Capacity</span>
-                      <strong className="text-slate-900 font-extrabold">{capacity}</strong>
-                    </div>
-                    <div className="p-2 bg-slate-50 rounded-xl">
-                      <span className="text-[10px] text-slate-400 block font-bold">Occupied</span>
-                      <strong className="text-purple-700 font-extrabold">{occupied}</strong>
-                    </div>
-                    <div className="p-2 bg-slate-50 rounded-xl">
-                      <span className="text-[10px] text-slate-400 block font-bold">Available</span>
-                      <strong className="text-emerald-700 font-extrabold">{availableBeds}</strong>
-                    </div>
+                      <Eye className="w-3.5 h-3.5" /> View Room
+                    </button>
+                    <button
+                      onClick={() => openForm(room)}
+                      className="p-2 text-[#8B7355] hover:text-[#EB8055] hover:bg-[#FDF0DC] rounded-xl transition-colors cursor-pointer"
+                      title="Edit Room"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => deleteRoom(room)}
+                      className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer"
+                      title="Delete Room"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 </div>
-
-                <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-                  <button
-                    onClick={() => openDetails(room)}
-                    className="flex-1 py-1.5 px-2 bg-purple-50 text-purple-700 font-bold text-xs rounded-xl hover:bg-purple-100 transition-colors flex items-center justify-center gap-1 cursor-pointer"
-                  >
-                    <Eye className="w-3.5 h-3.5" /> View Room
-                  </button>
-                  <button
-                    onClick={() => openForm(room)}
-                    className="p-2 text-slate-500 hover:text-purple-700 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
-                    title="Edit Room"
-                  >
-                    <Edit2 className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    onClick={() => deleteRoom(room)}
-                    className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer"
-                    title="Delete Room"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )
       ) : (
-        <div className="bg-white p-12 rounded-2xl border border-purple-100/70 text-center space-y-2">
-          <DoorOpen className="w-10 h-10 text-slate-300 mx-auto" />
-          <h3 className="text-base font-bold text-slate-800">No rooms found</h3>
-          <p className="text-xs text-slate-400">Try changing your search query or filters.</p>
+        <div className="bg-white p-12 rounded-2xl border border-[#E8D8C4] text-center space-y-2">
+          <DoorOpen className="w-10 h-10 text-[#8B7355]/40 mx-auto" />
+          <h3 className="text-base font-bold text-[#2F2925]">No rooms found</h3>
+          <p className="text-xs text-[#8B7355]">Try changing your search query or filters.</p>
         </div>
       )}
 
       {/* Add / Edit Room Modal */}
       {formOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-[#2F2925]/50 backdrop-blur-xs flex items-center justify-center p-4">
           <form
             onSubmit={saveRoom}
-            className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden space-y-4 p-6"
+            className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden space-y-4 p-6 border border-[#E8D8C4]"
           >
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-base font-extrabold text-slate-900">
+            <div className="flex items-center justify-between border-b border-[#E8D8C4] pb-3">
+              <h3 className="text-base font-extrabold text-[#2F2925]">
                 {selected ? `Edit Room ${selected.RoomNo}` : "Add New Room"}
               </h3>
               <button
                 type="button"
                 onClick={() => setFormOpen(false)}
-                className="text-slate-400 hover:text-slate-600 cursor-pointer"
+                className="text-[#8B7355] hover:text-[#2F2925] cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -399,24 +669,24 @@ export default function Rooms() {
 
             <div className="space-y-3 text-xs font-semibold">
               <div>
-                <label className="block text-slate-700 mb-1 font-bold">Room Number *</label>
+                <label className="block text-[#2F2925] mb-1 font-bold">Room Number *</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. 101, 204"
                   value={form.RoomNo || ""}
                   onChange={(e) => setForm({ ...form, RoomNo: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
+                  className="w-full bg-[#FDF0DC]/30 border border-[#E8D8C4] rounded-xl p-2.5 outline-none focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 font-medium text-[#2F2925]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-700 mb-1 font-bold">Block *</label>
+                  <label className="block text-[#2F2925] mb-1 font-bold">Block *</label>
                   <select
                     value={form.Block || "D"}
                     onChange={(e) => setForm({ ...form, Block: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
+                    className="w-full bg-white border border-[#E8D8C4] rounded-xl p-2.5 outline-none focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 font-medium text-[#2F2925]"
                   >
                     <option value="D">Block D</option>
                     <option value="E">Block E</option>
@@ -426,56 +696,56 @@ export default function Rooms() {
                 </div>
 
                 <div>
-                  <label className="block text-slate-700 mb-1 font-bold">Floor *</label>
+                  <label className="block text-[#2F2925] mb-1 font-bold">Floor *</label>
                   <input
                     type="number"
                     min="0"
                     required
                     value={form.Floor ?? 1}
                     onChange={(e) => setForm({ ...form, Floor: Number(e.target.value) })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
+                    className="w-full bg-[#FDF0DC]/30 border border-[#E8D8C4] rounded-xl p-2.5 outline-none focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 font-medium text-[#2F2925]"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-700 mb-1 font-bold">Bed Capacity *</label>
+                  <label className="block text-[#2F2925] mb-1 font-bold">Bed Capacity *</label>
                   <input
                     type="number"
                     min="1"
                     required
                     value={form.Capacity ?? 2}
                     onChange={(e) => setForm({ ...form, Capacity: Number(e.target.value) })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
+                    className="w-full bg-[#FDF0DC]/30 border border-[#E8D8C4] rounded-xl p-2.5 outline-none focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 font-medium text-[#2F2925]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-slate-700 mb-1 font-bold">Occupied Count</label>
+                  <label className="block text-[#2F2925] mb-1 font-bold">Occupied Count</label>
                   <input
                     type="number"
                     min="0"
                     value={form.OccupiedCount ?? 0}
                     onChange={(e) => setForm({ ...form, OccupiedCount: Number(e.target.value) })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:border-purple-600 font-medium"
+                    className="w-full bg-[#FDF0DC]/30 border border-[#E8D8C4] rounded-xl p-2.5 outline-none focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 font-medium text-[#2F2925]"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
+            <div className="pt-3 border-t border-[#E8D8C4] flex justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setFormOpen(false)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs font-semibold bg-[#FDF0DC] text-[#2F2925] hover:bg-[#F5E8D4] border border-[#E8D8C4] cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={busy}
-                className="px-5 py-2 rounded-xl text-xs font-bold bg-purple-600 text-white hover:bg-purple-700 cursor-pointer disabled:opacity-50"
+                className="px-5 py-2 rounded-xl text-xs font-bold bg-[#EB8055] text-white hover:bg-[#D96B3A] cursor-pointer disabled:opacity-50"
               >
                 {busy ? "Saving..." : "Save Room"}
               </button>
@@ -486,77 +756,106 @@ export default function Rooms() {
 
       {/* Room Details Modal */}
       {detailsOpen && selected && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden space-y-4 p-6">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div className="fixed inset-0 z-50 bg-[#2F2925]/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col space-y-4 p-6 border border-[#E8D8C4]">
+            <div className="flex items-center justify-between border-b border-[#E8D8C4] pb-3">
               <div>
-                <span className="text-[10px] font-bold text-purple-600 uppercase tracking-wider">
+                <span className="text-[10px] font-bold text-[#EB8055] uppercase tracking-wider">
                   Room Details & Residents
                 </span>
-                <h3 className="text-xl font-extrabold text-slate-900 mt-1">Room {selected.RoomNo}</h3>
+                <h3 className="text-xl font-extrabold text-[#2F2925] mt-1">Room {selected.RoomNo}</h3>
               </div>
               <button
                 onClick={() => setDetailsOpen(false)}
-                className="text-slate-400 hover:text-slate-600 cursor-pointer"
+                className="text-[#8B7355] hover:text-[#2F2925] cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="grid grid-cols-3 gap-3 text-xs text-center font-semibold">
-              <div className="p-3 bg-purple-50 rounded-xl border border-purple-100">
-                <span className="text-slate-400 text-[10px] block font-bold">Block / Floor</span>
-                <strong className="text-purple-900 font-extrabold">
-                  {selected.Block === "Executive" ? "Executive Block" : `Block ${selected.Block}`} · Floor {selected.Floor}
-                </strong>
-              </div>
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                <span className="text-slate-400 text-[10px] block font-bold">Total Beds</span>
-                <strong className="text-slate-900 font-extrabold">{selected.Capacity}</strong>
-              </div>
-              <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-100">
-                <span className="text-slate-400 text-[10px] block font-bold">Available Beds</span>
-                <strong className="text-emerald-900 font-extrabold">
-                  {Math.max(0, (selected.Capacity || 0) - (selected.OccupiedCount || 0))}
-                </strong>
-              </div>
-            </div>
+            {(() => {
+              const residents = getResidentsForRoom(selected);
+              const occupiedCount = residents.length > 0 ? Math.max(residents.length, Number(selected.OccupiedCount || 0)) : Number(selected.OccupiedCount || 0);
+              const availableCount = Math.max(0, (selected.Capacity || 0) - occupiedCount);
 
-            <div>
-              <h4 className="text-xs font-extrabold text-slate-800 mb-2">Current Active Residents</h4>
-              {getResidentsForRoom(selected).length ? (
-                <div className="space-y-2">
-                  {getResidentsForRoom(selected).map((res, i) => (
-                    <div
-                      key={i}
-                      className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs"
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-full bg-purple-600 text-white font-bold flex items-center justify-center text-xs">
-                          {res.Name?.charAt(0)}
-                        </div>
-                        <div>
-                          <p className="font-bold text-slate-900">{res.Name}</p>
-                          <p className="text-[10px] text-slate-500">{res.Course}</p>
-                        </div>
-                      </div>
-                      <span className="text-[11px] font-semibold text-slate-600 bg-white px-2 py-0.5 rounded-md border border-slate-200">
-                        Roll: {res.Rollno}
-                      </span>
+              return (
+                <>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-center font-semibold">
+                    <div className="p-3 bg-[#FDF0DC] rounded-xl border border-[#E8D8C4]">
+                      <span className="text-[#8B7355] text-[10px] block font-bold">Block</span>
+                      <strong className="text-[#B85228] font-extrabold">
+                        {selected.Block === "Executive" ? "Executive Block" : `Block ${selected.Block}`}
+                      </strong>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-xs text-slate-400 italic py-4 text-center">
-                  No active student allocations currently assigned to this room.
-                </p>
-              )}
-            </div>
+                    <div className="p-3 bg-[#FDF0DC]/50 rounded-xl border border-[#E8D8C4]">
+                      <span className="text-[#8B7355] text-[10px] block font-bold">Floor</span>
+                      <strong className="text-[#2F2925] font-extrabold">{selected.Floor}</strong>
+                    </div>
+                    <div className="p-3 bg-[#FDF0DC]/50 rounded-xl border border-[#E8D8C4]">
+                      <span className="text-[#8B7355] text-[10px] block font-bold">Capacity</span>
+                      <strong className="text-[#2F2925] font-extrabold">{selected.Capacity}</strong>
+                    </div>
+                    <div className="p-3 bg-[#FDF0DC]/50 rounded-xl border border-[#E8D8C4]">
+                      <span className="text-[#8B7355] text-[10px] block font-bold">Occupied</span>
+                      <strong className="text-[#EB8055] font-extrabold">{occupiedCount}</strong>
+                    </div>
+                    <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200">
+                      <span className="text-emerald-700 text-[10px] block font-bold">Available</span>
+                      <strong className="text-emerald-900 font-extrabold">{availableCount}</strong>
+                    </div>
+                  </div>
 
-            <div className="pt-3 border-t border-slate-100 flex justify-end">
+                  <div>
+                    <h4 className="text-xs font-extrabold text-[#2F2925] mb-2 flex items-center justify-between">
+                      <span>Current Active Residents ({residents.length})</span>
+                      {availableCount > 0 && (
+                        <span className="text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md font-bold">
+                          {availableCount} {availableCount === 1 ? "bed" : "beds"} vacant
+                        </span>
+                      )}
+                    </h4>
+                    {residents.length ? (
+                      <div className="max-h-[300px] overflow-y-auto overscroll-contain scroll-smooth pr-2 space-y-2">
+                        {residents.map((res, i) => (
+                          <div
+                            key={i}
+                            className="p-3.5 rounded-xl bg-[#FDF0DC]/50 border border-[#E8D8C4] flex items-center justify-between gap-3 text-xs"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="w-9 h-9 rounded-full bg-[#EB8055] text-white font-extrabold flex items-center justify-center text-sm shadow-xs">
+                                {res.Name?.charAt(0)?.toUpperCase()}
+                              </div>
+                              <div>
+                                <p className="font-extrabold text-[#2F2925] text-xs">{res.Name}</p>
+                                <p className="text-[11px] text-[#8B7355] font-semibold">
+                                  {res.Course && res.Course !== "—" ? res.Course : "B.Tech"} 
+                                  {res.Department && res.Department !== "—" ? ` · ${res.Department}` : ""} 
+                                  {res.Year && res.Year !== "—" ? ` · Year ${res.Year}` : ""}
+                                </p>
+                              </div>
+                            </div>
+                            <span className="text-xs font-extrabold text-[#B85228] bg-white px-2.5 py-1 rounded-lg border border-[#E8D8C4] shadow-2xs">
+                              {res.Rollno}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="p-6 bg-[#FDF0DC]/30 rounded-xl border border-dashed border-[#E8D8C4] text-center space-y-1">
+                        <Users className="w-7 h-7 text-[#8B7355]/40 mx-auto" />
+                        <p className="text-xs font-bold text-[#2F2925]">No students currently assigned</p>
+                        <p className="text-[10px] text-[#8B7355]">All {selected.Capacity || 2} beds are available in this room.</p>
+                      </div>
+                    )}
+                  </div>
+                </>
+              );
+            })()}
+
+            <div className="pt-3 border-t border-[#E8D8C4] flex justify-end">
               <button
                 onClick={() => setDetailsOpen(false)}
-                className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-[#FDF0DC] text-[#2F2925] hover:bg-[#F5E8D4] border border-[#E8D8C4] cursor-pointer"
               >
                 Close
               </button>

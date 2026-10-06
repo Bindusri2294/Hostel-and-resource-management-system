@@ -2,18 +2,30 @@ const mongoose = require("mongoose");
 
 const notificationSchema = new mongoose.Schema(
   {
-    studentId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Student",
-      required: true,
-      index: true,
-    },
+    title: { type: String, required: true, trim: true },
     message: { type: String, required: true, trim: true },
-    notificationType: { type: String, required: true, trim: true },
-    relatedAction: { type: String, required: true, trim: true },
-    isRead: { type: Boolean, default: false, index: true },
+    targetType: {
+      type: String,
+      enum: ["ALL", "BLOCK", "COURSE", "SINGLE_STUDENT"],
+      required: true,
+    },
+    targetValue: {
+      type: String, // e.g., "Block D", "CSC", or student roll number. Empty if 'ALL'
+      default: "",
+    },
+    sender: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    readBy: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User", // Student users who have read this
+      },
+    ],
   },
-  { timestamps: { createdAt: true, updatedAt: false } }
+  { timestamps: true }
 );
 
 module.exports = mongoose.model("Notification", notificationSchema);

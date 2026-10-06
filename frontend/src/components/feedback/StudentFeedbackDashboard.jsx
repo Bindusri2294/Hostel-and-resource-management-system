@@ -1,33 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { useTheme } from '../../context/ThemeContext';
 import { feedbackService } from '../../services/feedbackService';
 import {
   MessageSquarePlus,
   History,
   Star,
   Send,
-  LogOut,
-  UserCheck,
-  Building,
   CheckCircle2,
   Clock,
   RefreshCw,
-  Sparkles, Lock,
+  Sparkles,
   UploadCloud,
-  ImageIcon,
   X
 } from 'lucide-react';
 
 export default function StudentFeedbackDashboard() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
   const [activeTab, setActiveTab] = useState('submit'); // 'submit' | 'my-feedbacks'
 
   // Form State derived strictly from authenticated student profile
   const [studentId, setStudentId] = useState(user?.student?.Rollno || '');
   const [roomNo, setRoomNo] = useState(user?.student?.Roomno || '');
-  const [block, setBlock] = useState(user?.student?.Campus || 'Block A');
+  const [block, setBlock] = useState(user?.student?.Block || 'Block A');
   const [category, setCategory] = useState('Overall Experience');
   const [message, setMessage] = useState('');
   const [rating, setRating] = useState(5);
@@ -59,7 +54,7 @@ export default function StudentFeedbackDashboard() {
     if (user?.student) {
       if (user.student.Rollno) setStudentId(user.student.Rollno);
       if (user.student.Roomno) setRoomNo(user.student.Roomno);
-      if (user.student.Campus) setBlock(user.student.Campus);
+      if (user.student.Block) setBlock(user.student.Block);
     }
   }, [user]);
 
@@ -120,7 +115,7 @@ export default function StudentFeedbackDashboard() {
 
     const activeStudentId = user?.student?.Rollno || studentId;
     const activeRoomNo = user?.student?.Roomno || roomNo;
-    const activeBlock = user?.student?.Campus || block || 'Block A';
+    const activeBlock = user?.student?.Block || block || 'Block A';
 
     if (!activeStudentId || !activeRoomNo || !message.trim()) {
       setFormError('Student details are incomplete or message is empty.');
@@ -192,19 +187,15 @@ export default function StudentFeedbackDashboard() {
   };
 
   return (
-    <div className={`min-h-screen flex flex-col transition-colors duration-200 bg-slate-50 text-slate-900`}>
-
-
-      {/* Main Container */}
-      <main className="flex-1 max-w-6xl w-full mx-auto p-4 md:p-6 space-y-6">
-        {/* Navigation Tabs */}
-        <div className={`flex border-b gap-4 border-slate-300`}>
+    <div className="space-y-6 max-w-6xl mx-auto">
+      {/* Navigation Tabs */}
+        <div className="flex border-b gap-4 border-[#E8D8C4]">
           <button
             onClick={() => setActiveTab('submit')}
             className={`pb-3 text-sm font-bold flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
               activeTab === 'submit'
-                ? 'border-[#673BB7] text-[#673BB7]'
-                : 'border-transparent text-slate-600 hover:text-slate-900'
+                ? 'border-[#EB8055] text-[#EB8055]'
+                : 'border-transparent text-[#8B7355] hover:text-[#2F2925]'
             }`}
           >
             <MessageSquarePlus className="w-4 h-4" /> Submit Feedback / Report Issue
@@ -214,8 +205,8 @@ export default function StudentFeedbackDashboard() {
             onClick={() => setActiveTab('my-feedbacks')}
             className={`pb-3 text-sm font-bold flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
               activeTab === 'my-feedbacks'
-                ? 'border-[#673BB7] text-[#673BB7]'
-                : 'border-transparent text-slate-600 hover:text-slate-900'
+                ? 'border-[#EB8055] text-[#EB8055]'
+                : 'border-transparent text-[#8B7355] hover:text-[#2F2925]'
             }`}
           >
             <History className="w-4 h-4" /> My Submissions ({myFeedbacks.length})
@@ -224,14 +215,12 @@ export default function StudentFeedbackDashboard() {
 
         {/* TAB 1: SUBMIT FEEDBACK */}
         {activeTab === 'submit' && (
-          <div className="grid md:grid-cols-3 gap-6">
-            {/* Form */}
-            <div className={`md:col-span-2 border rounded-2xl p-6 shadow-xl bg-white border-slate-200`}>
+          <div className="border rounded-2xl p-6 shadow-xs bg-white border-[#E8D8C4]">
               <div className="mb-6">
-                <h2 className={`text-lg font-bold flex items-center gap-2 text-slate-900`}>
-                  <Sparkles className="w-5 h-5 text-[#673BB7]" /> Express Your Feedback
+                <h2 className="text-lg font-bold flex items-center gap-2 text-[#2F2925]">
+                  <Sparkles className="w-5 h-5 text-[#EB8055]" /> Express Your Feedback
                 </h2>
-                <p className={`text-xs mt-0.5 text-slate-600`}>
+                <p className="text-xs mt-0.5 text-[#8B7355]">
                   Share your suggestions, complaints, or maintenance issues directly with hostel management.
                 </p>
               </div>
@@ -252,7 +241,7 @@ export default function StudentFeedbackDashboard() {
                 {/* Student ID / Roll No & Room & Block (Non-editable, locked to backend auth) */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
-                    <label className={`block text-xs font-semibold mb-1.5 text-slate-800`}>
+                    <label className="block text-xs font-semibold mb-1.5 text-[#2F2925]">
                       Student ID (Roll No)
                     </label>
                     <div className="relative">
@@ -261,13 +250,13 @@ export default function StudentFeedbackDashboard() {
                         readOnly
                         disabled
                         value={user?.student?.Rollno || studentId || 'N/A'}
-                        className={`w-full border rounded-xl px-3.5 py-2.5 text-xs font-bold select-none bg-slate-100 border-slate-300 text-slate-800 shadow-inner`}
+                        className="w-full border rounded-xl px-3.5 py-2.5 text-xs font-bold select-none bg-[#FDF0DC]/30 border-[#E8D8C4] text-[#8B7355]"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className={`block text-xs font-semibold mb-1.5 text-slate-800`}>
+                    <label className="block text-xs font-semibold mb-1.5 text-[#2F2925]">
                       Room Number
                     </label>
                     <div className="relative">
@@ -276,13 +265,13 @@ export default function StudentFeedbackDashboard() {
                         readOnly
                         disabled
                         value={user?.student?.Roomno || roomNo || 'Unassigned'}
-                        className={`w-full border rounded-xl px-3.5 py-2.5 text-xs font-bold select-none bg-slate-100 border-slate-300 text-slate-800 shadow-inner`}
+                        className="w-full border rounded-xl px-3.5 py-2.5 text-xs font-bold select-none bg-[#FDF0DC]/30 border-[#E8D8C4] text-[#8B7355]"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className={`block text-xs font-semibold mb-1.5 text-slate-800`}>
+                    <label className="block text-xs font-semibold mb-1.5 text-[#2F2925]">
                       Hostel Block
                     </label>
                     <div className="relative">
@@ -290,8 +279,8 @@ export default function StudentFeedbackDashboard() {
                         type="text"
                         readOnly
                         disabled
-                        value={user?.student?.Campus || block || 'Block A'}
-                        className={`w-full border rounded-xl px-3.5 py-2.5 text-xs font-bold select-none bg-slate-100 border-slate-300 text-slate-800 shadow-inner`}
+                        value={user?.student?.Block || block || 'Block A'}
+                        className="w-full border rounded-xl px-3.5 py-2.5 text-xs font-bold select-none bg-[#FDF0DC]/30 border-[#E8D8C4] text-[#8B7355]"
                       />
                     </div>
                   </div>
@@ -299,13 +288,13 @@ export default function StudentFeedbackDashboard() {
 
                 {/* Feedback Category Selection */}
                 <div>
-                  <label className={`block text-xs font-semibold mb-1.5 text-slate-800`}>
+                  <label className="block text-xs font-semibold mb-1.5 text-[#2F2925]">
                     Feedback Category *
                   </label>
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className={`w-full border rounded-xl px-3.5 py-2.5 text-xs font-bold focus:outline-none bg-slate-50 border-slate-300 text-slate-900 focus:border-[#673BB7] focus:bg-white shadow-sm`}
+                    className="w-full border rounded-xl px-3.5 py-2.5 text-xs font-bold focus:outline-none bg-white border-[#E8D8C4] text-[#2F2925] focus:border-[#EB8055] shadow-xs cursor-pointer"
                   >
                     {categoryOptions.map((cat) => (
                       <option key={cat.value} value={cat.value}>
@@ -317,10 +306,10 @@ export default function StudentFeedbackDashboard() {
 
                 {/* Rating Widget */}
                 <div>
-                  <label className={`block text-xs font-semibold mb-1.5 text-slate-800`}>
+                  <label className="block text-xs font-semibold mb-1.5 text-[#2F2925]">
                     Rating / Overall Satisfaction *
                   </label>
-                  <div className={`flex items-center gap-2 p-3 rounded-xl border bg-slate-50 border-slate-300`}>
+                  <div className="flex items-center gap-2 p-3 rounded-xl border bg-[#FDF0DC]/30 border-[#E8D8C4]">
                     <div className="flex gap-1">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <button
@@ -341,7 +330,7 @@ export default function StudentFeedbackDashboard() {
                         </button>
                       ))}
                     </div>
-                    <span className={`text-xs font-bold ml-2 text-amber-800`}>
+                    <span className="text-xs font-bold ml-2 text-amber-800">
                       {ratingLabels[(hoverRating || rating) - 1]}
                     </span>
                   </div>
@@ -349,7 +338,7 @@ export default function StudentFeedbackDashboard() {
 
                 {/* Message */}
                 <div>
-                  <label className={`block text-xs font-semibold mb-1.5 text-slate-800`}>
+                  <label className="block text-xs font-semibold mb-1.5 text-[#2F2925]">
                     Feedback Message *
                   </label>
                   <textarea
@@ -358,18 +347,18 @@ export default function StudentFeedbackDashboard() {
                     placeholder="Explain the problem or suggestion clearly..."
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
-                    className={`w-full border rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none resize-none bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-[#673BB7] focus:bg-white shadow-sm`}
+                    className="w-full border rounded-xl px-3.5 py-2.5 text-xs font-medium focus:outline-none resize-none bg-white border-[#E8D8C4] text-[#2F2925] placeholder-[#8B7355]/50 focus:border-[#EB8055] shadow-xs"
                   />
                 </div>
 
                 {/* Optional Image Attachment */}
                 <div>
-                  <label className={`block text-xs font-semibold mb-1.5 text-slate-800`}>
+                  <label className="block text-xs font-semibold mb-1.5 text-[#2F2925]">
                     Attach Photo / Proof (Optional)
                   </label>
                   {!imagePreview ? (
-                    <label className={`flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-4 cursor-pointer transition-all bg-slate-50 border-slate-300 hover:border-[#673BB7] hover:bg-[#f3e5f5]/30 text-slate-600`}>
-                      <UploadCloud className="w-6 h-6 text-[#673BB7] mb-1" />
+                    <label className="flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-4 cursor-pointer transition-all bg-[#FDF0DC]/20 border-[#E8D8C4] hover:border-[#EB8055] hover:bg-[#FDF0DC]/40 text-[#8B7355]">
+                      <UploadCloud className="w-6 h-6 text-[#EB8055] mb-1" />
                       <span className="text-xs font-semibold">Click to upload issue photo</span>
                       <span className="text-[10px] opacity-70 mt-0.5">Supports JPG, PNG, WEBP (Max 5MB)</span>
                       <input
@@ -380,7 +369,7 @@ export default function StudentFeedbackDashboard() {
                       />
                     </label>
                   ) : (
-                    <div className="relative inline-block border rounded-xl overflow-hidden shadow-sm">
+                    <div className="relative inline-block border rounded-xl overflow-hidden shadow-xs border-[#E8D8C4]">
                       <img src={imagePreview} alt="Issue preview" className="h-28 w-auto object-cover rounded-xl" />
                       <button
                         type="button"
@@ -398,7 +387,7 @@ export default function StudentFeedbackDashboard() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full bg-[#673BB7] hover:bg-[#5e35b1] text-white font-bold py-3 rounded-xl shadow-lg text-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2"
+                  className="w-full bg-[#EB8055] hover:bg-[#D96B3A] text-white font-bold py-3 rounded-xl shadow-xs text-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2"
                 >
                   {submitting ? (
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -409,33 +398,6 @@ export default function StudentFeedbackDashboard() {
                   )}
                 </button>
               </form>
-            </div>
-
-            {/* Sidebar Student Profile Card */}
-            <div className="space-y-4">
-              <div className={`border rounded-2xl p-5 shadow-xl bg-white border-slate-200`}>
-                <h3 className={`text-xs font-bold uppercase tracking-wider mb-3 flex items-center gap-1.5 text-slate-700`}>
-                  <UserCheck className="w-4 h-4 text-[#673BB7]" /> Student Account Profile
-                </h3>
-
-                <div className="space-y-2 text-xs">
-                  <div className={`p-2.5 rounded-lg border bg-slate-50 border-slate-200`}>
-                    <span className={`block text-[10px] text-slate-500`}>Name</span>
-                    <span className={`font-bold text-slate-900`}>{user?.name || 'Student'}</span>
-                  </div>
-                  <div className={`p-2.5 rounded-lg border bg-slate-50 border-slate-200`}>
-                    <span className={`block text-[10px] text-slate-500`}>Roll Number</span>
-                    <span className={`font-bold text-[#673BB7]`}>{user?.student?.Rollno || studentId || 'N/A'}</span>
-                  </div>
-                  <div className={`p-2.5 rounded-lg border bg-slate-50 border-slate-200`}>
-                    <span className={`block text-[10px] text-slate-500`}>Room & Hostel</span>
-                    <span className={`font-bold text-emerald-700`}>
-                      {user?.student?.Roomno ? `Room ${user.student.Roomno}` : roomNo ? `Room ${roomNo}` : 'General'} ({user?.student?.Campus || 'Main Campus'})
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         )}
 
@@ -443,58 +405,58 @@ export default function StudentFeedbackDashboard() {
         {activeTab === 'my-feedbacks' && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className={`text-lg font-bold flex items-center gap-2 text-slate-900`}>
-                <History className="w-5 h-5 text-[#673BB7]" /> Your Submitted Feedback
+              <h2 className="text-lg font-bold flex items-center gap-2 text-[#2F2925]">
+                <History className="w-5 h-5 text-[#EB8055]" /> Your Submitted Feedback
               </h2>
               <button
                 onClick={fetchMyFeedbacks}
-                className="text-xs text-[#673BB7] hover:text-[#5e35b1] font-semibold underline"
+                className="text-xs text-[#EB8055] hover:text-[#D96B3A] font-semibold underline cursor-pointer"
               >
                 Refresh List
               </button>
             </div>
 
             {loadingFeedbacks ? (
-              <div className={`p-12 text-center text-slate-600`}>
-                <div className="w-6 h-6 border-2 border-[#673BB7] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+              <div className="p-12 text-center text-[#8B7355]">
+                <div className="w-6 h-6 border-2 border-[#EB8055] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
                 Loading your feedback...
               </div>
             ) : myFeedbacks.length === 0 ? (
-              <div className={`p-12 text-center border rounded-2xl bg-white border-slate-200`}>
-                <p className={`text-sm font-bold text-slate-800`}>No Feedback Submitted Yet</p>
-                <p className={`text-xs mt-1 text-slate-500`}>You haven't submitted any feedback yet.</p>
+              <div className="p-12 text-center border rounded-2xl bg-white border-[#E8D8C4]">
+                <p className="text-sm font-bold text-[#2F2925]">No Feedback Submitted Yet</p>
+                <p className="text-xs mt-1 text-[#8B7355]">You haven't submitted any feedback yet.</p>
               </div>
             ) : (
               <div className="grid gap-4">
                 {myFeedbacks.map((item) => (
                   <div
                     key={item._id}
-                    className={`border rounded-2xl p-5 shadow-lg space-y-3 transition-all bg-white border-slate-200 hover:border-slate-300`}
+                    className="border rounded-2xl p-5 shadow-xs space-y-3 transition-all bg-white border-[#E8D8C4] hover:border-[#EB8055]/50"
                   >
                     <div className="flex flex-wrap items-start justify-between gap-2">
                       <div>
                         <div className="flex items-center gap-2 flex-wrap mb-1">
-                          <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border bg-[#f3e5f5] text-[#512da8] border-[#e1bee7]`}>
+                          <span className="text-xs font-bold px-2.5 py-0.5 rounded-full border bg-[#FDF0DC] text-[#B85228] border-[#E8D8C4]">
                             Room {item.RoomNo} ({item.Block})
                           </span>
-                          <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border bg-[#f3e5f5] text-[#673BB7] border-[#e1bee7]`}>
+                          <span className="text-xs font-bold px-2.5 py-0.5 rounded-full border bg-[#FDF0DC] text-[#EB8055] border-[#E8D8C4]">
                             {item.category || 'Overall Experience'}
                           </span>
-                          <span className={`text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700`}>
+                          <span className="text-xs font-semibold px-2 py-0.5 rounded bg-[#FDF0DC]/50 border border-[#E8D8C4] text-[#8B7355]">
                             ID: {item.studentId}
                           </span>
                         </div>
-                        <p className={`text-sm font-bold mt-1 text-slate-900`}>{item.message}</p>
+                        <p className="text-sm font-bold mt-1 text-[#2F2925]">{item.message}</p>
                         
                         {item.imageUrl && (
                           <div className="mt-2.5">
                             <button
                               type="button"
-                              onClick={() => setLightboxImage(`http://localhost:5000${item.imageUrl}`)}
+                              onClick={() => setLightboxImage(item.imageUrl.startsWith("http") ? item.imageUrl : `http://localhost:5000${item.imageUrl}`)}
                               className="inline-block border rounded-xl overflow-hidden shadow hover:opacity-90 transition-all cursor-pointer"
                             >
                               <img
-                                src={`http://localhost:5000${item.imageUrl}`}
+                                src={item.imageUrl.startsWith("http") ? item.imageUrl : `http://localhost:5000${item.imageUrl}`}
                                 alt="Issue attachment"
                                 className="h-32 w-auto object-cover rounded-xl block"
                               />
@@ -534,7 +496,6 @@ export default function StudentFeedbackDashboard() {
             )}
           </div>
         )}
-      </main>
 
       {/* IMAGE LIGHTBOX MODAL */}
       {lightboxImage && (

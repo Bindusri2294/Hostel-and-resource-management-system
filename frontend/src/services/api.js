@@ -4,6 +4,7 @@ const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api",
   headers: { "Content-Type": "application/json" },
   withCredentials: true,
+  timeout: 30000, // 30 seconds timeout to handle slow DB connection latency
 });
 
 api.interceptors.request.use((config) => {
@@ -36,7 +37,8 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
     
-    if (originalRequest.url === "/auth/refresh") {
+    const url = originalRequest.url || "";
+    if (url.includes("/auth/refresh") || url.includes("/auth/login") || url.includes("/auth/register")) {
       return Promise.reject(error);
     }
 
@@ -80,7 +82,15 @@ export const authService = {
   login: (payload) => api.post("/auth/login", payload),
   register: (payload) => api.post("/auth/register", payload),
   me: () => api.get("/auth/me"),
+  updateProfile: (payload) => api.put("/auth/profile", payload),
   logout: () => api.post("/auth/logout"),
+  updateContact: (payload) => api.put("/auth/contact", payload),
+  forgotPassword: (payload) => api.post("/auth/forgot-password", payload),
+  verifyOTP: (payload) => api.post("/auth/verify-otp", payload),
+  resetPassword: (payload) => api.post("/auth/reset-password", payload),
+  requestManualReset: (payload) => api.post("/auth/request-manual-reset", payload),
+  getResetRequests: () => api.get("/auth/reset-requests"),
+  resolveResetRequest: (id) => api.post(`/auth/reset-requests/${id}/resolve`),
 };
 
 export const studentService = {
@@ -129,7 +139,14 @@ export const leaveService = {
   updateStatus: (id, payload) => api.put(`/leave/${id}/status`, payload),
 };
 
+export const notificationService = {
+  list: () => api.get("/notifications"),
+  create: (payload) => api.post("/notifications", payload),
+  markRead: (id) => api.put(`/notifications/${id}/read`),
+  remove: (id) => api.delete(`/notifications/${id}`),
+};
+
 export const getErrorMessage = (error, fallback = "Something went wrong") =>
-  error.response?.data?.message || (error.code === "ERR_NETWORK" ? "The server is unavailable. Check that the backend is running." : fallback);
+  error.response?.data?.message || (error.code === "ERR_NETWORK" ? "The server is unavailable." : fallback);
 
 export default api;

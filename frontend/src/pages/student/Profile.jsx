@@ -1,15 +1,24 @@
 import React, { useState, useRef } from "react";
 import { useAuth } from "../../context/AuthContext";
-import { Plus, ShieldCheck, Lock } from "lucide-react";
+import { authService, getErrorMessage } from "../../services/api";
+import { Plus, Lock, Save, CheckCircle2, AlertCircle, Mail } from "lucide-react";
 
 export default function Profile() {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const student = user?.student || {};
 
   const [profileImage, setProfileImage] = useState(() => {
     return localStorage.getItem(`profile_image_${user?._id || user?.id || user?.email || "current"}`) || null;
   });
   const fileInputRef = useRef(null);
+
+  // Editable email state
+  const [editEmail, setEditEmail] = useState(user?.email || "");
+  const [saving, setSaving] = useState(false);
+  const [savedMsg, setSavedMsg] = useState("");
+  const [error, setError] = useState("");
+
+  const emailChanged = editEmail.trim().toLowerCase() !== (user?.email || "").toLowerCase();
 
   const handleImageUpload = (e) => {
     const file = e.target.files?.[0];
@@ -25,10 +34,47 @@ export default function Profile() {
     }
   };
 
+  const handleSaveProfile = async () => {
+    if (!emailChanged) return;
+
+    setSaving(true);
+    setError("");
+    setSavedMsg("");
+
+    try {
+      const res = await authService.updateProfile({ email: editEmail.trim() });
+      // Update user context with new data
+      if (setUser && res.data) {
+        setUser(res.data);
+        localStorage.setItem("hostel_user", JSON.stringify(res.data));
+      }
+      setSavedMsg("Profile updated successfully!");
+      setTimeout(() => setSavedMsg(""), 4000);
+    } catch (err) {
+      setError(getErrorMessage(err, "Failed to update profile."));
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
+      {/* Success / Error Messages */}
+      {savedMsg && (
+        <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-800 text-xs font-bold flex items-center gap-2 shadow-xs">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+          <span>{savedMsg}</span>
+        </div>
+      )}
+      {error && (
+        <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-800 text-xs font-bold flex items-center gap-2 shadow-xs">
+          <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
+
       {/* Profile Details Card */}
-      <div className="bg-white rounded-2xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] border border-purple-100/70 p-8">
+      <div className="bg-white rounded-2xl shadow-xs border border-[#E8D8C4] p-8">
         {/* Profile Header */}
         <div className="flex flex-col sm:flex-row items-start justify-between mb-8 gap-4">
           <div className="flex items-center gap-6">
@@ -37,7 +83,7 @@ export default function Profile() {
               onClick={() => fileInputRef.current?.click()}
               title="Upload profile photo"
             >
-              <div className="w-20 h-20 rounded-full bg-[#6348f9] text-white font-bold text-2xl shadow-sm border-2 border-white ring-2 ring-gray-100 flex items-center justify-center overflow-hidden">
+              <div className="w-20 h-20 rounded-full bg-[#EB8055] text-white font-bold text-2xl shadow-sm border-2 border-white ring-2 ring-[#E8D8C4] flex items-center justify-center overflow-hidden">
                 {profileImage ? (
                   <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
                 ) : (
@@ -47,7 +93,7 @@ export default function Profile() {
               <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                 <Plus className="w-6 h-6 text-white" />
               </div>
-              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-white text-purple-700 rounded-full flex items-center justify-center shadow-md border-2 border-white group-hover:scale-110 transition-transform">
+              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-white text-[#EB8055] rounded-full flex items-center justify-center shadow-md border-2 border-white group-hover:scale-110 transition-transform">
                 <Plus className="w-3.5 h-3.5 stroke-[3]" />
               </div>
               <input 
@@ -59,16 +105,10 @@ export default function Profile() {
               />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-[#1a1d2d]">{student?.Name || user?.name}</h2>
-              <p className="text-sm font-medium text-gray-500 mt-1">{student?.Rollno || "Unassigned"}</p>
+              <h2 className="text-xl font-bold text-[#2F2925]">{student?.Name || user?.name}</h2>
+              <p className="text-sm font-medium text-[#8B7355] mt-1">{student?.Rollno || "Unassigned"}</p>
             </div>
           </div>
-          {student?.Status === "Active" && (
-            <div className="inline-flex items-center gap-1.5 bg-[#ecfdf3] text-[#027a48] px-3 py-1.5 rounded-full text-xs font-bold border border-[#a6f4c5]">
-              <ShieldCheck className="w-4 h-4" />
-              Allocated Resident
-            </div>
-          )}
         </div>
 
         {/* Form Fields (2 Columns) */}
@@ -76,26 +116,32 @@ export default function Profile() {
           {/* Left Column */}
           <div className="space-y-6">
             <div className="space-y-2">
-              <label className="text-[13px] font-bold text-[#1a1d2d]">Full Name</label>
+              <label className="text-[13px] font-bold text-[#2F2925]">Full Name</label>
               <input 
                 defaultValue={student?.Name || user?.name} 
-                className="w-full h-11 px-3 rounded-xl bg-slate-50 border border-gray-200 text-gray-500 font-medium focus-visible:outline-none focus-visible:border-[#6348f9] focus-visible:ring-1 focus-visible:ring-[#6348f9]" 
+                className="w-full h-11 px-3 rounded-xl bg-[#FDF0DC]/30 border border-[#E8D8C4] text-[#8B7355] font-medium focus-visible:outline-none" 
                 readOnly
               />
             </div>
             <div className="space-y-2">
-              <label className="text-[13px] font-bold text-[#1a1d2d]">Email</label>
+              <label className="text-[13px] font-bold text-[#2F2925] flex items-center gap-1.5">
+                <Mail className="w-3.5 h-3.5 text-[#EB8055]" />
+                Email
+                <span className="text-[10px] font-semibold text-[#B85228] bg-[#FDF0DC] border border-[#E8D8C4] px-1.5 py-0.5 rounded-md">Editable</span>
+              </label>
               <input 
-                defaultValue={user?.email} 
-                className="w-full h-11 px-3 rounded-xl bg-slate-50 border border-gray-200 text-gray-500 font-medium focus-visible:outline-none focus-visible:border-[#6348f9] focus-visible:ring-1 focus-visible:ring-[#6348f9]" 
-                readOnly
+                type="email"
+                value={editEmail} 
+                onChange={(e) => setEditEmail(e.target.value)}
+                className="w-full h-11 px-3 rounded-xl bg-white border border-[#E8D8C4] text-[#2F2925] font-medium focus-visible:outline-none focus-visible:border-[#EB8055] focus-visible:ring-1 focus-visible:ring-[#EB8055]/30" 
+                placeholder="Enter your email"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-[13px] font-bold text-[#1a1d2d]">Roll Number</label>
+              <label className="text-[13px] font-bold text-[#2F2925]">Roll Number</label>
               <input 
                 defaultValue={student?.Rollno || "—"} 
-                className="w-full h-11 px-3 rounded-xl bg-slate-50 border border-gray-200 text-gray-500 font-medium focus-visible:outline-none focus-visible:border-[#6348f9] focus-visible:ring-1 focus-visible:ring-[#6348f9]" 
+                className="w-full h-11 px-3 rounded-xl bg-[#FDF0DC]/30 border border-[#E8D8C4] text-[#8B7355] font-medium focus-visible:outline-none" 
                 readOnly
               />
             </div>
@@ -104,63 +150,84 @@ export default function Profile() {
           {/* Right Column */}
           <div className="space-y-6">
             <div className="space-y-2">
-              <label className="text-[13px] font-bold text-[#1a1d2d]">Course</label>
+              <label className="text-[13px] font-bold text-[#2F2925]">Course</label>
               <input 
                 defaultValue={student?.Course || "—"} 
-                className="w-full h-11 px-3 rounded-xl bg-slate-50 border border-gray-200 text-gray-500 font-medium focus-visible:outline-none focus-visible:border-[#6348f9] focus-visible:ring-1 focus-visible:ring-[#6348f9]" 
+                className="w-full h-11 px-3 rounded-xl bg-[#FDF0DC]/30 border border-[#E8D8C4] text-[#8B7355] font-medium focus-visible:outline-none" 
                 readOnly
               />
             </div>
             <div className="space-y-2">
-              <label className="text-[13px] font-bold text-[#1a1d2d]">Academic Year</label>
+              <label className="text-[13px] font-bold text-[#2F2925]">Academic Year</label>
               <input 
                 defaultValue={student?.Year ? `Year ${student.Year}` : "—"} 
-                className="w-full h-11 px-3 rounded-xl bg-slate-50 border border-gray-200 text-gray-500 font-medium focus-visible:outline-none focus-visible:border-[#6348f9] focus-visible:ring-1 focus-visible:ring-[#6348f9]" 
+                className="w-full h-11 px-3 rounded-xl bg-[#FDF0DC]/30 border border-[#E8D8C4] text-[#8B7355] font-medium focus-visible:outline-none" 
                 readOnly
               />
             </div>
             <div className="space-y-2">
-              <label className="text-[13px] font-bold text-[#1a1d2d]">Campus</label>
+              <label className="text-[13px] font-bold text-[#2F2925]">Campus</label>
               <input 
                 defaultValue={student?.Campus || "—"} 
-                className="w-full h-11 px-3 rounded-xl bg-slate-50 border border-gray-200 text-gray-500 font-medium focus-visible:outline-none focus-visible:border-[#6348f9] focus-visible:ring-1 focus-visible:ring-[#6348f9]" 
+                className="w-full h-11 px-3 rounded-xl bg-[#FDF0DC]/30 border border-[#E8D8C4] text-[#8B7355] font-medium focus-visible:outline-none" 
                 readOnly
               />
             </div>
           </div>
+        </div>
+
+        {/* Save Profile Button */}
+        <div className="mt-6 flex justify-end">
+          <button
+            type="button"
+            onClick={handleSaveProfile}
+            disabled={!emailChanged || saving}
+            className={`h-11 px-8 rounded-xl font-semibold shadow-xs cursor-pointer flex items-center justify-center gap-2 text-sm transition-all max-md:w-full ${
+              emailChanged
+                ? "bg-[#EB8055] hover:bg-[#D96B3A] text-white shadow-md"
+                : "border border-[#E8D8C4] text-[#8B7355]/60 cursor-not-allowed bg-[#FDF0DC]/20"
+            } disabled:opacity-50`}
+          >
+            {saving ? (
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <Save className="w-4 h-4" />
+            )}
+            Save Profile
+          </button>
         </div>
       </div>
 
       {/* Change Password Section */}
-      <div className="bg-white rounded-2xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] border border-purple-100/70 p-8">
+      <div className="bg-white rounded-2xl shadow-xs border border-[#E8D8C4] p-8">
         <div className="flex items-center gap-3 mb-6">
-          <div className="bg-orange-50 p-2.5 rounded-full text-orange-500">
+          <div className="bg-[#FDF0DC] p-2.5 rounded-full text-[#EB8055]">
             <Lock className="w-5 h-5" />
           </div>
-          <h3 className="text-[17px] font-bold text-[#1a1d2d]">Security & Password</h3>
+          <h3 className="text-[17px] font-bold text-[#2F2925]">Security & Password</h3>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
           <div className="space-y-2">
-            <label className="text-[13px] font-bold text-[#1a1d2d]">Current Password</label>
+            <label className="text-[13px] font-bold text-[#2F2925]">Current Password</label>
             <input 
               type="password" 
               placeholder="Enter current password" 
-              className="w-full h-11 px-3 rounded-xl bg-white border border-gray-200 focus-visible:outline-none focus-visible:border-[#6348f9] focus-visible:ring-1 focus-visible:ring-[#6348f9]" 
+              className="w-full h-11 px-3 rounded-xl bg-white border border-[#E8D8C4] text-[#2F2925] focus-visible:outline-none focus-visible:border-[#EB8055] focus-visible:ring-1 focus-visible:ring-[#EB8055]/30 placeholder-[#8B7355]/40" 
             />
           </div>
           <div className="space-y-2">
-            <label className="text-[13px] font-bold text-[#1a1d2d]">New Password</label>
+            <label className="text-[13px] font-bold text-[#2F2925]">New Password</label>
             <input 
               type="password" 
               placeholder="Enter new password" 
-              className="w-full h-11 px-3 rounded-xl bg-white border border-gray-200 focus-visible:outline-none focus-visible:border-[#6348f9] focus-visible:ring-1 focus-visible:ring-[#6348f9]" 
+              className="w-full h-11 px-3 rounded-xl bg-white border border-[#E8D8C4] text-[#2F2925] focus-visible:outline-none focus-visible:border-[#EB8055] focus-visible:ring-1 focus-visible:ring-[#EB8055]/30 placeholder-[#8B7355]/40" 
             />
           </div>
         </div>
 
         <div className="mt-6 flex justify-end">
-          <button className="h-11 px-8 rounded-xl border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 hover:text-gray-900 shadow-sm cursor-pointer">
+          <button className="h-11 px-8 rounded-xl border border-[#E8D8C4] text-[#2F2925] font-semibold bg-[#FDF0DC] hover:bg-[#F5E8D4] shadow-xs cursor-pointer max-md:w-full flex items-center justify-center">
             Update Password
           </button>
         </div>

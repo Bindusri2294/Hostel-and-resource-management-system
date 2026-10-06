@@ -1,5 +1,10 @@
 const Feedback = require("../models/Feedback");
 const Student = require("../models/student");
+const Notification = require("../models/Notification");
+const { PutObjectCommand } = require("@aws-sdk/client-s3");
+const s3Client = require("../config/r2");
+
+const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 // Create feedback
 const createFeedback = async (req, res, next) => {
@@ -11,7 +16,7 @@ const createFeedback = async (req, res, next) => {
     if (req.user && req.user.role === "Student" && req.user.student) {
       if (req.user.student?.Rollno) studentId = req.user.student.Rollno;
       if (req.user.student?.Roomno) RoomNo = req.user.student.Roomno;
-      if (req.user.student?.Campus) Block = req.user.student.Campus;
+      if (req.user.student?.Block) Block = req.user.student.Block;
     }
 
     if (!studentId) {
@@ -30,31 +35,26 @@ const createFeedback = async (req, res, next) => {
     let imageUrl = null;
     
     if (req.file) {
-      const db = mongoose.connection.db;
-      const bucket = new mongoose.mongo.GridFSBucket(db, {
-        bucketName: "feedbackImages",
-      });
-
       const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-      const filename = `feedback-${uniqueSuffix}-${req.file.originalname}`;
+      const filename = `feedback-${uniqueSuffix}-${req.file.originalname.replace(/\s+/g, '-')}`;
 
-      const uploadStream = bucket.openUploadStream(filename, {
-        contentType: req.file.mimetype,
-      });
+      await s3Client.send(
+        new PutObjectCommand({
+          Bucket: process.env.R2_BUCKET_NAME,
+          Key: filename,
+          Body: req.file.buffer,
+          ContentType: req.file.mimetype,
+          CacheControl: "public, max-age=604800",
+        })
+      );
 
-      await new Promise((resolve, reject) => {
-        uploadStream.on("error", reject);
-        uploadStream.on("finish", resolve);
-        uploadStream.end(req.file.buffer);
-      });
-
-      imageUrl = `/api/images/${filename}`;
+      imageUrl = `${process.env.R2_PUBLIC_URL}/${filename}`;
     }
 
     const feedback = await Feedback.create({
       studentId: student.Rollno || String(studentId).trim().toUpperCase(),
       RoomNo: RoomNo || student.Roomno || "Unassigned",
-      Block: Block || student.Campus || "Main Campus",
+      Block: Block || student.Block || student.Campus || "Main Campus",
       category: category || "Overall Experience",
       message: message ? message.trim() : "",
       rating: Number(rating) || 5,
@@ -125,17 +125,37 @@ const updateFeedback = async (req, res, next) => {
       return res.status(400).json({ message: "Status field is required for update" });
     }
 
-    const feedback = await Feedback.findByIdAndUpdate(
-      req.params.id,
-      { status },
-      {
-        returnDocument: "after",
-        runValidators: true,
-      }
-    );
+    const feedback = await Feedback.findById(req.params.id);
     if (!feedback) {
       return res.status(404).json({ message: "Feedback not found" });
     }
+
+    const statusChanged = feedback.status !== status;
+    let student;
+    if (statusChanged) {
+      const rollNumber = String(feedback.studentId || "").trim();
+      student = await Student.findOne({
+        Rollno: { $regex: `^${escapeRegex(rollNumber)}$`, $options: "i" },
+      });
+      if (!student) {
+        return res.status(404).json({
+          message: `Student ${feedback.studentId} could not be found; feedback status was not changed`,
+        });
+      }
+    }
+
+    feedback.status = status;
+    await feedback.save();
+
+    if (student) {
+      await Notification.create({
+        studentId: student._id,
+        message: `Your feedback "${feedback.message}" is now marked as ${status}.`,
+        notificationType: "Feedback Update",
+        relatedAction: "/feedback",
+      });
+    }
+
     res.status(200).json(feedback);
   } catch (error) {
     next(error);

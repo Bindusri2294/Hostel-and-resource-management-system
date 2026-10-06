@@ -6,18 +6,38 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  --color-purple-50: #f3e5f5;
-  --color-purple-100: #e1bee7;
-  --color-purple-500: #673bb7;
-  --color-purple-600: #5e35b1;
-  --color-purple-700: #512da8;
-  --color-purple-900: #311b64;
+  --color-brand-50:  #FEF7EE;
+  --color-brand-100: #FDF0DC;
+  --color-brand-200: #F9DFBE;
+  --color-brand-300: #F3C694;
+  --color-brand-400: #ECA270;
+  --color-brand-500: #EB8055;
+  --color-brand-600: #D96B3A;
+  --color-brand-700: #B85228;
+  --color-brand-800: #923F1E;
+  --color-brand-900: #6B2D12;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100%;
+  overflow-x: hidden;
+}
+
+#root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 body {
-  margin: 0;
   font-family: "Segoe UI", Tahoma, sans-serif;
-  background: #f3f4f8;
+  background: #F9EFDE;
 }
 
 * {
@@ -68,72 +88,38 @@ body {
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.45 0.19 296);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.45 0.19 296);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --background: #F9EFDE;
+  --foreground: #2F2925;
+  --card: #FFFFFF;
+  --card-foreground: #2F2925;
+  --popover: #FFFFFF;
+  --popover-foreground: #2F2925;
+  --primary: #EB8055;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F5E8D4;
+  --secondary-foreground: #2F2925;
+  --muted: #F5E8D4;
+  --muted-foreground: #8B7355;
+  --accent: #FDF0DC;
+  --accent-foreground: #2F2925;
+  --destructive: #DC2626;
+  --border: #E8D8C4;
+  --input: #E8D8C4;
+  --ring: #EB8055;
+  --chart-1: #EB8055;
+  --chart-2: #D96B3A;
+  --chart-3: #ECA270;
+  --chart-4: #F3C694;
+  --chart-5: #B85228;
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.45 0.19 296);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-}
-
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.55 0.19 296);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #2F2925;
+  --sidebar-primary: #EB8055;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #FDF0DC;
+  --sidebar-accent-foreground: #2F2925;
+  --sidebar-border: #E8D8C4;
+  --sidebar-ring: #EB8055;
 }
 
 @layer base {
@@ -148,6 +134,19 @@ body {
   html {
     @apply font-mono;
   }
+}
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #F5E8D4; }
+::-webkit-scrollbar-thumb { background: #D9C4A8; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: #EB8055; }
+
+/* Hide native browser password reveal icons (Edge / Windows Chromium) to prevent duplicate eye icons */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 @media print {

@@ -12,7 +12,7 @@ const feedbackRoutes = require("./routes/feedbackRoutes");
 const authRoutes = require("./routes/authRoutes");
 const attendanceRoutes = require("./routes/attendanceRoutes");
 const leaveRoutes = require("./routes/leaveRoutes");
-const { seedAttendanceIfEmpty } = require("./controllers/attendanceController");
+const notificationRoutes = require("./routes/notificationRoutes");
 const errorHandler = require("./middleware/errorHandler");
 
 dotenv.config();
@@ -44,26 +44,27 @@ app.use(express.json());
 app.use(cookieParser());
 const mongoose = require("mongoose");
 
+
+let gfs;
+mongoose.connection.once("open", () => {
+  gfs = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
+    bucketName: "uploads",
+  });
+});
+
 app.get("/api/images/:filename", async (req, res) => {
   try {
-    if (!mongoose.connection.db) {
-      return res.status(500).json({ message: "Database not connected yet" });
+    if (!gfs) {
+      return res.status(500).json({ message: "GridFS storage not initialized yet" });
     }
-    const db = mongoose.connection.db;
-    const bucket = new mongoose.mongo.GridFSBucket(db, {
-      bucketName: "feedbackImages",
-    });
-
-    const file = await bucket.find({ filename: req.params.filename }).toArray();
-    if (!file || file.length === 0) {
-      return res.status(404).json({ message: "Image not found" });
+    const files = await gfs.find({ filename: req.params.filename }).toArray();
+    if (!files || files.length === 0) {
+      return res.status(404).json({ message: "File not found" });
     }
-
-    res.set("Content-Type", file[0].contentType);
-    const downloadStream = bucket.openDownloadStreamByName(req.params.filename);
-    downloadStream.pipe(res);
+    const readStream = gfs.openDownloadStreamByName(req.params.filename);
+    readStream.pipe(res);
   } catch (error) {
-    res.status(500).json({ message: "Error fetching image", error: error.message });
+    res.status(500).json({ message: error.message });
   }
 });
 
@@ -78,12 +79,12 @@ app.use("/api/feedback", feedbackRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/leave", leaveRoutes);
+app.use("/api/notifications", notificationRoutes);
 app.use(errorHandler);
 
 const startServer = async () => {
   await connectDB();
   await seedAdminAndDemoUsers();
-  await seedAttendanceIfEmpty();
   const PORT = process.env.PORT || 5000;
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

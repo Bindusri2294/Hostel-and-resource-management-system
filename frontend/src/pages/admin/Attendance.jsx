@@ -339,29 +339,29 @@ export default function Attendance() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* 1. Header Banner & View Mode Switcher */}
-      <div className="bg-white p-6 rounded-2xl border border-purple-100/70 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+      <div className="bg-white p-6 rounded-2xl border border-[#E8D8C4] shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-5">
         <div>
           <div className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-xl bg-[#FDF0DC] text-[#EB8055] flex items-center justify-center">
               <ClipboardCheck className="w-5 h-5" />
             </div>
-            <h2 className="text-2xl font-extrabold text-slate-900">Hostel Attendance Center</h2>
+            <h2 className="text-2xl font-extrabold text-[#2F2925]">Hostel Attendance Center</h2>
           </div>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-[#8B7355] mt-1">
             Track daily night roll calls, verify absences across hostel blocks, and manage student leave applications.
           </p>
         </div>
 
         {/* View Switcher Tabs & Save Action */}
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs font-bold">
+          <div className="flex p-1 bg-[#FDF0DC] rounded-xl border border-[#E8D8C4] text-xs font-bold">
             <button
               type="button"
               onClick={() => setActiveView("daily")}
               className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
                 activeView === "daily"
-                  ? "bg-purple-600 text-white shadow-xs font-extrabold"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "bg-[#EB8055] text-white shadow-xs font-extrabold"
+                  : "text-[#8B7355] hover:text-[#2F2925]"
               }`}
             >
               <ListFilter className="w-3.5 h-3.5" />
@@ -373,8 +373,8 @@ export default function Attendance() {
               onClick={() => setActiveView("calendar")}
               className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
                 activeView === "calendar"
-                  ? "bg-purple-600 text-white shadow-xs font-extrabold"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "bg-[#EB8055] text-white shadow-xs font-extrabold"
+                  : "text-[#8B7355] hover:text-[#2F2925]"
               }`}
             >
               <CalendarIcon className="w-3.5 h-3.5" />
@@ -386,14 +386,14 @@ export default function Attendance() {
               onClick={() => setActiveView("leaves")}
               className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
                 activeView === "leaves"
-                  ? "bg-purple-600 text-white shadow-xs font-extrabold"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "bg-[#EB8055] text-white shadow-xs font-extrabold"
+                  : "text-[#8B7355] hover:text-[#2F2925]"
               }`}
             >
               <FileText className="w-3.5 h-3.5" />
               <span>Leave Requests</span>
               {leaveStats.pending > 0 && (
-                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-black bg-amber-500 text-white animate-pulse">
+                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-black bg-[#EB8055] text-white animate-pulse">
                   {leaveStats.pending}
                 </span>
               )}
@@ -405,7 +405,7 @@ export default function Attendance() {
               <button
                 type="button"
                 onClick={handleExportCSV}
-                className="px-3 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+                className="px-3 py-2 bg-white hover:bg-[#FDF0DC]/50 border border-[#E8D8C4] text-[#2F2925] font-bold text-xs rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
                 title="Export Daily Attendance to CSV"
               >
                 <Download className="w-3.5 h-3.5" />
@@ -415,7 +415,7 @@ export default function Attendance() {
                 type="button"
                 onClick={handleSaveAttendance}
                 disabled={saving}
-                className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                className="px-4 py-2 bg-[#EB8055] hover:bg-[#D96B3A] text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
               >
                 {saving ? (
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -449,14 +449,14 @@ export default function Attendance() {
       {activeView === "daily" && (
         <div className="space-y-6">
           {/* Interactive Date Navigator Bar */}
-          <div className="bg-white p-4 rounded-2xl border border-purple-100/70 shadow-xs flex flex-wrap items-center justify-between gap-4">
+          <div className="bg-white p-4 rounded-2xl border border-[#E8D8C4] shadow-xs flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Date:</span>
+              <span className="text-xs font-bold text-[#8B7355] uppercase tracking-wider">Date:</span>
               <div className="flex items-center gap-1">
                 <button
                   type="button"
                   onClick={() => stepDate(-1)}
-                  className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 transition-colors cursor-pointer"
+                  className="p-1.5 rounded-lg border border-[#E8D8C4] hover:bg-[#FDF0DC]/50 text-[#2F2925] transition-colors cursor-pointer"
                   title="Previous Day"
                 >
                   <ChevronLeft className="w-4 h-4" />
@@ -465,12 +465,12 @@ export default function Attendance() {
                   type="date"
                   value={selectedDate}
                   onChange={(e) => e.target.value && setSelectedDate(e.target.value)}
-                  className="px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 bg-slate-50 focus:bg-white focus:border-purple-600 focus:outline-none cursor-pointer"
+                  className="px-3 py-1.5 border border-[#E8D8C4] rounded-lg text-xs font-bold text-[#2F2925] bg-[#FDF0DC]/30 focus:bg-white focus:border-[#EB8055] focus:outline-none cursor-pointer"
                 />
                 <button
                   type="button"
                   onClick={() => stepDate(1)}
-                  className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 transition-colors cursor-pointer"
+                  className="p-1.5 rounded-lg border border-[#E8D8C4] hover:bg-[#FDF0DC]/50 text-[#2F2925] transition-colors cursor-pointer"
                   title="Next Day"
                 >
                   <ChevronRight className="w-4 h-4" />
@@ -478,27 +478,27 @@ export default function Attendance() {
               </div>
             </div>
 
-            <div className="text-xs font-extrabold text-purple-900 bg-purple-50 px-3.5 py-1.5 rounded-xl border border-purple-100 flex items-center gap-1.5">
-              <CalendarIcon className="w-3.5 h-3.5 text-purple-600" />
+            <div className="text-xs font-extrabold text-[#B85228] bg-[#FDF0DC] px-3.5 py-1.5 rounded-xl border border-[#E8D8C4] flex items-center gap-1.5">
+              <CalendarIcon className="w-3.5 h-3.5 text-[#EB8055]" />
               <span>{formattedSelectedDate}</span>
             </div>
           </div>
 
           {/* Quick Metrics Bar */}
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 text-xs">
-            <div className="p-4 bg-white rounded-2xl border border-purple-100/70 shadow-xs flex items-center justify-between">
+            <div className="p-4 bg-white rounded-2xl border border-[#E8D8C4] shadow-xs flex items-center justify-between">
               <div>
-                <p className="font-bold text-slate-400 uppercase tracking-wider text-[10px]">Total Residents</p>
-                <p className="text-2xl font-extrabold text-slate-900 mt-0.5">{totalCount}</p>
+                <p className="font-bold text-[#8B7355] uppercase tracking-wider text-[10px]">Total Residents</p>
+                <p className="text-2xl font-extrabold text-[#2F2925] mt-0.5">{totalCount}</p>
               </div>
-              <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-[#FDF0DC] text-[#EB8055] flex items-center justify-center">
                 <ClipboardCheck className="w-5 h-5" />
               </div>
             </div>
 
-            <div className="p-4 bg-white rounded-2xl border border-purple-100/70 shadow-xs flex items-center justify-between">
+            <div className="p-4 bg-white rounded-2xl border border-[#E8D8C4] shadow-xs flex items-center justify-between">
               <div>
-                <p className="font-bold text-slate-400 uppercase tracking-wider text-[10px]">Present Tonight</p>
+                <p className="font-bold text-[#8B7355] uppercase tracking-wider text-[10px]">Present Tonight</p>
                 <div className="flex items-baseline gap-2 mt-0.5">
                   <p className="text-2xl font-extrabold text-emerald-600">{presentCount}</p>
                   {markedCount > 0 && (
@@ -513,9 +513,9 @@ export default function Attendance() {
               </div>
             </div>
 
-            <div className="p-4 bg-white rounded-2xl border border-purple-100/70 shadow-xs flex items-center justify-between">
+            <div className="p-4 bg-white rounded-2xl border border-[#E8D8C4] shadow-xs flex items-center justify-between">
               <div>
-                <p className="font-bold text-slate-400 uppercase tracking-wider text-[10px]">Absent Count</p>
+                <p className="font-bold text-[#8B7355] uppercase tracking-wider text-[10px]">Absent Count</p>
                 <p className="text-2xl font-extrabold text-rose-600 mt-0.5">{absentCount}</p>
               </div>
               <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
@@ -523,9 +523,9 @@ export default function Attendance() {
               </div>
             </div>
 
-            <div className="p-4 bg-white rounded-2xl border border-purple-100/70 shadow-xs flex items-center justify-between">
+            <div className="p-4 bg-white rounded-2xl border border-[#E8D8C4] shadow-xs flex items-center justify-between">
               <div>
-                <p className="font-bold text-slate-400 uppercase tracking-wider text-[10px]">Approved Leaves</p>
+                <p className="font-bold text-[#8B7355] uppercase tracking-wider text-[10px]">Approved Leaves</p>
                 <p className="text-2xl font-extrabold text-amber-600 mt-0.5">{leaveCount}</p>
               </div>
               <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
@@ -533,52 +533,52 @@ export default function Attendance() {
               </div>
             </div>
 
-            <div className={`p-4 bg-white rounded-2xl border shadow-xs flex items-center justify-between ${unmarkedCount > 0 ? 'border-orange-200 bg-orange-50/30' : 'border-purple-100/70'}`}>
+            <div className={`p-4 bg-white rounded-2xl border shadow-xs flex items-center justify-between ${unmarkedCount > 0 ? 'border-amber-200 bg-amber-50/30' : 'border-[#E8D8C4]'}`}>
               <div>
-                <p className="font-bold text-slate-400 uppercase tracking-wider text-[10px]">Unmarked</p>
-                <p className={`text-2xl font-extrabold mt-0.5 ${unmarkedCount > 0 ? 'text-orange-600' : 'text-slate-400'}`}>{unmarkedCount}</p>
+                <p className="font-bold text-[#8B7355] uppercase tracking-wider text-[10px]">Unmarked</p>
+                <p className={`text-2xl font-extrabold mt-0.5 ${unmarkedCount > 0 ? 'text-[#EB8055]' : 'text-[#8B7355]'}`}>{unmarkedCount}</p>
               </div>
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${unmarkedCount > 0 ? 'bg-orange-50 text-orange-600' : 'bg-slate-50 text-slate-400'}`}>
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${unmarkedCount > 0 ? 'bg-[#FDF0DC] text-[#EB8055]' : 'bg-[#FDF0DC]/50 text-[#8B7355]'}`}>
                 <Clock className="w-5 h-5" />
               </div>
             </div>
           </div>
 
           {/* Roster Table Card */}
-          <div className="bg-white rounded-2xl border border-purple-100/70 shadow-xs overflow-hidden">
+          <div className="bg-white rounded-2xl border border-[#E8D8C4] shadow-xs overflow-hidden">
             {/* Filter & Batch Action Header */}
-            <div className="p-4 border-b border-slate-100 bg-slate-50/70 space-y-3">
+            <div className="p-4 border-b border-[#E8D8C4] bg-[#FDF0DC]/30 space-y-3">
               {/* FILTER & SEARCH TOOLBAR (Feedback style across all fields) */}
-              <div className="w-full bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+              <div className="w-full bg-white p-4 rounded-2xl border border-[#E8D8C4] shadow-sm space-y-3">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="relative flex-1 min-w-[240px]">
-                    <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8B7355]/60" />
                     <input
                       type="text"
                       placeholder="Search by student name, roll no, room, block, status..."
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
-                      className="w-full border rounded-xl pl-9 pr-3.5 py-2 text-xs font-medium focus:outline-none bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-[#673BB7] focus:bg-white shadow-sm"
+                      className="w-full border rounded-xl pl-9 pr-3.5 py-2 text-xs font-medium focus:outline-none bg-[#FDF0DC]/40 border-[#E8D8C4] text-[#2F2925] placeholder-[#8B7355]/60 focus:border-[#EB8055] focus:bg-white shadow-sm"
                     />
                   </div>
 
                   <button
                     type="button"
                     onClick={clearFilters}
-                    className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer border bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300"
+                    className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer border bg-[#FDF0DC] hover:bg-[#F5E8D4] text-[#2F2925] border-[#E8D8C4]"
                   >
                     <RefreshCw className="w-3.5 h-3.5" /> Reset Filters
                   </button>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-slate-200">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-[#E8D8C4]">
                   <div>
-                    <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-slate-600">Block Filter</label>
+                    <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-[#8B7355]">Block Filter</label>
                     <select
                       aria-label="Select Block"
                       value={selectedBlock}
                       onChange={(e) => setSelectedBlock(e.target.value)}
-                      className="w-full border rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none bg-slate-50 border-slate-300 text-slate-900 focus:border-[#673BB7] focus:bg-white shadow-sm cursor-pointer"
+                      className="w-full border rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none bg-white border-[#E8D8C4] text-[#2F2925] focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 shadow-sm cursor-pointer"
                     >
                       <option value="">All Blocks</option>
                       {blockOptions.map((block) => (
@@ -590,12 +590,12 @@ export default function Attendance() {
                   </div>
 
                   <div>
-                    <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-slate-600">Room Filter</label>
+                    <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-[#8B7355]">Room Filter</label>
                     <select
                       aria-label="Select Room"
                       value={selectedRoom}
                       onChange={(e) => setSelectedRoom(e.target.value)}
-                      className="w-full border rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none bg-slate-50 border-slate-300 text-slate-900 focus:border-[#673BB7] focus:bg-white shadow-sm cursor-pointer"
+                      className="w-full border rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none bg-white border-[#E8D8C4] text-[#2F2925] focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 shadow-sm cursor-pointer"
                     >
                       <option value="">All Rooms</option>
                       {roomOptions.map((room) => (
@@ -607,12 +607,12 @@ export default function Attendance() {
                   </div>
 
                   <div>
-                    <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-slate-600">Status Filter</label>
+                    <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-[#8B7355]">Status Filter</label>
                     <select
                       aria-label="Filter by Status"
                       value={statusFilter}
                       onChange={(e) => setStatusFilter(e.target.value)}
-                      className="w-full border rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none bg-slate-50 border-slate-300 text-slate-900 focus:border-[#673BB7] focus:bg-white shadow-sm cursor-pointer"
+                      className="w-full border rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none bg-white border-[#E8D8C4] text-[#2F2925] focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 shadow-sm cursor-pointer"
                     >
                       <option value="all">All Statuses</option>
                       <option value="Present">Present Only</option>
@@ -625,8 +625,8 @@ export default function Attendance() {
               </div>
 
               {/* Batch Actions */}
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Batch:</span>
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#E8D8C4]">
+                <span className="text-[10px] font-bold text-[#8B7355] uppercase tracking-wider">Batch:</span>
                 <button
                   type="button"
                   onClick={() => markAll("Present")}
@@ -668,26 +668,26 @@ export default function Attendance() {
                         return (
                           <tr key={s._id} className={`hover:bg-slate-50/70 transition-colors ${!status ? 'bg-orange-50/30' : ''}`}>
                             <td className="py-3 px-4">
-                              <span className="font-extrabold text-slate-900 block">{s.Name}</span>
-                              <span className="text-[10px] text-slate-400 font-semibold">
+                              <span className="font-extrabold text-[#2F2925] block">{s.Name}</span>
+                              <span className="text-[10px] text-[#8B7355] font-semibold">
                                 {s.Course || "B.Tech"} · Year {s.Year || 1}
                               </span>
                             </td>
-                            <td className="py-3 px-4 font-bold text-purple-900">{s.Rollno}</td>
+                            <td className="py-3 px-4 font-bold text-[#B85228]">{s.Rollno}</td>
                             <td className="py-3 px-4">
-                              <span className="inline-block px-2 py-0.5 rounded-md bg-purple-50 text-purple-800 font-bold text-[11px] border border-purple-100">
+                              <span className="inline-block px-2 py-0.5 rounded-md bg-[#FDF0DC] text-[#B85228] font-bold text-[11px] border border-[#E8D8C4]">
                                 {block === "Executive" ? "Executive Block" : `Block ${block}`} · Room {s.Roomno || "—"}
                               </span>
                             </td>
                             <td className="py-3 px-4 text-center">
-                              <div className={`inline-flex rounded-xl p-0.5 border ${!status ? 'bg-orange-100/60 border-orange-300' : 'bg-slate-100 border-slate-200'}`}>
+                              <div className={`inline-flex rounded-xl p-0.5 border ${!status ? 'bg-amber-100/60 border-amber-300' : 'bg-[#FDF0DC] border-[#E8D8C4]'}`}>
                                 <button
                                   type="button"
                                   onClick={() => setStudentStatus(s._id, "Present")}
                                   className={`px-3 py-1 rounded-lg font-bold text-xs cursor-pointer transition-all ${
                                     status === "Present"
                                       ? "bg-emerald-600 text-white shadow-xs font-black"
-                                      : "text-slate-600 hover:text-slate-900"
+                                      : "text-[#8B7355] hover:text-[#2F2925]"
                                   }`}
                                 >
                                   Present
@@ -698,7 +698,7 @@ export default function Attendance() {
                                   className={`px-3 py-1 rounded-lg font-bold text-xs cursor-pointer transition-all ${
                                     status === "Absent"
                                       ? "bg-rose-600 text-white shadow-xs font-black"
-                                      : "text-slate-600 hover:text-slate-900"
+                                      : "text-[#8B7355] hover:text-[#2F2925]"
                                   }`}
                                 >
                                   Absent
@@ -709,7 +709,7 @@ export default function Attendance() {
                                   className={`px-3 py-1 rounded-lg font-bold text-xs cursor-pointer transition-all ${
                                     status === "Leave"
                                       ? "bg-amber-500 text-white shadow-xs font-black"
-                                      : "text-slate-600 hover:text-slate-900"
+                                      : "text-[#8B7355] hover:text-[#2F2925]"
                                   }`}
                                 >
                                   Leave
@@ -721,7 +721,7 @@ export default function Attendance() {
                       })
                     ) : (
                       <tr>
-                        <td colSpan="4" className="py-10 text-center text-slate-400 italic">
+                        <td colSpan="4" className="py-10 text-center text-[#8B7355] italic">
                           No students matching your filter criteria.
                         </td>
                       </tr>
@@ -737,14 +737,14 @@ export default function Attendance() {
       {/* VIEW 2: MONTHLY ATTENDANCE CALENDAR HEATMAP */}
       {activeView === "calendar" && (
         <div className="space-y-6">
-          <div className="bg-white p-6 rounded-2xl border border-purple-100/70 shadow-xs flex flex-wrap items-center justify-between gap-4">
+          <div className="bg-white p-6 rounded-2xl border border-[#E8D8C4] shadow-xs flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-[#FDF0DC] text-[#EB8055] flex items-center justify-center">
                 <CalendarIcon className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-lg font-extrabold text-slate-900">{calMonthLabel} Overview</h3>
-                <p className="text-xs text-slate-500">
+                <h3 className="text-lg font-extrabold text-[#2F2925]">{calMonthLabel} Overview</h3>
+                <p className="text-xs text-[#8B7355]">
                   Hostel-wide attendance heatmap and verification rate per day.
                 </p>
               </div>
@@ -754,7 +754,7 @@ export default function Attendance() {
               <button
                 type="button"
                 onClick={() => stepMonth(-1)}
-                className="p-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition-colors cursor-pointer"
+                className="p-2 rounded-xl border border-[#E8D8C4] hover:bg-[#FDF0DC]/50 text-[#2F2925] transition-colors cursor-pointer"
                 title="Previous Month"
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -762,14 +762,14 @@ export default function Attendance() {
               <button
                 type="button"
                 onClick={() => setSelectedMonth(getTodayStr().slice(0, 7))}
-                className="px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs font-bold text-slate-700 transition-colors cursor-pointer"
+                className="px-3 py-1.5 rounded-xl border border-[#E8D8C4] hover:bg-[#FDF0DC]/50 text-xs font-bold text-[#2F2925] transition-colors cursor-pointer"
               >
                 Current Month
               </button>
               <button
                 type="button"
                 onClick={() => stepMonth(1)}
-                className="p-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition-colors cursor-pointer"
+                className="p-2 rounded-xl border border-[#E8D8C4] hover:bg-[#FDF0DC]/50 text-[#2F2925] transition-colors cursor-pointer"
                 title="Next Month"
               >
                 <ChevronRight className="w-4 h-4" />
@@ -777,8 +777,8 @@ export default function Attendance() {
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-2xl border border-purple-100/70 shadow-xs space-y-4">
-            <div className="grid grid-cols-7 gap-2 text-center text-[11px] font-bold text-slate-400 uppercase py-2 border-b border-slate-100">
+          <div className="bg-white p-6 rounded-2xl border border-[#E8D8C4] shadow-xs space-y-4">
+            <div className="grid grid-cols-7 gap-2 text-center text-[11px] font-bold text-[#8B7355] uppercase py-2 border-b border-[#E8D8C4]">
               <span>Sunday</span>
               <span>Monday</span>
               <span>Tuesday</span>
@@ -789,14 +789,14 @@ export default function Attendance() {
             </div>
 
             {loadingMonth ? (
-              <div className="py-20 text-center text-xs font-bold text-purple-900 flex flex-col items-center gap-2">
-                <div className="w-8 h-8 border-3 border-purple-600 border-t-transparent rounded-full animate-spin" />
+              <div className="py-20 text-center text-xs font-bold text-[#EB8055] flex flex-col items-center gap-2">
+                <div className="w-8 h-8 border-3 border-[#EB8055] border-t-transparent rounded-full animate-spin" />
                 <span>Loading monthly hostel attendance logs...</span>
               </div>
             ) : (
               <div className="grid grid-cols-7 gap-2">
                 {Array.from({ length: firstDayOfWeekCal }).map((_, i) => (
-                  <div key={`empty-${i}`} className="min-h-[90px] rounded-xl bg-slate-50/40 border border-transparent" />
+                  <div key={`empty-${i}`} className="min-h-[90px] rounded-xl bg-[#FDF0DC]/30 border border-transparent" />
                 ))}
 
                 {Array.from({ length: daysInCalMonth }).map((_, i) => {
@@ -805,7 +805,7 @@ export default function Attendance() {
                   const dayData = monthSummary?.days?.[dateStr];
                   const isToday = getTodayStr() === dateStr;
 
-                  let cardBg = "bg-slate-50 hover:bg-slate-100/80 border-slate-200/60";
+                  let cardBg = "bg-white hover:bg-[#FDF0DC]/40 border-[#E8D8C4]";
                   let rateBadge = null;
 
                   if (dayData && dayData.total > 0) {
@@ -842,23 +842,23 @@ export default function Attendance() {
                         setActiveView("daily");
                       }}
                       className={`min-h-[90px] p-2.5 rounded-xl border text-left flex flex-col justify-between transition-all cursor-pointer shadow-xs ${cardBg} ${
-                        isToday ? "ring-2 ring-purple-600 font-bold" : ""
+                        isToday ? "ring-2 ring-[#EB8055] font-bold" : ""
                       }`}
                       title={`Click to inspect or record attendance for ${dateStr}`}
                     >
                       <div className="flex items-center justify-between w-full">
-                        <span className={`text-xs font-bold ${isToday ? "text-purple-700" : "text-slate-800"}`}>
+                        <span className={`text-xs font-bold ${isToday ? "text-[#EB8055]" : "text-[#2F2925]"}`}>
                           {dayNum}
                         </span>
                         {isToday && (
-                          <span className="text-[9px] font-black uppercase text-purple-700 bg-purple-100 px-1 py-0.2 rounded">
+                          <span className="text-[9px] font-black uppercase text-[#B85228] bg-[#FDF0DC] px-1 py-0.2 rounded border border-[#E8D8C4]">
                             Today
                           </span>
                         )}
                         {rateBadge}
                       </div>
 
-                      <div className="mt-2 text-[10px] font-semibold text-slate-600 space-y-0.5">
+                      <div className="mt-2 text-[10px] font-semibold text-[#8B7355] space-y-0.5">
                         {dayData && dayData.total > 0 ? (
                           <>
                             <div className="flex items-center justify-between text-emerald-700 font-bold">
@@ -871,7 +871,7 @@ export default function Attendance() {
                             </div>
                           </>
                         ) : (
-                          <span className="text-slate-400 italic text-[9px]">No Log</span>
+                          <span className="text-[#8B7355]/60 italic text-[9px]">No Log</span>
                         )}
                       </div>
                     </button>
@@ -880,7 +880,7 @@ export default function Attendance() {
               </div>
             )}
 
-            <div className="pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-4 text-xs font-semibold text-slate-600">
+            <div className="pt-4 border-t border-[#E8D8C4] flex flex-wrap items-center justify-between gap-4 text-xs font-semibold text-[#8B7355]">
               <div className="flex items-center gap-5 flex-wrap">
                 <div className="flex items-center gap-1.5">
                   <span className="w-3 h-3 rounded-full bg-emerald-500"></span>
@@ -896,7 +896,7 @@ export default function Attendance() {
                 </div>
               </div>
 
-              <div className="text-[11px] text-purple-700 font-bold flex items-center gap-1">
+              <div className="text-[11px] text-[#EB8055] font-bold flex items-center gap-1">
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>Tip: Click any day to immediately open and edit its daily roll call sheet.</span>
               </div>
@@ -910,19 +910,19 @@ export default function Attendance() {
         <div className="space-y-6">
           {/* Leave Stats Banner */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
-            <div className="p-4 bg-white rounded-2xl border border-purple-100/70 shadow-xs flex items-center justify-between">
+            <div className="p-4 bg-white rounded-2xl border border-[#E8D8C4] shadow-xs flex items-center justify-between">
               <div>
-                <p className="font-bold text-slate-400 uppercase tracking-wider text-[10px]">Total Applications</p>
-                <p className="text-2xl font-extrabold text-slate-900 mt-0.5">{leaveStats.total}</p>
+                <p className="font-bold text-[#8B7355] uppercase tracking-wider text-[10px]">Total Applications</p>
+                <p className="text-2xl font-extrabold text-[#2F2925] mt-0.5">{leaveStats.total}</p>
               </div>
-              <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-[#FDF0DC] text-[#EB8055] flex items-center justify-center">
                 <FileText className="w-5 h-5" />
               </div>
             </div>
 
-            <div className="p-4 bg-white rounded-2xl border border-purple-100/70 shadow-xs flex items-center justify-between">
+            <div className="p-4 bg-white rounded-2xl border border-[#E8D8C4] shadow-xs flex items-center justify-between">
               <div>
-                <p className="font-bold text-slate-400 uppercase tracking-wider text-[10px]">Pending Approval</p>
+                <p className="font-bold text-[#8B7355] uppercase tracking-wider text-[10px]">Pending Approval</p>
                 <p className="text-2xl font-extrabold text-amber-600 mt-0.5">{leaveStats.pending}</p>
               </div>
               <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
@@ -930,9 +930,9 @@ export default function Attendance() {
               </div>
             </div>
 
-            <div className="p-4 bg-white rounded-2xl border border-purple-100/70 shadow-xs flex items-center justify-between">
+            <div className="p-4 bg-white rounded-2xl border border-[#E8D8C4] shadow-xs flex items-center justify-between">
               <div>
-                <p className="font-bold text-slate-400 uppercase tracking-wider text-[10px]">Approved Leaves</p>
+                <p className="font-bold text-[#8B7355] uppercase tracking-wider text-[10px]">Approved Leaves</p>
                 <p className="text-2xl font-extrabold text-emerald-600 mt-0.5">{leaveStats.approved}</p>
               </div>
               <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
@@ -940,9 +940,9 @@ export default function Attendance() {
               </div>
             </div>
 
-            <div className="p-4 bg-white rounded-2xl border border-purple-100/70 shadow-xs flex items-center justify-between">
+            <div className="p-4 bg-white rounded-2xl border border-[#E8D8C4] shadow-xs flex items-center justify-between">
               <div>
-                <p className="font-bold text-slate-400 uppercase tracking-wider text-[10px]">Rejected Requests</p>
+                <p className="font-bold text-[#8B7355] uppercase tracking-wider text-[10px]">Rejected Requests</p>
                 <p className="text-2xl font-extrabold text-rose-600 mt-0.5">{leaveStats.rejected}</p>
               </div>
               <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
@@ -952,9 +952,9 @@ export default function Attendance() {
           </div>
 
           {/* Leave Applications Table Card */}
-          <div className="bg-white rounded-2xl border border-purple-100/70 shadow-xs overflow-hidden">
+          <div className="bg-white rounded-2xl border border-[#E8D8C4] shadow-xs overflow-hidden">
             {/* Status Tabs Header */}
-            <div className="p-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between gap-3 flex-wrap">
+            <div className="p-4 border-b border-[#E8D8C4] bg-[#FDF0DC]/30 flex items-center justify-between gap-3 flex-wrap">
               <div className="flex items-center gap-2">
                 {["All", "Pending", "Approved", "Rejected"].map((st) => (
                   <button
@@ -963,8 +963,8 @@ export default function Attendance() {
                     onClick={() => setLeaveFilter(st)}
                     className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                       leaveFilter === st
-                        ? "bg-purple-600 text-white shadow-xs"
-                        : "bg-white border border-slate-200 text-slate-600 hover:text-slate-900"
+                        ? "bg-[#EB8055] text-white shadow-xs"
+                        : "bg-white border border-[#E8D8C4] text-[#8B7355] hover:text-[#2F2925]"
                     }`}
                   >
                     {st} {st === "Pending" && leaveStats.pending > 0 && `(${leaveStats.pending})`}
@@ -972,17 +972,17 @@ export default function Attendance() {
                 ))}
               </div>
 
-              <div className="text-[11px] font-semibold text-slate-500">
+              <div className="text-[11px] font-semibold text-[#8B7355]">
                 Approving a request automatically marks attendance as "Leave" for those dates.
               </div>
             </div>
 
             {loadingLeaves ? (
-              <div className="py-12 text-center text-xs font-semibold text-slate-400">Loading leave requests...</div>
+              <div className="py-12 text-center text-xs font-semibold text-[#8B7355]">Loading leave requests...</div>
             ) : filteredLeaves.length ? (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-50/70 border-b border-slate-100 text-[11px] font-extrabold uppercase text-slate-400 tracking-wider">
+                  <thead className="bg-[#FDF0DC]/40 border-b border-[#E8D8C4] text-[11px] font-extrabold uppercase text-[#8B7355] tracking-wider">
                     <tr>
                       <th className="py-3 px-4">Resident</th>
                       <th className="py-3 px-4">Roll Number</th>
@@ -994,44 +994,44 @@ export default function Attendance() {
                       <th className="py-3 px-4 text-center">Warden Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+                  <tbody className="divide-y divide-[#E8D8C4]/60 font-medium text-[#2F2925]">
                     {filteredLeaves.map((l) => {
                       const isPending = l.status === "Pending";
                       const isApproved = l.status === "Approved";
                       const isRejected = l.status === "Rejected";
 
                       return (
-                        <tr key={l._id} className="hover:bg-slate-50/60 transition-colors">
+                        <tr key={l._id} className="hover:bg-[#FDF0DC]/20 transition-colors">
                           <td className="py-3.5 px-4">
-                            <span className="font-extrabold text-slate-900 block">{l.studentName}</span>
-                            <span className="text-[10px] text-slate-400">
+                            <span className="font-extrabold text-[#2F2925] block">{l.studentName}</span>
+                            <span className="text-[10px] text-[#8B7355]">
                               Applied: {new Date(l.createdAt).toLocaleDateString()}
                             </span>
                           </td>
-                          <td className="py-3.5 px-4 font-bold text-purple-900">{l.rollNo}</td>
+                          <td className="py-3.5 px-4 font-bold text-[#B85228]">{l.rollNo}</td>
                           <td className="py-3.5 px-4">
-                            <span className="inline-block px-2 py-0.5 rounded-md bg-purple-50 text-purple-800 font-bold text-[11px] border border-purple-100">
+                            <span className="inline-block px-2 py-0.5 rounded-md bg-[#FDF0DC] text-[#B85228] font-bold text-[11px] border border-[#E8D8C4]">
                               Block {l.block} · Room {l.roomNo}
                             </span>
                           </td>
                           <td className="py-3.5 px-4 max-w-[200px]">
-                            <span className="inline-block px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-700 mb-0.5">
+                            <span className="inline-block px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-[#FDF0DC] text-[#B85228] border border-[#E8D8C4] mb-0.5">
                               {l.leaveType}
                             </span>
-                            <p className="text-slate-800 font-semibold line-clamp-2">{l.reason}</p>
+                            <p className="text-[#2F2925] font-semibold line-clamp-2">{l.reason}</p>
                             {l.adminRemarks && (
-                              <p className="text-[10px] text-slate-500 italic mt-0.5">
+                              <p className="text-[10px] text-[#8B7355] italic mt-0.5">
                                 Note: {l.adminRemarks}
                               </p>
                             )}
                           </td>
                           <td className="py-3.5 px-4 whitespace-nowrap">
-                            <span className="font-extrabold text-slate-900 block">
+                            <span className="font-extrabold text-[#2F2925] block">
                               {l.startDate}
                             </span>
-                            <span className="text-slate-400 text-[10px] block font-semibold">to {l.endDate}</span>
+                            <span className="text-[#8B7355] text-[10px] block font-semibold">to {l.endDate}</span>
                           </td>
-                          <td className="py-3.5 px-4 whitespace-nowrap font-bold text-slate-800">
+                          <td className="py-3.5 px-4 whitespace-nowrap font-bold text-[#2F2925]">
                             {l.parentContact}
                           </td>
                           <td className="py-3.5 px-4">
@@ -1069,7 +1069,7 @@ export default function Attendance() {
                                 </button>
                               </div>
                             ) : (
-                              <span className="text-[11px] text-slate-400 italic">
+                              <span className="text-[11px] text-[#8B7355] italic">
                                 {isApproved ? "Approved" : "Rejected"}
                               </span>
                             )}
@@ -1081,7 +1081,7 @@ export default function Attendance() {
                 </table>
               </div>
             ) : (
-              <div className="py-12 text-center text-slate-400 text-xs italic">
+              <div className="py-12 text-center text-[#8B7355] text-xs italic">
                 No {leaveFilter !== "All" ? leaveFilter.toLowerCase() : ""} leave applications found.
               </div>
             )}
@@ -1091,43 +1091,43 @@ export default function Attendance() {
 
       {/* Reject Remarks Modal */}
       {actionLeave && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#2F2925]/50 backdrop-blur-xs">
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-rose-100 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="flex items-center justify-between border-b border-[#E8D8C4] pb-3">
               <div className="flex items-center gap-2">
                 <ShieldAlert className="w-5 h-5 text-rose-600" />
-                <h3 className="text-base font-extrabold text-slate-900">Reject Leave Application</h3>
+                <h3 className="text-base font-extrabold text-[#2F2925]">Reject Leave Application</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setActionLeave(null)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
+                className="p-1 rounded-lg text-[#8B7355] hover:text-[#2F2925]"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Rejecting leave request for <span className="font-bold text-slate-900">{actionLeave.studentName}</span> ({actionLeave.rollNo}) for dates {actionLeave.startDate} to {actionLeave.endDate}.
+            <p className="text-xs text-[#8B7355] leading-relaxed">
+              Rejecting leave request for <span className="font-bold text-[#2F2925]">{actionLeave.studentName}</span> ({actionLeave.rollNo}) for dates {actionLeave.startDate} to {actionLeave.endDate}.
             </p>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Reason for Rejection *</label>
+              <label className="block text-xs font-bold text-[#2F2925] mb-1">Reason for Rejection *</label>
               <textarea
                 rows={3}
                 required
                 placeholder="e.g. Mandatory examinations scheduled on those dates / parent phone unreachable"
                 value={adminRemarkInput}
                 onChange={(e) => setAdminRemarkInput(e.target.value)}
-                className="w-full border border-slate-300 rounded-xl p-3 text-xs font-medium text-slate-800 bg-slate-50 focus:bg-white focus:border-rose-500 focus:outline-none resize-none"
+                className="w-full border border-[#E8D8C4] rounded-xl p-3 text-xs font-medium text-[#2F2925] bg-[#FDF0DC]/30 focus:bg-white focus:border-rose-500 focus:outline-none resize-none"
               />
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#E8D8C4]">
               <button
                 type="button"
                 onClick={() => setActionLeave(null)}
-                className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold cursor-pointer"
+                className="px-4 py-2 border border-[#E8D8C4] hover:bg-[#FDF0DC]/50 text-[#2F2925] rounded-xl text-xs font-bold cursor-pointer"
               >
                 Cancel
               </button>

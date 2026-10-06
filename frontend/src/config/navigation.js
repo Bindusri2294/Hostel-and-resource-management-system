@@ -6,9 +6,9 @@ import {
     MessageSquare,
     ClipboardCheck,
     BarChart3,
-    Settings,
     User,
     Home,
+    BellRing,
 } from "lucide-react";
 
 export const adminNavItems = [
@@ -19,7 +19,7 @@ export const adminNavItems = [
     { label: "Feedback", icon: MessageSquare, path: "/feedback" },
     { label: "Attendance", icon: ClipboardCheck, path: "/attendance" },
     { label: "Analytics", icon: BarChart3, path: "/analytics" },
-    { label: "Settings", icon: Settings, path: "/settings" },
+    { label: "Notifications", icon: BellRing, path: "/notifications" },
 ];
 
 export const studentNavItems = [
