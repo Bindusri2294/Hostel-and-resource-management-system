@@ -521,7 +521,7 @@ export default function Students() {
                 <label className="block text-[#2F2925] mb-1 font-bold">Block</label>
                 <select
                   value={form.Block || "D"}
-                  onChange={(e) => setForm({ ...form, Block: e.target.value })}
+                  onChange={(e) => setForm({ ...form, Block: e.target.value, Roomno: "Unassigned" })}
                   className="w-full bg-white border border-[#E8D8C4] rounded-xl p-2.5 outline-none focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 font-medium text-[#2F2925]"
                 >
                   <option value="D">Block D</option>
