@@ -23,7 +23,7 @@ const blankStudent = {
   Campus: "KIET",
   Block: "D",
   Roomno: "Unassigned",
-  Status: "Active",
+  Status: "Boys",
 };
 
 const getDeptFromRollNo = (rollno) => {
@@ -117,7 +117,7 @@ export default function Students() {
     const matchesBlock =
       blockFilter === "All" || String(student.Block || "") === String(blockFilter);
     const matchesStatus =
-      statusFilter === "All" || (student.Status || "Active") === statusFilter;
+      statusFilter === "All" || (student.Status || "Boys") === statusFilter;
 
     if (!query.trim()) {
       return matchesDept && matchesYear && matchesBlock && matchesStatus;
@@ -172,7 +172,7 @@ export default function Students() {
         Campus: form.Campus || getCampusFromRollNo(form.Rollno),
         Department: form.Department || getDeptFromRollNo(form.Rollno),
         Year: Number(form.Year),
-        Status: form.Status || "Active",
+        Status: form.Status || "Boys",
       };
 
       if (selected) {
@@ -228,7 +228,7 @@ export default function Students() {
         <div>
           <h2 className="text-2xl font-extrabold text-[#2F2925]">Student Management</h2>
           <p className="text-xs text-[#8B7355] mt-0.5">
-            Comprehensive directory to view, search, and manage individual student records and their statuses.
+            Comprehensive directory to view, search, and manage individual student records and their hostel types.
           </p>
         </div>
 
@@ -328,15 +328,15 @@ export default function Students() {
           </div>
 
           <div>
-            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-[#8B7355]">Status Filter</label>
+            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-[#8B7355]">Hostel Type Filter</label>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="w-full border rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none bg-white border-[#E8D8C4] text-[#2F2925] focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 shadow-xs cursor-pointer"
             >
-              <option value="All">All Statuses</option>
-              <option value="Active">Active</option>
-              <option value="Inactive">Inactive</option>
+              <option value="All">All Types</option>
+              <option value="Boys">Boys</option>
+              <option value="Girls">Girls</option>
             </select>
           </div>
         </div>
@@ -360,7 +360,7 @@ export default function Students() {
                   <th className="py-3 px-4">Year & Dept</th>
                   <th className="py-3 px-4">Block</th>
                   <th className="py-3 px-4">Room</th>
-                  <th className="py-3 px-4">Status</th>
+                  <th className="py-3 px-4">Hostel Type</th>
                   <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
@@ -393,12 +393,12 @@ export default function Students() {
                     </td>
                     <td className="py-3 px-4">
                       <span
-                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${(student.Status || "Active") === "Active"
-                            ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
-                            : "bg-[#FDF0DC] text-[#8B7355] border border-[#E8D8C4]"
+                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${(student.Status || "Boys") === "Boys"
+                            ? "bg-blue-100 text-blue-800 border border-blue-200"
+                            : "bg-pink-100 text-pink-800 border border-pink-200"
                           }`}
                       >
-                        {student.Status || "Active"}
+                        {student.Status || "Boys"}
                       </span>
                     </td>
                     <td className="py-3 px-4 flex justify-end items-center gap-1">
@@ -566,14 +566,14 @@ export default function Students() {
               </div>
 
               <div>
-                <label className="block text-[#2F2925] mb-1 font-bold">Student Status</label>
+                <label className="block text-[#2F2925] mb-1 font-bold">Hostel Type</label>
                 <select
-                  value={form.Status || "Active"}
+                  value={form.Status || "Boys"}
                   onChange={(e) => setForm({ ...form, Status: e.target.value })}
                   className="w-full bg-white border border-[#E8D8C4] rounded-xl p-2.5 outline-none focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 font-medium text-[#2F2925]"
                 >
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
+                  <option value="Boys">Boys</option>
+                  <option value="Girls">Girls</option>
                 </select>
               </div>
             </div>
@@ -664,16 +664,16 @@ export default function Students() {
               </div>
               <div className="p-3 bg-[#F9EFDE]/50 rounded-xl border border-[#E8D8C4] col-span-2 flex items-center justify-between">
                 <div>
-                  <span className="text-[10px] text-[#8B7355] font-bold block">Student Status</span>
-                  <span className="text-[11px] text-[#8B7355] font-medium">Hostel Residency State</span>
+                  <span className="text-[10px] text-[#8B7355] font-bold block">Hostel Type</span>
+                  <span className="text-[11px] text-[#8B7355] font-medium">Boys or Girls Hostel</span>
                 </div>
                 <span
-                  className={`px-3 py-1 rounded-full text-xs font-extrabold ${(selected.Status || "Active") === "Active"
-                      ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
-                      : "bg-[#FDF0DC] text-[#8B7355] border border-[#E8D8C4]"
+                  className={`px-3 py-1 rounded-full text-xs font-extrabold ${(selected.Status || "Boys") === "Boys"
+                      ? "bg-blue-100 text-blue-800 border border-blue-200"
+                      : "bg-pink-100 text-pink-800 border border-pink-200"
                     }`}
                 >
-                  {selected.Status || "Active"}
+                  {selected.Status || "Boys"}
                 </span>
               </div>
             </div>
