@@ -22,6 +22,7 @@ const blankStudent = {
   Department: "CSM",
   Campus: "KIET",
   Block: "D",
+  Floor: "",
   Roomno: "Unassigned",
   Status: "Boys",
 };
@@ -517,18 +518,36 @@ export default function Students() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-[#2F2925] mb-1 font-bold">Block</label>
-                <select
-                  value={form.Block || "D"}
-                  onChange={(e) => setForm({ ...form, Block: e.target.value, Roomno: "Unassigned" })}
-                  className="w-full bg-white border border-[#E8D8C4] rounded-xl p-2.5 outline-none focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 font-medium text-[#2F2925]"
-                >
-                  <option value="D">Block D</option>
-                  <option value="E">Block E</option>
-                  <option value="KW">Block KW</option>
-                  <option value="Executive">Executive Block</option>
-                </select>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-[#2F2925] mb-1 font-bold">Block</label>
+                  <select
+                    value={form.Block || "D"}
+                    onChange={(e) => setForm({ ...form, Block: e.target.value, Roomno: "Unassigned", Floor: "" })}
+                    className="w-full bg-white border border-[#E8D8C4] rounded-xl p-2.5 outline-none focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 font-medium text-[#2F2925]"
+                  >
+                    <option value="D">Block D</option>
+                    <option value="E">Block E</option>
+                    <option value="KW">Block KW</option>
+                    <option value="Executive">Executive Block</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[#2F2925] mb-1 font-bold">Floor</label>
+                  <select
+                    value={form.Floor || ""}
+                    onChange={(e) => setForm({ ...form, Floor: e.target.value, Roomno: "Unassigned" })}
+                    className="w-full bg-white border border-[#E8D8C4] rounded-xl p-2.5 outline-none focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 font-medium text-[#2F2925]"
+                  >
+                    <option value="" disabled>Select Floor</option>
+                    {Array.from(new Set(rooms.filter(r => r.Block === form.Block).map(r => r.Floor)))
+                      .filter(Boolean)
+                      .sort((a, b) => a - b)
+                      .map(floor => (
+                        <option key={floor} value={floor}>Floor {floor}</option>
+                      ))}
+                  </select>
+                </div>
               </div>
 
               <div>
@@ -553,11 +572,12 @@ export default function Students() {
                 <select
                   value={form.Roomno || "Unassigned"}
                   onChange={(e) => setForm({ ...form, Roomno: e.target.value })}
-                  className="w-full bg-white border border-[#E8D8C4] rounded-xl p-2.5 outline-none focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 font-medium text-[#2F2925]"
+                  disabled={!form.Floor}
+                  className="w-full bg-white border border-[#E8D8C4] rounded-xl p-2.5 outline-none focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 font-medium text-[#2F2925] disabled:opacity-50 disabled:bg-gray-50"
                 >
                   <option value="Unassigned">Unassigned</option>
                   {rooms
-                    .filter(room => !form.Block || room.Block === form.Block)
+                    .filter(room => room.Block === form.Block && String(room.Floor) === String(form.Floor))
                     .map((room) => (
                       <option key={room._id} value={room.RoomNo}>
                         {room.RoomNo}
@@ -634,28 +654,44 @@ export default function Students() {
                 <span className="font-extrabold text-[#2F2925]">{selected.Department || "CSM"}</span>
               </div>
               <div className="p-3 bg-[#F9EFDE]/50 rounded-xl border border-[#E8D8C4]">
-                <span className="text-[10px] text-[#8B7355] font-bold block mb-1">Hostel Block</span>
-                <select
-                  value={selected.Block || "D"}
-                  onChange={(e) => setSelected({ ...selected, Block: e.target.value, Roomno: "Unassigned" })}
-                  className="w-full bg-white border border-[#E8D8C4] rounded-lg px-2 py-1 outline-none focus:border-[#EB8055] font-extrabold text-[#B85228] text-xs"
-                >
-                  <option value="D">Block D</option>
-                  <option value="E">Block E</option>
-                  <option value="KW">Block KW</option>
-                  <option value="Executive">Executive Block</option>
-                </select>
+                <span className="text-[10px] text-[#8B7355] font-bold block mb-1">Hostel Block & Floor</span>
+                <div className="flex gap-2">
+                  <select
+                    value={selected.Block || "D"}
+                    onChange={(e) => setSelected({ ...selected, Block: e.target.value, Roomno: "Unassigned", Floor: "" })}
+                    className="w-1/2 bg-white border border-[#E8D8C4] rounded-lg px-2 py-1 outline-none focus:border-[#EB8055] font-extrabold text-[#B85228] text-xs"
+                  >
+                    <option value="D">Block D</option>
+                    <option value="E">Block E</option>
+                    <option value="KW">Block KW</option>
+                    <option value="Executive">Executive</option>
+                  </select>
+                  <select
+                    value={selected.Floor || ""}
+                    onChange={(e) => setSelected({ ...selected, Floor: e.target.value, Roomno: "Unassigned" })}
+                    className="w-1/2 bg-white border border-[#E8D8C4] rounded-lg px-2 py-1 outline-none focus:border-[#EB8055] font-extrabold text-[#B85228] text-xs"
+                  >
+                    <option value="" disabled>Select Floor</option>
+                    {Array.from(new Set(rooms.filter(r => r.Block === selected.Block).map(r => r.Floor)))
+                      .filter(Boolean)
+                      .sort((a, b) => a - b)
+                      .map(floor => (
+                        <option key={floor} value={floor}>Floor {floor}</option>
+                      ))}
+                  </select>
+                </div>
               </div>
               <div className="p-3 bg-[#F9EFDE]/50 rounded-xl border border-[#E8D8C4]">
                 <span className="text-[10px] text-[#8B7355] font-bold block mb-1">Allocated Room</span>
                 <select
                   value={selected.Roomno || "Unassigned"}
                   onChange={(e) => setSelected({ ...selected, Roomno: e.target.value })}
-                  className="w-full bg-white border border-[#E8D8C4] rounded-lg px-2 py-1 outline-none focus:border-[#EB8055] font-extrabold text-[#2F2925] text-xs"
+                  disabled={!selected.Floor}
+                  className="w-full bg-white border border-[#E8D8C4] rounded-lg px-2 py-1 outline-none focus:border-[#EB8055] font-extrabold text-[#2F2925] text-xs disabled:opacity-50 disabled:bg-gray-50"
                 >
                   <option value="Unassigned">Unassigned</option>
                   {rooms
-                    .filter(room => !selected.Block || room.Block === selected.Block)
+                    .filter(room => room.Block === selected.Block && String(room.Floor) === String(selected.Floor))
                     .map((room) => (
                       <option key={room._id} value={room.RoomNo}>
                         {room.RoomNo}
