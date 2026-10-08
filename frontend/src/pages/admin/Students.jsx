@@ -156,7 +156,7 @@ export default function Students() {
   };
 
   const openView = (student) => {
-    setSelected(student);
+    setSelected({ ...student });
     setViewOpen(true);
   };
 
@@ -193,6 +193,23 @@ export default function Students() {
     }
   };
 
+  const saveViewChanges = async () => {
+    setBusy(true);
+    setError("");
+    setSuccessMsg("");
+    try {
+      await studentService.update(selected._id, selected);
+      setSuccessMsg("Student room details updated.");
+      setViewOpen(false);
+      setSelected(null);
+      loadStudents();
+    } catch (err) {
+      setError(getErrorMessage(err, "Failed to update student details."));
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const deleteStudent = async (student) => {
     if (!window.confirm(`Are you sure you want to delete ${student.Name}?`)) return;
     try {
@@ -211,7 +228,7 @@ export default function Students() {
         <div>
           <h2 className="text-2xl font-extrabold text-[#2F2925]">Student Management</h2>
           <p className="text-xs text-[#8B7355] mt-0.5">
-            Search, filter, edit, and manage registered hostel residents.
+            Comprehensive directory to view, search, and manage individual student records and their statuses.
           </p>
         </div>
 
@@ -224,15 +241,33 @@ export default function Students() {
       </div>
 
       {error && (
-        <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-700 text-xs font-semibold flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
-          <span>{error}</span>
+        <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-700 text-xs font-semibold flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
+            <span>{error}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setError("")}
+            className="p-1 hover:bg-rose-100 rounded-lg text-rose-700 transition-colors cursor-pointer"
+            title="Dismiss error"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
       )}
 
       {successMsg && (
-        <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-700 text-xs font-semibold">
-          {successMsg}
+        <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-700 text-xs font-semibold flex items-center justify-between gap-2">
+          <span>{successMsg}</span>
+          <button
+            type="button"
+            onClick={() => setSuccessMsg("")}
+            className="p-1 hover:bg-emerald-100 rounded-lg text-emerald-700 transition-colors cursor-pointer"
+            title="Dismiss notification"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
       )}
 
@@ -252,6 +287,11 @@ export default function Students() {
 
           <button
             onClick={() => {
+              setQuery("");
+              setDeptFilter("All");
+              setYearFilter("All");
+              setBlockFilter("All");
+              setStatusFilter("All");
               loadStudents();
               loadRooms();
             }}
@@ -371,11 +411,10 @@ export default function Students() {
                     </td>
                     <td className="py-3 px-4">
                       <span
-                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${
-                          (student.Status || "Active") === "Active"
+                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${(student.Status || "Active") === "Active"
                             ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
                             : "bg-[#FDF0DC] text-[#8B7355] border border-[#E8D8C4]"
-                        }`}
+                          }`}
                       >
                         {student.Status || "Active"}
                       </span>
@@ -540,12 +579,12 @@ export default function Students() {
                       <option key={room._id} value={room.RoomNo}>
                         {room.RoomNo}
                       </option>
-                  ))}
+                    ))}
                 </select>
               </div>
 
               <div>
-                <label className="block text-[#2F2925] mb-1 font-bold">Resident Status</label>
+                <label className="block text-[#2F2925] mb-1 font-bold">Student Status</label>
                 <select
                   value={form.Status || "Active"}
                   onChange={(e) => setForm({ ...form, Status: e.target.value })}
@@ -612,24 +651,45 @@ export default function Students() {
                 <span className="font-extrabold text-[#2F2925]">{selected.Department || "CSM"}</span>
               </div>
               <div className="p-3 bg-[#F9EFDE]/50 rounded-xl border border-[#E8D8C4]">
-                <span className="text-[10px] text-[#8B7355] font-bold block">Hostel Block</span>
-                <span className="font-extrabold text-[#B85228]">{selected.Block || "D"}</span>
+                <span className="text-[10px] text-[#8B7355] font-bold block mb-1">Hostel Block</span>
+                <select
+                  value={selected.Block || "D"}
+                  onChange={(e) => setSelected({ ...selected, Block: e.target.value, Roomno: "Unassigned" })}
+                  className="w-full bg-white border border-[#E8D8C4] rounded-lg px-2 py-1 outline-none focus:border-[#EB8055] font-extrabold text-[#B85228] text-xs"
+                >
+                  <option value="D">Block D</option>
+                  <option value="E">Block E</option>
+                  <option value="KW">Block KW</option>
+                  <option value="Executive">Executive Block</option>
+                </select>
               </div>
               <div className="p-3 bg-[#F9EFDE]/50 rounded-xl border border-[#E8D8C4]">
-                <span className="text-[10px] text-[#8B7355] font-bold block">Allocated Room</span>
-                <span className="font-extrabold text-[#2F2925]">{selected.Roomno || "Unassigned"}</span>
+                <span className="text-[10px] text-[#8B7355] font-bold block mb-1">Allocated Room</span>
+                <select
+                  value={selected.Roomno || "Unassigned"}
+                  onChange={(e) => setSelected({ ...selected, Roomno: e.target.value })}
+                  className="w-full bg-white border border-[#E8D8C4] rounded-lg px-2 py-1 outline-none focus:border-[#EB8055] font-extrabold text-[#2F2925] text-xs"
+                >
+                  <option value="Unassigned">Unassigned</option>
+                  {rooms
+                    .filter(room => !selected.Block || room.Block === selected.Block)
+                    .map((room) => (
+                      <option key={room._id} value={room.RoomNo}>
+                        {room.RoomNo}
+                      </option>
+                    ))}
+                </select>
               </div>
               <div className="p-3 bg-[#F9EFDE]/50 rounded-xl border border-[#E8D8C4] col-span-2 flex items-center justify-between">
                 <div>
-                  <span className="text-[10px] text-[#8B7355] font-bold block">Resident Status</span>
+                  <span className="text-[10px] text-[#8B7355] font-bold block">Student Status</span>
                   <span className="text-[11px] text-[#8B7355] font-medium">Hostel Residency State</span>
                 </div>
                 <span
-                  className={`px-3 py-1 rounded-full text-xs font-extrabold ${
-                    (selected.Status || "Active") === "Active"
+                  className={`px-3 py-1 rounded-full text-xs font-extrabold ${(selected.Status || "Active") === "Active"
                       ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
                       : "bg-[#FDF0DC] text-[#8B7355] border border-[#E8D8C4]"
-                  }`}
+                    }`}
                 >
                   {selected.Status || "Active"}
                 </span>
@@ -638,13 +698,11 @@ export default function Students() {
 
             <div className="pt-3 border-t border-[#E8D8C4]/60 flex justify-end gap-2">
               <button
-                onClick={() => {
-                  setViewOpen(false);
-                  openForm(selected);
-                }}
-                className="px-4 py-2 rounded-xl text-xs font-bold bg-[#FDF0DC] text-[#B85228] hover:bg-[#F5E8D4] border border-[#E8D8C4] cursor-pointer"
+                onClick={saveViewChanges}
+                disabled={busy}
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-[#EB8055] text-white hover:bg-[#D96B3A] cursor-pointer disabled:opacity-50"
               >
-                Edit Student
+                {busy ? "Saving..." : "Save Changes"}
               </button>
               <button
                 onClick={() => setViewOpen(false)}
