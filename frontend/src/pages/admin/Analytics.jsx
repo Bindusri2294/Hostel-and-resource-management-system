@@ -40,6 +40,7 @@ import {
   PieChart as PieIcon,
   BarChart3,
   CalendarCheck2,
+  X,
 } from "lucide-react";
 
 // Theme color palette
@@ -115,8 +116,8 @@ export default function Analytics() {
     courseFilter === "B.Tech"
       ? ["1", "2", "3", "4"]
       : courseFilter === "Diploma"
-      ? ["1", "2", "3"]
-      : ["1", "2", "3", "4"];
+        ? ["1", "2", "3"]
+        : ["1", "2", "3", "4"];
 
   const filteredStudents = useMemo(() => {
     return students.filter((s) => {
@@ -338,9 +339,19 @@ export default function Analytics() {
       </div>
 
       {error && (
-        <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-700 text-xs font-semibold flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
-          <span>{error}</span>
+        <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-700 text-xs font-semibold flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
+            <span>{error}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setError("")}
+            className="p-1 hover:bg-rose-100 rounded-lg text-rose-700 transition-colors cursor-pointer"
+            title="Dismiss error"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
       )}
 
@@ -351,32 +362,29 @@ export default function Analytics() {
           <div className="flex items-center gap-2 p-1 bg-[#FDF0DC] rounded-xl border border-[#E8D8C4]">
             <button
               onClick={() => setActiveSection("all")}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                activeSection === "all"
+              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeSection === "all"
                   ? "bg-[#EB8055] text-white shadow-xs"
                   : "text-[#8B7355] hover:text-[#2F2925]"
-              }`}
+                }`}
             >
               All Analytics
             </button>
             <button
               onClick={() => setActiveSection("allocation")}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                activeSection === "allocation"
+              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${activeSection === "allocation"
                   ? "bg-[#EB8055] text-white shadow-xs"
                   : "text-[#8B7355] hover:text-[#2F2925]"
-              }`}
+                }`}
             >
               <DoorOpen className="w-3.5 h-3.5" />
               Allocation & Capacity
             </button>
             <button
               onClick={() => setActiveSection("attendance")}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                activeSection === "attendance"
+              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${activeSection === "attendance"
                   ? "bg-[#EB8055] text-white shadow-xs"
                   : "text-[#8B7355] hover:text-[#2F2925]"
-              }`}
+                }`}
             >
               <CalendarCheck2 className="w-3.5 h-3.5" />
               Attendance Trends
@@ -549,7 +557,7 @@ export default function Analytics() {
                     </Pie>
                     <Tooltip
                       contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #E8D8C4" }}
-                      formatter={(val, name) => [`${val} Beds (${totalCapacity ? Math.round((val/totalCapacity)*100) : 0}%)`, name]}
+                      formatter={(val, name) => [`${val} Beds (${totalCapacity ? Math.round((val / totalCapacity) * 100) : 0}%)`, name]}
                     />
                     <Legend wrapperStyle={{ fontSize: 12 }} />
                   </PieChart>
@@ -601,11 +609,10 @@ export default function Analytics() {
                     <button
                       key={tf}
                       onClick={() => setAttendanceTimeframe(tf)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                        attendanceTimeframe === tf
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${attendanceTimeframe === tf
                           ? "bg-[#EB8055] text-white shadow-xs"
                           : "text-[#8B7355] hover:text-[#2F2925]"
-                      }`}
+                        }`}
                     >
                       {tf}
                     </button>

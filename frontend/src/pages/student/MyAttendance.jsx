@@ -18,7 +18,6 @@ import {
   Phone,
   ShieldCheck,
   Check,
-  Sparkles,
 } from "lucide-react";
 
 export default function MyAttendance() {
@@ -45,6 +44,7 @@ export default function MyAttendance() {
     reason: "",
     parentContact: "",
   });
+  const isOtherLeave = leaveForm.leaveType === "Other";
 
   // Calculate minimum date (today) and maximum date (1 year in future)
   const todayDateObj = new Date();
@@ -56,6 +56,7 @@ export default function MyAttendance() {
   // Month navigation state: defaults to current month (e.g., "2026-09")
   const today = new Date();
   const currentMonthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
+  const todayDateStr = `${currentMonthStr}-${String(today.getDate()).padStart(2, "0")}`;
   const [selectedMonth, setSelectedMonth] = useState(currentMonthStr);
   const [selectedDateRecord, setSelectedDateRecord] = useState(null);
 
@@ -197,7 +198,7 @@ export default function MyAttendance() {
       return;
     }
 
-    if (!leaveForm.reason.trim()) {
+    if (isOtherLeave && !leaveForm.reason.trim()) {
       setLeaveModalError("Please provide a detailed reason for your leave.");
       return;
     }
@@ -206,6 +207,7 @@ export default function MyAttendance() {
     try {
       await leaveService.apply({
         ...leaveForm,
+        reason: isOtherLeave ? leaveForm.reason.trim() : leaveForm.leaveType,
         parentContact: cleanPhone,
       });
       setLeaveSuccessMsg("Leave application sent to hostel warden for approval!");
@@ -243,6 +245,11 @@ export default function MyAttendance() {
       recordsMap[r.date] = r;
     });
   }
+
+  const formatDisplayDate = (dateString) => {
+    const [year, month, day] = dateString.split("-");
+    return `${day}-${month}-${year}`;
+  };
 
   const summary = attendanceData?.summary || {
     totalDays: 0,
@@ -373,7 +380,7 @@ export default function MyAttendance() {
                 onClick={() => setSelectedMonth(currentMonthStr)}
                 className="px-3 py-1.5 rounded-xl border border-[#E8D8C4] hover:bg-[#FDF0DC]/50 text-xs font-bold text-[#2F2925] transition-colors cursor-pointer"
               >
-                Today
+                {formatDisplayDate(selectedDateRecord?.date || todayDateStr)}
               </button>
               <button
                 type="button"
@@ -474,10 +481,6 @@ export default function MyAttendance() {
               <span className="w-3 h-3 rounded-full bg-amber-500"></span>
               <span>Approved Leave</span>
             </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded-full bg-slate-300"></span>
-              <span>No Session</span>
-            </div>
           </div>
         </div>
 
@@ -493,7 +496,9 @@ export default function MyAttendance() {
               <div className="p-4 rounded-2xl bg-[#FDF0DC]/50 border border-[#E8D8C4] space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-[#8B7355]">Date</span>
-                  <span className="text-xs font-extrabold text-[#2F2925]">{selectedDateRecord.date}</span>
+                  <span className="text-xs font-extrabold text-[#2F2925]">
+                    {formatDisplayDate(selectedDateRecord.date)}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-[#8B7355]">Attendance Status</span>
@@ -542,14 +547,6 @@ export default function MyAttendance() {
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setIsLeaveModalOpen(true)}
-            className="w-full py-2.5 bg-[#FDF0DC] hover:bg-[#F5E8D4] text-[#B85228] border border-[#E8D8C4] rounded-xl font-bold text-xs flex items-center justify-center gap-2 cursor-pointer transition-colors"
-          >
-            <PlusCircle className="w-4 h-4 text-[#EB8055]" />
-            <span>Apply for Leave</span>
-          </button>
         </div>
       </div>
 
@@ -748,14 +745,19 @@ export default function MyAttendance() {
                 <label className="block text-xs font-bold text-[#2F2925] mb-1">Leave Category *</label>
                 <select
                   value={leaveForm.leaveType}
-                  onChange={(e) => setLeaveForm({ ...leaveForm, leaveType: e.target.value })}
+                  onChange={(e) =>
+                    setLeaveForm((prev) => ({
+                      ...prev,
+                      leaveType: e.target.value,
+                      reason: e.target.value === "Other" ? prev.reason : "",
+                    }))
+                  }
                   className="w-full border border-[#E8D8C4] rounded-xl px-3.5 py-2.5 text-xs font-semibold text-[#2F2925] bg-white focus:border-[#EB8055] focus:outline-none cursor-pointer"
                 >
-                  <option value="Home Visit">Home Visit</option>
+                  <option value="Casual Leave">Casual Leave</option>
                   <option value="Medical Leave">Medical Leave</option>
-                  <option value="Academic / Internship">Academic / Internship Event</option>
-                  <option value="Emergency">Family Emergency</option>
-                  <option value="Festival / Holiday">Festival / Holiday</option>
+                  <option value="Academic Leave">Academic Leave</option>
+                  <option value="Emergency">Emergency</option>
                   <option value="Other">Other Reason</option>
                 </select>
               </div>
@@ -815,24 +817,19 @@ export default function MyAttendance() {
                 </p>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-[#2F2925] mb-1">Detailed Reason *</label>
-                <textarea
-                  required
-                  rows={3}
-                  placeholder="Provide details about your travel destination, consent, or doctor appointment..."
-                  value={leaveForm.reason}
-                  onChange={(e) => setLeaveForm({ ...leaveForm, reason: e.target.value })}
-                  className="w-full border border-[#E8D8C4] rounded-xl px-3.5 py-2.5 text-xs font-medium text-[#2F2925] bg-white focus:border-[#EB8055] focus:outline-none resize-none placeholder-[#8B7355]/50"
-                />
-              </div>
-
-              <div className="p-3 rounded-xl bg-[#FDF0DC] text-[11px] text-[#B85228] border border-[#E8D8C4] flex items-start gap-2">
-                <Sparkles className="w-4 h-4 text-[#EB8055] shrink-0 mt-0.5" />
-                <span>
-                  Once approved by the warden, your attendance records for these dates will automatically reflect as "Approved Leave" in daily night verifications.
-                </span>
-              </div>
+              {isOtherLeave && (
+                <div>
+                  <label className="block text-xs font-bold text-[#2F2925] mb-1">Detailed Reason *</label>
+                  <textarea
+                    required
+                    rows={3}
+                    placeholder="Provide details about your travel destination, consent, or doctor appointment..."
+                    value={leaveForm.reason}
+                    onChange={(e) => setLeaveForm({ ...leaveForm, reason: e.target.value })}
+                    className="w-full border border-[#E8D8C4] rounded-xl px-3.5 py-2.5 text-xs font-medium text-[#2F2925] bg-white focus:border-[#EB8055] focus:outline-none resize-none placeholder-[#8B7355]/50"
+                  />
+                </div>
+              )}
 
               <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#E8D8C4]/60">
                 <button
