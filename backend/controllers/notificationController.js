@@ -50,6 +50,7 @@ const getNotifications = async (req, res, next) => {
         { targetType: "BLOCK", targetValue: student.Block },
         { targetType: "COURSE", targetValue: student.Course },
         { targetType: "SINGLE_STUDENT", targetValue: student.Rollno },
+        { targetType: "MULTIPLE_STUDENTS", targetValue: { $regex: student.Rollno, $options: "i" } },
       ],
     };
 

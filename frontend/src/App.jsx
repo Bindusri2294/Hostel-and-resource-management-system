@@ -24,12 +24,15 @@ import Analytics from "./pages/admin/Analytics";
 import Settings from "./pages/admin/Settings";
 import Notifications from "./pages/admin/Notifications";
 
+import EscalationView from "./pages/EscalationView";
+
 export default function App() {
   const { user } = useAuth();
 
   return (
     <Routes>
       <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
+      <Route path="/escalation/:token" element={<EscalationView />} />
 
       {/* Protected routes accessible to all authenticated users */}
       <Route element={<ProtectedRoute />}>

@@ -5,6 +5,9 @@ const {
   getFeedbackById,
   updateFeedback,
   deleteFeedback,
+  escalateFeedback,
+  getEscalatedFeedback,
+  actionEscalatedFeedback,
 } = require("../controllers/feedbackController");
 
 const { protect, authorize } = require("../middleware/authMiddleware");
@@ -12,8 +15,15 @@ const upload = require("../middleware/uploadMiddleware");
 
 const router = express.Router();
 
+// Public escalation routes (Authority access via secure token)
+router.get("/escalation/:token", getEscalatedFeedback);
+router.post("/escalation/:token/action", actionEscalatedFeedback);
+
 // Apply protect middleware to ALL feedback routes
 router.use(protect);
+
+// Admin route to escalate feedback
+router.post("/:id/escalate", authorize("Admin"), escalateFeedback);
 
 const handleUpload = (req, res, next) => {
   upload.single("image")(req, res, (err) => {

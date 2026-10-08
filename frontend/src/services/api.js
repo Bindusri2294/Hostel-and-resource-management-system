@@ -123,6 +123,9 @@ export const feedbackService = {
   create: (payload) => api.post("/feedback", payload),
   update: (id, payload) => api.put(`/feedback/${id}`, payload),
   remove: (id) => api.delete(`/feedback/${id}`),
+  escalate: (id, payload) => api.post(`/feedback/${id}/escalate`, payload),
+  getEscalated: (token) => api.get(`/feedback/escalation/${token}`),
+  actionEscalated: (token, payload) => api.post(`/feedback/escalation/${token}/action`, payload),
 };
 
 export const attendanceService = {

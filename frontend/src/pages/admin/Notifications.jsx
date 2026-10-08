@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Send, BellRing, Users, MapPin, BookOpen, Trash2, Loader2, Info } from "lucide-react";
+import { Send, BellRing, Users, MapPin, BookOpen, Trash2, Loader2, Info, X } from "lucide-react";
 import { notificationService, studentService } from "../../services/api";
 import { getErrorMessage } from "../../services/api";
 
@@ -16,6 +16,7 @@ export default function Notifications() {
     targetValue: ""
   });
   const [busy, setBusy] = useState(false);
+  const [multiSelectInput, setMultiSelectInput] = useState("");
   const [success, setSuccess] = useState("");
 
   const blocks = ["D", "E", "KW", "Executive"];
@@ -153,6 +154,7 @@ export default function Notifications() {
                   <option value="BLOCK">Specific Block</option>
                   <option value="COURSE">Specific Course</option>
                   <option value="SINGLE_STUDENT">Specific Student</option>
+                  <option value="MULTIPLE_STUDENTS">Specific Group (Multiple)</option>
                 </select>
               </div>
 
@@ -205,6 +207,56 @@ export default function Notifications() {
                       </option>
                     ))}
                   </datalist>
+                </div>
+              )}
+
+              {form.targetType === "MULTIPLE_STUDENTS" && (
+                <div className="animate-in fade-in slide-in-from-top-2">
+                  <label className="block text-xs font-extrabold text-[#2F2925] uppercase tracking-wide mb-1">Search & Select Students</label>
+                  <div className="flex gap-2">
+                    <input
+                      list="student-list"
+                      placeholder="Type name or roll no..."
+                      value={multiSelectInput}
+                      onChange={e => setMultiSelectInput(e.target.value)}
+                      className="flex-1 bg-[#FEF7EE] border border-[#E8D8C4] rounded-xl p-2.5 outline-none focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055] font-bold text-sm text-[#EB8055]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (multiSelectInput.trim()) {
+                          const currentVals = form.targetValue ? form.targetValue.split(",").map(s => s.trim()) : [];
+                          if (!currentVals.includes(multiSelectInput.trim())) {
+                            setForm({ ...form, targetValue: [...currentVals, multiSelectInput.trim()].join(",") });
+                          }
+                          setMultiSelectInput("");
+                        }
+                      }}
+                      className="px-4 py-2 bg-[#FDF0DC] border border-[#E8D8C4] text-[#B85228] font-bold text-sm rounded-xl cursor-pointer hover:bg-[#F5E8D4]"
+                    >
+                      Add
+                    </button>
+                  </div>
+                  <datalist id="student-list">
+                    {students.map(s => (
+                      <option key={s._id} value={s.Rollno}>
+                        {s.Name} ({s.Rollno})
+                      </option>
+                    ))}
+                  </datalist>
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {form.targetValue.split(",").filter(Boolean).map((val, idx) => (
+                      <span key={idx} className="flex items-center gap-1 bg-[#EB8055]/10 text-[#EB8055] px-2.5 py-1 rounded-md text-[11px] font-bold border border-[#EB8055]/30">
+                        {val}
+                        <button type="button" onClick={() => {
+                          const updated = form.targetValue.split(",").map(s => s.trim()).filter(s => s !== val);
+                          setForm({ ...form, targetValue: updated.join(",") });
+                        }} className="hover:text-rose-600 transition-colors cursor-pointer">
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
                 </div>
               )}
 

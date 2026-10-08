@@ -403,7 +403,7 @@ export default function AdminDashboard({ data: propData }) {
                   <div className="min-w-0 flex-1">
                     <p className="text-xs font-bold text-[#2F2925] truncate">{item.message}</p>
                     <div className="flex items-center gap-1.5 mt-1 text-[11px] text-[#8B7355] truncate">
-                      <span>{item.studentId?.Name || item.studentId?.name || "Resident"}</span>
+                      <span>ID: {item._id ? item._id.slice(-8).toUpperCase() : "UNKNOWN"}</span>
                       <span>·</span>
                       <span>Room {item.roomNo || item.room || "—"}</span>
                       <span>·</span>

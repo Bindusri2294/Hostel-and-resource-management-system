@@ -3,7 +3,8 @@ const Student = require("../models/student");
 const Notification = require("../models/Notification");
 const { PutObjectCommand } = require("@aws-sdk/client-s3");
 const s3Client = require("../config/r2");
-
+const crypto = require("crypto");
+const sendEmail = require("../utils/sendEmail");
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 // Create feedback
@@ -138,9 +139,7 @@ const updateFeedback = async (req, res, next) => {
         Rollno: { $regex: `^${escapeRegex(rollNumber)}$`, $options: "i" },
       });
       if (!student) {
-        return res.status(404).json({
-          message: `Student ${feedback.studentId} could not be found; feedback status was not changed`,
-        });
+        console.warn(`Student ${feedback.studentId} not found. Skipping notification.`);
       }
     }
 
@@ -149,10 +148,11 @@ const updateFeedback = async (req, res, next) => {
 
     if (student) {
       await Notification.create({
-        studentId: student._id,
+        title: "Feedback Status Updated",
         message: `Your feedback "${feedback.message}" is now marked as ${status}.`,
-        notificationType: "Feedback Update",
-        relatedAction: "/feedback",
+        targetType: "SINGLE_STUDENT",
+        targetValue: student.Rollno,
+        sender: req.user._id, // Assumes the admin's user object is populated in req.user
       });
     }
 
@@ -178,10 +178,117 @@ const deleteFeedback = async (req, res, next) => {
   }
 };
 
+// @desc    Escalate a feedback to authority
+// @route   POST /api/feedbacks/:id/escalate
+// @access  Private/Admin
+const escalateFeedback = async (req, res, next) => {
+  try {
+    const { authority, reason } = req.body;
+    if (!authority) return res.status(400).json({ message: "Authority is required" });
+
+    const feedback = await Feedback.findById(req.params.id);
+    if (!feedback) return res.status(404).json({ message: "Feedback not found" });
+
+    // Determine email based on authority
+    let authorityEmail = "";
+    if (authority === "DEAN") authorityEmail = process.env.DEAN_EMAIL;
+    else if (authority === "PRINCIPAL") authorityEmail = process.env.PRINCIPAL_EMAIL;
+    
+    if (!authorityEmail) return res.status(400).json({ message: `Email not configured for ${authority} in server environment.` });
+
+    // Generate token
+    const token = crypto.randomBytes(20).toString("hex");
+
+    feedback.isEscalated = true;
+    feedback.escalationAuthority = authority;
+    feedback.escalationReason = reason;
+    feedback.escalationToken = token;
+    await feedback.save();
+
+    // Construct URL
+    const frontendUrl = process.env.FRONTEND_URL || req.headers.origin || "http://localhost:5173";
+    const actionUrl = `${frontendUrl}/escalation/${token}`;
+
+    const message = `
+Dear ${authority},
+
+A student feedback ticket has been escalated to you by the Hostel Admin.
+      
+Feedback ID: ${feedback._id}
+Category: ${feedback.category}
+Room/Block: ${feedback.RoomNo} / ${feedback.Block}
+Student Issue: ${feedback.message}
+
+Admin Reason for Escalation: ${reason || "No reason provided."}
+
+Please click the link below to view the details and take action (Resolve / Add Remark).
+This link provides secure, direct access and does not require logging in.
+
+${actionUrl}
+
+Thank you,
+Hostel Management System
+    `;
+
+    await sendEmail({
+      email: authorityEmail,
+      subject: `[ESCALATION] Hostel Feedback - Action Required`,
+      message,
+    });
+
+    res.status(200).json({ message: "Feedback escalated successfully and email sent.", feedback });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get escalated feedback by token
+// @route   GET /api/feedbacks/escalation/:token
+// @access  Public
+const getEscalatedFeedback = async (req, res, next) => {
+  try {
+    const feedback = await Feedback.findOne({ escalationToken: req.params.token });
+    if (!feedback) return res.status(404).json({ message: "Invalid or expired escalation link." });
+
+    res.status(200).json(feedback);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Authority action on escalated feedback
+// @route   POST /api/feedbacks/escalation/:token/action
+// @access  Public
+const actionEscalatedFeedback = async (req, res, next) => {
+  try {
+    const { action, remarks } = req.body;
+    const feedback = await Feedback.findOne({ escalationToken: req.params.token });
+    
+    if (!feedback) return res.status(404).json({ message: "Invalid or expired escalation link." });
+
+    if (remarks) {
+      feedback.remarks = remarks;
+    }
+
+    if (action === "Resolve") {
+      feedback.status = "Completed";
+    }
+
+    await feedback.save();
+
+    res.status(200).json({ message: "Action recorded successfully.", feedback });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createFeedback,
   getFeedbacks,
   getFeedbackById,
   updateFeedback,
   deleteFeedback,
+  escalateFeedback,
+  getEscalatedFeedback,
+  actionEscalatedFeedback,
 };
