@@ -16,6 +16,7 @@ import {
   SidebarInset,
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import kietLogo from "../assets/kiet_logo.webp";
 import {
   Bell,
   LogOut,
@@ -120,12 +121,7 @@ export default function Layout() {
       <Sidebar className="border-r bg-white" style={{ borderColor: "#E8D8C4" }}>
         <SidebarHeader className="px-4 py-3.5 border-b" style={{ borderColor: "#E8D8C4" }}>
           <div className="flex items-center gap-3">
-            <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-extrabold shadow-sm text-sm"
-              style={{ background: "#EB8055" }}
-            >
-              K
-            </div>
+            <img src={kietLogo} alt="KIET Group of Institutions" className="h-9 w-24 shrink-0 object-contain" />
             <div className="overflow-hidden">
               <p className="font-bold text-sm tracking-tight leading-tight" style={{ color: "#2F2925" }}>KIET Hostel</p>
               <p className="text-[11px] font-medium flex items-center gap-1 leading-tight mt-0.5" style={{ color: "#8B7355" }}>
@@ -206,7 +202,7 @@ export default function Layout() {
             <div className="min-w-0">
               <p className="text-sm font-bold tracking-tight truncate leading-tight" style={{ color: "#2F2925" }}>
                 {user?.role === "Admin"
-                  ? `${getGreeting()}, Administrator`
+                  ? `${getGreeting()}, Coordinator`
                   : `${getGreeting()}, ${user?.name?.split(" ")?.[0] || "Resident"}`}
               </p>
               <p className="text-[11px] font-medium hidden sm:block leading-tight mt-0.5" style={{ color: "#8B7355" }}>

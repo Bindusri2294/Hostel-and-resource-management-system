@@ -144,8 +144,6 @@ export default function AdminDashboard({ data: propData }) {
   const totalCapacity = rooms.reduce((s, r) => s + Number(r.Capacity || 0), 0);
   const occupiedBeds = rooms.reduce((s, r) => s + Number(r.OccupiedCount || 0), 0);
   const availableBeds = Math.max(0, totalCapacity - occupiedBeds);
-  const maintenanceRooms = rooms.filter((r) => r.Status === "Maintenance");
-  const maintenanceBeds = maintenanceRooms.reduce((s, r) => s + Number(r.Capacity || 0), 0);
   const occupancyPct = totalCapacity ? Math.round((occupiedBeds / totalCapacity) * 100) : 0;
   const pendingFeedbacks = feedbacks.filter((f) => !f.status || f.status === "Pending");
 
@@ -197,7 +195,7 @@ export default function AdminDashboard({ data: propData }) {
         />
       </div>
 
-      {/* ── 2. MAIN HOSTEL OVERVIEW + HOSTEL STATUS ── */}
+      {/* ── 2. HOSTEL OCCUPANCY + RECENT STUDENT FEEDBACK ── */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
 
         {/* Main Hostel Overview Card: Hostel Occupancy (Spans 3 cols) */}
@@ -233,7 +231,7 @@ export default function AdminDashboard({ data: propData }) {
               </div>
 
               {/* Status Visual Indicators */}
-              <div className="grid grid-cols-3 gap-3 pt-2">
+              <div className="grid grid-cols-2 gap-3 pt-2">
                 <div className="flex items-center gap-2 p-2.5 rounded-lg bg-[#FDF0DC]/40 border border-[#E8D8C4]">
                   <span className="w-2.5 h-2.5 rounded-full bg-[#EB8055] shrink-0" />
                   <div className="min-w-0">
@@ -248,75 +246,57 @@ export default function AdminDashboard({ data: propData }) {
                     <p className="text-xs font-bold text-[#2F2925]">{availableBeds} Beds</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 p-2.5 rounded-lg bg-amber-50/60 border border-amber-200">
-                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0" />
-                  <div className="min-w-0">
-                    <p className="text-[11px] font-medium text-[#8B7355]">Maintenance</p>
-                    <p className="text-xs font-bold text-[#2F2925]">{maintenanceBeds} Beds</p>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
 
-          <div className="pt-3 border-t border-[#E8D8C4] mt-3 flex items-center justify-between text-xs text-[#8B7355]">
-            <span>Academic Term 2025–26</span>
-            <span>Total Capacity: <strong className="text-[#2F2925] font-semibold">{totalCapacity} Beds</strong></span>
-          </div>
         </div>
 
-        {/* Compact Hostel Status Card (Spans 2 cols) */}
-        <div className="lg:col-span-2 bg-white rounded-xl border border-[#E8D8C4] p-5 sm:p-6 flex flex-col justify-between">
-          <div>
-            <div className="mb-4">
-              <h3 className="text-base font-bold text-[#2F2925] leading-tight">Hostel Status</h3>
-              <p className="text-xs text-[#8B7355] mt-0.5">Facility and services condition</p>
+        {/* Recent Student Feedback */}
+        <div className="lg:col-span-2 bg-white rounded-xl border border-[#E8D8C4] p-5 sm:p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-sm font-bold text-[#2F2925] leading-tight">Recent Student Feedback</h3>
+              <p className="text-xs text-[#8B7355] mt-0.5">Latest reviews and grievances</p>
             </div>
-
-            <div className="space-y-3 divide-y divide-[#E8D8C4]/60">
-              <div className="flex items-center justify-between pt-1">
-                <span className="text-xs font-medium text-[#8B7355]">Hostel Operations</span>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                  <span className="text-xs font-semibold text-emerald-700">Normal</span>
-                </div>
-              </div>
-              <div className="flex items-center justify-between pt-2.5">
-                <span className="text-xs font-medium text-[#8B7355]">Water Supply</span>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                  <span className="text-xs font-semibold text-emerald-700">Normal</span>
-                </div>
-              </div>
-              <div className="flex items-center justify-between pt-2.5">
-                <span className="text-xs font-medium text-[#8B7355]">Electricity</span>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                  <span className="text-xs font-semibold text-emerald-700">Normal</span>
-                </div>
-              </div>
-              <div className="flex items-center justify-between pt-2.5">
-                <span className="text-xs font-medium text-[#8B7355]">Maintenance</span>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-amber-500" />
-                  <span className="text-xs font-semibold text-amber-700">
-                    {maintenanceRooms.length > 0 ? `${maintenanceRooms.length} Rooms` : "3 Rooms"}
-                  </span>
-                </div>
-              </div>
-            </div>
+            <button
+              onClick={() => navigate("/feedback")}
+              className="text-xs font-semibold text-[#EB8055] hover:text-[#D96B3A] hover:underline flex items-center gap-1 cursor-pointer"
+            >
+              View All <ArrowRight className="w-3.5 h-3.5" />
+            </button>
           </div>
 
-          <div className="pt-3 border-t border-[#E8D8C4] mt-3 flex items-center justify-between text-[11px] text-[#8B7355]">
-            <span>Verified by Hostel Warden</span>
-            <span>Live status</span>
+          <div className="space-y-2.5">
+            {feedbacks.length ? (
+              feedbacks.slice(0, 4).map((item) => (
+                <div
+                  key={item._id || item.id}
+                  className="p-3 rounded-lg bg-[#FDF0DC]/30 border border-[#E8D8C4] flex items-start justify-between gap-3"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-bold text-[#2F2925] truncate">{item.message}</p>
+                    <div className="flex items-center gap-1.5 mt-1 text-[11px] text-[#8B7355] truncate">
+                      <span>{item.studentId?.Name || item.studentId?.name || "Student"}</span>
+                      <span>·</span>
+                      <span>Room {item.roomNo || item.room || "—"}</span>
+                      <span>·</span>
+                      <span className="text-amber-600 font-semibold">★ {item.rating}/5</span>
+                    </div>
+                  </div>
+                  <StatusBadge status={item.status || "Pending"} />
+                </div>
+              ))
+            ) : (
+              <p className="text-xs text-[#8B7355] italic py-6 text-center">No feedback submitted yet.</p>
+            )}
           </div>
         </div>
 
       </div>
 
-      {/* ── 3. RECENT ACTIVITY: Recent Allocations & Recent Student Feedback ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      {/* ── 3. RECENT ALLOCATIONS ── */}
+      <div>
 
         {/* Recent Allocations Table */}
         <div className="bg-white rounded-xl border border-[#E8D8C4] p-5 sm:p-6">
@@ -375,47 +355,6 @@ export default function AdminDashboard({ data: propData }) {
                 )}
               </tbody>
             </table>
-          </div>
-        </div>
-
-        {/* Recent Student Feedback */}
-        <div className="bg-white rounded-xl border border-[#E8D8C4] p-5 sm:p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-sm font-bold text-[#2F2925] leading-tight">Recent Student Feedback</h3>
-              <p className="text-xs text-[#8B7355] mt-0.5">Latest reviews and grievances</p>
-            </div>
-            <button
-              onClick={() => navigate("/feedback")}
-              className="text-xs font-semibold text-[#EB8055] hover:text-[#D96B3A] hover:underline flex items-center gap-1 cursor-pointer"
-            >
-              View All <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-
-          <div className="space-y-2.5">
-            {feedbacks.length ? (
-              feedbacks.slice(0, 4).map((item) => (
-                <div
-                  key={item._id || item.id}
-                  className="p-3 rounded-lg bg-[#FDF0DC]/30 border border-[#E8D8C4] flex items-start justify-between gap-3"
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs font-bold text-[#2F2925] truncate">{item.message}</p>
-                    <div className="flex items-center gap-1.5 mt-1 text-[11px] text-[#8B7355] truncate">
-                      <span>{item.studentId?.Name || item.studentId?.name || "Resident"}</span>
-                      <span>·</span>
-                      <span>Room {item.roomNo || item.room || "—"}</span>
-                      <span>·</span>
-                      <span className="text-amber-600 font-semibold">★ {item.rating}/5</span>
-                    </div>
-                  </div>
-                  <StatusBadge status={item.status || "Pending"} />
-                </div>
-              ))
-            ) : (
-              <p className="text-xs text-[#8B7355] italic py-6 text-center">No feedback submitted yet.</p>
-            )}
           </div>
         </div>
 

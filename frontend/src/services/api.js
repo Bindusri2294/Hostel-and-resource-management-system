@@ -109,6 +109,11 @@ export const roomService = {
   remove: (id) => api.delete(`/rooms/${id}`),
 };
 
+export const blockService = {
+  list: () => api.get("/blocks"),
+  create: (payload) => api.post("/blocks", payload),
+};
+
 export const allocationService = {
   list: () => api.get("/allocations"),
   mine: () => api.get("/allocations/mine"),
