@@ -60,6 +60,12 @@ const getCampusFromRollNo = (rollno) => {
   }
 };
 
+const getHostelType = (student) => {
+  if (student.Status === "Boys" || student.Status === "Girls") return student.Status;
+  if (student.Block === "KW" || student.Campus === "KIET-W" || student.Campus === "KIET W") return "Girls";
+  return "Boys";
+};
+
 
 export default function Students() {
   const [students, setStudents] = useState([]);
@@ -118,7 +124,7 @@ export default function Students() {
     const matchesBlock =
       blockFilter === "All" || String(student.Block || "") === String(blockFilter);
     const matchesStatus =
-      statusFilter === "All" || (student.Status || "Boys") === statusFilter;
+      statusFilter === "All" || getHostelType(student) === statusFilter;
 
     if (!query.trim()) {
       return matchesDept && matchesYear && matchesBlock && matchesStatus;
@@ -151,13 +157,13 @@ export default function Students() {
 
   const openForm = (student = null) => {
     setSelected(student);
-    setForm(student ? { ...student } : blankStudent);
+    setForm(student ? { ...student, Status: getHostelType(student) } : blankStudent);
     setFormOpen(true);
     setError("");
   };
 
   const openView = (student) => {
-    setSelected({ ...student });
+    setSelected({ ...student, Status: getHostelType(student) });
     setViewOpen(true);
   };
 
@@ -229,7 +235,7 @@ export default function Students() {
         <div>
           <h2 className="text-2xl font-extrabold text-[#2F2925]">Student Management</h2>
           <p className="text-xs text-[#8B7355] mt-0.5">
-            Comprehensive directory to view, search, and manage individual student records and their hostel types.
+            Manage student records, filter by hostel blocks, and easily update room allocations.
           </p>
         </div>
 
@@ -256,37 +262,9 @@ export default function Students() {
 
       {/* FILTER & SEARCH TOOLBAR (Feedback style across all fields) */}
       <div className="bg-white p-4 rounded-2xl border border-[#E8D8C4] shadow-sm space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="relative flex-1 min-w-[240px]">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8B7355]" />
-            <input
-              type="text"
-              placeholder="Search by student name, roll no, course, room, block, department, phone..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="w-full border rounded-xl pl-9 pr-3.5 py-2 text-xs font-medium focus:outline-none bg-white border-[#E8D8C4] text-[#2F2925] placeholder-[#8B7355]/60 focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 shadow-xs"
-            />
-          </div>
-
-          <button
-            onClick={() => {
-              setQuery("");
-              setDeptFilter("All");
-              setYearFilter("All");
-              setBlockFilter("All");
-              setStatusFilter("All");
-              loadStudents();
-              loadRooms();
-            }}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer border bg-[#FDF0DC] hover:bg-[#F5E8D4] text-[#2F2925] border-[#E8D8C4]"
-          >
-            <RefreshCw className="w-3.5 h-3.5 text-[#EB8055]" /> Refresh
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-3 border-t border-[#E8D8C4]/60">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <div>
-            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-[#8B7355]">Course Filter</label>
+            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-[#8B7355]">Course</label>
             <select
               value={deptFilter}
               onChange={(e) => setDeptFilter(e.target.value)}
@@ -299,7 +277,7 @@ export default function Students() {
           </div>
 
           <div>
-            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-[#8B7355]">Year Filter</label>
+            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-[#8B7355]">Year</label>
             <select
               value={yearFilter}
               onChange={(e) => setYearFilter(e.target.value)}
@@ -314,7 +292,7 @@ export default function Students() {
           </div>
 
           <div>
-            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-[#8B7355]">Block Filter</label>
+            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-[#8B7355]">Block</label>
             <select
               value={blockFilter}
               onChange={(e) => setBlockFilter(e.target.value)}
@@ -328,17 +306,34 @@ export default function Students() {
             </select>
           </div>
 
-          <div>
-            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-[#8B7355]">Hostel Type Filter</label>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full border rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none bg-white border-[#E8D8C4] text-[#2F2925] focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 shadow-xs cursor-pointer"
+          <div className="flex items-end gap-2">
+            <div className="flex-1">
+              <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-[#8B7355]">Hostel Type</label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full border rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none bg-white border-[#E8D8C4] text-[#2F2925] focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 shadow-xs cursor-pointer"
+              >
+                <option value="All">All Types</option>
+                <option value="Boys">Boys</option>
+                <option value="Girls">Girls</option>
+              </select>
+            </div>
+            <button
+              onClick={() => {
+                setQuery("");
+                setDeptFilter("All");
+                setYearFilter("All");
+                setBlockFilter("All");
+                setStatusFilter("All");
+                loadStudents();
+                loadRooms();
+              }}
+              className="flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer border bg-[#FDF0DC] hover:bg-[#F5E8D4] text-[#2F2925] border-[#E8D8C4] h-[30px]"
+              title="Refresh Data"
             >
-              <option value="All">All Types</option>
-              <option value="Boys">Boys</option>
-              <option value="Girls">Girls</option>
-            </select>
+              <RefreshCw className="w-3.5 h-3.5 text-[#EB8055]" />
+            </button>
           </div>
         </div>
       </div>
@@ -394,12 +389,12 @@ export default function Students() {
                     </td>
                     <td className="py-3 px-4">
                       <span
-                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${(student.Status || "Boys") === "Boys"
-                            ? "bg-blue-100 text-blue-800 border border-blue-200"
-                            : "bg-pink-100 text-pink-800 border border-pink-200"
+                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${getHostelType(student) === "Boys"
+                          ? "bg-blue-100 text-blue-800 border border-blue-200"
+                          : "bg-pink-100 text-pink-800 border border-pink-200"
                           }`}
                       >
-                        {student.Status || "Boys"}
+                        {getHostelType(student)}
                       </span>
                     </td>
                     <td className="py-3 px-4 flex justify-end items-center gap-1">
@@ -705,12 +700,12 @@ export default function Students() {
                   <span className="text-[11px] text-[#8B7355] font-medium">Boys or Girls Hostel</span>
                 </div>
                 <span
-                  className={`px-3 py-1 rounded-full text-xs font-extrabold ${(selected.Status || "Boys") === "Boys"
-                      ? "bg-blue-100 text-blue-800 border border-blue-200"
-                      : "bg-pink-100 text-pink-800 border border-pink-200"
+                  className={`px-3 py-1 rounded-full text-xs font-extrabold ${getHostelType(selected) === "Boys"
+                    ? "bg-blue-100 text-blue-800 border border-blue-200"
+                    : "bg-pink-100 text-pink-800 border border-pink-200"
                     }`}
                 >
-                  {selected.Status || "Boys"}
+                  {getHostelType(selected)}
                 </span>
               </div>
             </div>
