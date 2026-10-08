@@ -62,4 +62,8 @@ const feedbackSchema = new mongoose.Schema(
   }
 );
 
+feedbackSchema.index({ studentId: 1, createdAt: -1 });
+feedbackSchema.index({ status: 1 });
+feedbackSchema.index({ createdAt: -1 });
+
 module.exports = mongoose.model("Feedback", feedbackSchema);

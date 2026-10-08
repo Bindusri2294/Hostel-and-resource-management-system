@@ -54,7 +54,7 @@ const getRooms = async (req, res, next) => {
                 .lean(),
             Student.find({
                 Roomno: { $exists: true, $ne: "Unassigned", $nin: ["", null] },
-            }).lean(),
+            }).select("Name Rollno Course Department Campus Roomno Block Year").lean(),
         ]);
 
         const countMap = new Map(
@@ -68,16 +68,29 @@ const getRooms = async (req, res, next) => {
             allocationsByRoom.set(roomId, roomAllocations);
         });
 
+        // Pre-index direct students by RoomNo and Block for O(1) lookup
+        const directStudentsByRoom = new Map();
+        directStudents.forEach((s) => {
+            const keyWithBlock = `${String(s.Roomno).trim().toLowerCase()}_${String(s.Block || "").trim().toUpperCase()}`;
+            const keyAnyBlock = `${String(s.Roomno).trim().toLowerCase()}_ANY`;
+
+            if (!directStudentsByRoom.has(keyWithBlock)) directStudentsByRoom.set(keyWithBlock, []);
+            directStudentsByRoom.get(keyWithBlock).push(s);
+
+            if (!directStudentsByRoom.has(keyAnyBlock)) directStudentsByRoom.set(keyAnyBlock, []);
+            directStudentsByRoom.get(keyAnyBlock).push(s);
+        });
+
         res.status(200).json(rooms.map((room) => {
             const allocList = (allocationsByRoom.get(String(room._id)) || [])
                 .filter((allocation) => allocation.studentId)
                 .map((allocation) => allocation.studentId);
 
-            const directMatching = directStudents.filter(
-                (s) =>
-                    String(s.Roomno).trim().toLowerCase() === String(room.RoomNo).trim().toLowerCase() &&
-                    (!s.Block || !room.Block || s.Block.trim().toUpperCase() === room.Block.trim().toUpperCase())
-            );
+            const roomNo = String(room.RoomNo).trim().toLowerCase();
+            const block = String(room.Block || "").trim().toUpperCase();
+            const directMatching = directStudentsByRoom.get(`${roomNo}_${block}`) ||
+                                   directStudentsByRoom.get(`${roomNo}_ANY`) ||
+                                   [];
 
             // Merge and deduplicate by Rollno / _id
             const studentMap = new Map();

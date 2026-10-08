@@ -26,8 +26,8 @@ const sendAuthResponse = async (res, user, statusCode = 200) => {
   const accessToken = generateAccessToken(user._id, user.role);
   const refreshToken = generateRefreshToken(user._id, user.role);
 
-  // Save refresh token to user
-  if (!user.refreshTokens) user.refreshTokens = [];
+  // Save refresh token to user (keep only the most recent tokens to prevent document bloat)
+  user.refreshTokens = (user.refreshTokens || []).slice(-4);
   user.refreshTokens.push(refreshToken);
   await user.save();
 
@@ -129,65 +129,56 @@ const loginUser = async (req, res) => {
 
     let user = null;
     let studentMatch = null;
-
-    // 1. Check if identifier looks like a roll number (try Student collection first)
     const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    studentMatch = await Student.findOne({
-      Rollno: { $regex: new RegExp("^" + escapeRegex(identifier) + "$", "i") },
-    });
 
-    if (studentMatch) {
-      // Student roll number found in DB — find linked User account
-      user = await User.findOne({ student: studentMatch._id }).populate("student");
-
-      if (!user) {
-        // No User account yet — auto-create on first login if password = roll number
-        const passwordMatchesRollNo = password.toUpperCase() === studentMatch.Rollno.toUpperCase();
-        if (passwordMatchesRollNo) {
-          const salt = await bcrypt.genSalt(10);
-          const hashedPassword = await bcrypt.hash(studentMatch.Rollno, salt);
-          const newUser = await User.create({
-            name: studentMatch.Name,
-            password: hashedPassword,
-            role: "Student",
-            student: studentMatch._id,
-          });
-          user = await User.findById(newUser._id).populate("student");
-          console.log(`[AUTH] Auto-created User account for student: ${studentMatch.Rollno} (without email)`);
-        } else {
-          // Roll number found but wrong password on first login
-          return res.status(401).json({
-            message: "Incorrect password. Your default password is your roll number.",
-          });
-        }
-      }
+    // 1. If identifier contains '@', it is definitely an email
+    if (identifier.includes("@")) {
+      const cleanEmail = identifier.toLowerCase();
+      user = await User.findOne({ email: cleanEmail }).populate("student");
+    } else if (identifier.toLowerCase() === "admin" || identifier.toLowerCase() === "admin1") {
+      // Admin username shortcut
+      user = await User.findOne({ role: "Admin" }).populate("student");
     } else {
-      // 2. Not a roll number — search by email or admin name
-      const cleanLower = identifier.toLowerCase();
-      user = await User.findOne({
-        $or: [
-          { email: cleanLower },
-          { name: { $regex: new RegExp("^" + escapeRegex(identifier) + "$", "i") } },
-        ],
-      }).populate("student");
+      // 2. Not an email: try Student roll number using exact index match first (O(1))
+      const cleanUpper = identifier.toUpperCase();
+      studentMatch = await Student.findOne({ Rollno: cleanUpper });
 
-      // 3. Fallback: 'admin' / 'admin1' shortcut
-      if (!user && (identifier.toLowerCase() === "admin" || identifier.toLowerCase() === "admin1")) {
-        user = await User.findOne({ role: "Admin" }).populate("student");
+      // Fallback regex only if exact match didn't find anything
+      if (!studentMatch) {
+        studentMatch = await Student.findOne({
+          Rollno: { $regex: new RegExp("^" + escapeRegex(identifier) + "$", "i") },
+        });
       }
 
-      // If still no user found and it could be a student roll number that's not registered
-      if (!user) {
-        // Check if it looks like a roll number pattern (alphanumeric, no spaces)
-        const looksLikeRollNo = /^[a-zA-Z0-9]+$/.test(identifier) && identifier.length >= 5;
-        if (looksLikeRollNo) {
-          return res.status(404).json({
-            message: "Student not registered. Please contact the hostel administration.",
-          });
+      if (studentMatch) {
+        // Student roll number found in DB — find linked User account
+        user = await User.findOne({ student: studentMatch._id }).populate("student");
+
+        if (!user) {
+          // No User account yet — auto-create on first login if password = roll number
+          const passwordMatchesRollNo = password.toUpperCase() === studentMatch.Rollno.toUpperCase();
+          if (passwordMatchesRollNo) {
+            const salt = await bcrypt.genSalt(10);
+            const hashedPassword = await bcrypt.hash(studentMatch.Rollno, salt);
+            const newUser = await User.create({
+              name: studentMatch.Name,
+              password: hashedPassword,
+              role: "Student",
+              student: studentMatch._id,
+            });
+            user = await User.findById(newUser._id).populate("student");
+            console.log(`[AUTH] Auto-created User account for student: ${studentMatch.Rollno} (without email)`);
+          } else {
+            return res.status(401).json({
+              message: "Incorrect password. Your default password is your roll number.",
+            });
+          }
         }
-        return res.status(404).json({
-          message: "User does not exist. Please check your credentials.",
-        });
+      } else {
+        // Search by username
+        user = await User.findOne({
+          name: { $regex: new RegExp("^" + escapeRegex(identifier) + "$", "i") },
+        }).populate("student");
       }
     }
 

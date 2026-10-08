@@ -90,9 +90,6 @@ export default function Profile() {
                   (student?.Name || user?.name || "U").charAt(0).toUpperCase()
                 )}
               </div>
-              <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <Plus className="w-6 h-6 text-white" />
-              </div>
               <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-white text-[#EB8055] rounded-full flex items-center justify-center shadow-md border-2 border-white group-hover:scale-110 transition-transform">
                 <Plus className="w-3.5 h-3.5 stroke-[3]" />
               </div>

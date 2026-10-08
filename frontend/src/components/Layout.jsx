@@ -12,8 +12,8 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarTrigger,
   SidebarInset,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -24,6 +24,7 @@ import {
   Settings,
   ShieldCheck,
   Home,
+  X,
 } from "lucide-react";
 
 const getGreeting = () => {
@@ -32,6 +33,56 @@ const getGreeting = () => {
   if (hour < 18) return "Good afternoon";
   return "Good evening";
 };
+
+function HamburgerButton() {
+  const { toggleSidebar, open, isMobile, openMobile } = useSidebar();
+  const isOpen = isMobile ? openMobile : open;
+
+  return (
+    <button
+      type="button"
+      onClick={toggleSidebar}
+      aria-label={isOpen ? "Collapse sidebar" : "Expand sidebar"}
+      title={isOpen ? "Collapse sidebar" : "Expand sidebar"}
+      className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors duration-200 cursor-pointer hover:bg-[#FDF0DC] active:bg-[#F5E4D0] text-[#5A4A3A] hover:text-[#2F2925] shrink-0 mr-1"
+    >
+      <div
+        className="w-4 h-3.5 flex flex-col justify-between items-center relative"
+        style={{
+          transition: "transform 280ms cubic-bezier(0.4, 0, 0.2, 1)",
+          transform: isOpen ? "rotate(0deg)" : "rotate(180deg)",
+        }}
+      >
+        <span
+          className="h-[2px] bg-current rounded-full block"
+          style={{
+            width: isOpen ? "16px" : "10px",
+            alignSelf: isOpen ? "center" : "flex-start",
+            transformOrigin: "left center",
+            transform: isOpen ? "none" : "rotate(-40deg) translate(0.5px, -1px)",
+            transition: "all 280ms cubic-bezier(0.4, 0, 0.2, 1)",
+          }}
+        />
+        <span
+          className="w-4 h-[2px] bg-current rounded-full block"
+          style={{
+            transition: "all 280ms cubic-bezier(0.4, 0, 0.2, 1)",
+          }}
+        />
+        <span
+          className="h-[2px] bg-current rounded-full block"
+          style={{
+            width: isOpen ? "16px" : "10px",
+            alignSelf: isOpen ? "center" : "flex-start",
+            transformOrigin: "left center",
+            transform: isOpen ? "none" : "rotate(40deg) translate(0.5px, 1px)",
+            transition: "all 280ms cubic-bezier(0.4, 0, 0.2, 1)",
+          }}
+        />
+      </div>
+    </button>
+  );
+}
 
 export default function Layout() {
   const { user, logout } = useAuth();
@@ -44,12 +95,28 @@ export default function Layout() {
   const dropdownRef = useRef(null);
   const notifRef = useRef(null);
 
+  const [popupNotification, setPopupNotification] = useState(null);
+  const popupTimeoutRef = useRef(null);
+  const shownNotifIdRef = useRef(null);
+
   const navItems = user?.role === "Admin" ? adminNavItems : studentNavItems;
 
   const handleLogout = () => {
+    shownNotifIdRef.current = null;
+    setPopupNotification(null);
     logout();
     navigate("/login");
   };
+
+  useEffect(() => {
+    try {
+      Object.keys(localStorage).forEach((key) => {
+        if (key.startsWith("previewed_notif_")) {
+          localStorage.removeItem(key);
+        }
+      });
+    } catch (_) {}
+  }, []);
 
   useEffect(() => {
     if (!user || user.role === "Admin") return;
@@ -65,8 +132,10 @@ export default function Layout() {
       }
     };
     loadNotifications();
+    const interval = setInterval(loadNotifications, 15000);
     return () => {
       isCancelled = true;
+      clearInterval(interval);
     };
   }, [user]);
 
@@ -76,6 +145,38 @@ export default function Layout() {
     return notif.readBy.some((id) => String(id) === String(currentUserId));
   };
   const unreadCount = notifications.filter((n) => !isNotificationRead(n)).length;
+
+  useEffect(() => {
+    if (!user || user.role === "Admin") {
+      setPopupNotification(null);
+      shownNotifIdRef.current = null;
+      return;
+    }
+
+    const unread = notifications.filter((n) => !isNotificationRead(n));
+    if (unread.length > 0) {
+      const latest = unread[0];
+
+      // Show popup preview on login / when an unread notification exists
+      // Re-checks and shows whenever the student logs in or when a new unread notification arrives
+      if (shownNotifIdRef.current !== String(latest._id)) {
+        shownNotifIdRef.current = String(latest._id);
+        setPopupNotification(latest);
+
+        if (popupTimeoutRef.current) clearTimeout(popupTimeoutRef.current);
+        popupTimeoutRef.current = setTimeout(() => {
+          setPopupNotification(null);
+        }, 10000);
+      }
+    } else {
+      shownNotifIdRef.current = null;
+      setPopupNotification(null);
+    }
+
+    return () => {
+      if (popupTimeoutRef.current) clearTimeout(popupTimeoutRef.current);
+    };
+  }, [notifications, currentUserId]);
 
   const handleNotificationClick = async (notif) => {
     if (!isNotificationRead(notif) && currentUserId) {
@@ -130,14 +231,14 @@ export default function Layout() {
               <p className="font-bold text-sm tracking-tight leading-tight" style={{ color: "#2F2925" }}>KIET Hostel</p>
               <p className="text-[11px] font-medium flex items-center gap-1 leading-tight mt-0.5" style={{ color: "#8B7355" }}>
                 <ShieldCheck className="w-3 h-3 inline shrink-0" style={{ color: "#EB8055" }} />
-                {user?.role === "Admin" ? "Admin Portal" : "Resident Portal"}
+                {user?.role === "Admin" ? "Admin Portal" : "Student Portal"}
               </p>
             </div>
           </div>
         </SidebarHeader>
 
-        <SidebarContent className="px-2.5 py-3">
-          <SidebarMenu className="space-y-0.5">
+        <SidebarContent className="px-3 py-3">
+          <SidebarMenu className="space-y-1">
             {navItems.map((item) => {
               const isActive = location.pathname === item.path;
               return (
@@ -146,28 +247,19 @@ export default function Layout() {
                     onClick={() => navigate(item.path)}
                     isActive={isActive}
                     style={isActive ? {
-                      backgroundColor: "#FDF0DC",
-                      color: "#B85228",
+                      backgroundColor: "#FDEEE5",
+                      color: "#C95E2B",
                     } : {}}
-                    className={`relative transition-colors duration-150 rounded-lg font-medium px-3 py-2 flex items-center gap-2.5 text-xs cursor-pointer w-full ${isActive
-                        ? "font-semibold before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[3px] before:rounded-r-full"
-                        : "hover:bg-[#FDF0DC]/60"
+                    className={`transition-colors duration-150 rounded-xl font-medium px-3.5 py-2.5 flex items-center gap-3 text-xs cursor-pointer w-full ${isActive
+                        ? "font-bold text-[#C95E2B]"
+                        : "hover:bg-[#FDF0DC]/50 text-[#5A4A3A]"
                       }`}
                   >
-                    {isActive && (
-                      <span
-                        className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-full"
-                        style={{ background: "#EB8055" }}
-                      />
-                    )}
                     <item.icon
                       className="w-4 h-4 shrink-0"
                       style={{ color: isActive ? "#EB8055" : "#8B7355" }}
                     />
-                    <span
-                      className="truncate"
-                      style={{ color: isActive ? "#B85228" : "#5A4A3A" }}
-                    >
+                    <span className="truncate">
                       {item.label}
                     </span>
                   </SidebarMenuButton>
@@ -177,15 +269,15 @@ export default function Layout() {
           </SidebarMenu>
         </SidebarContent>
 
-        <SidebarFooter className="p-2.5 border-t" style={{ borderColor: "#E8D8C4" }}>
+        <SidebarFooter className="p-3 border-t" style={{ borderColor: "#E8D8C4" }}>
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton
                 onClick={handleLogout}
-                className="text-rose-600 hover:bg-rose-50 hover:text-rose-700 transition-colors font-semibold rounded-lg px-3 py-2 text-xs flex items-center gap-2.5 cursor-pointer w-full"
+                className="hover:bg-[#FDF0DC]/50 transition-colors font-bold rounded-xl px-3.5 py-2.5 text-xs flex items-center gap-2.5 cursor-pointer w-full text-[#EB8055] hover:text-[#D96B3A]"
               >
-                <LogOut className="w-4 h-4 shrink-0 text-rose-500" />
-                <span>Sign Out</span>
+                <LogOut className="w-4 h-4 shrink-0 text-[#EB8055]" />
+                <span>Logout</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
@@ -199,31 +291,38 @@ export default function Layout() {
           style={{ borderColor: "#E8D8C4", background: "rgba(255,255,255,0.97)" }}
         >
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <SidebarTrigger
-              className="hover:bg-[#FDF0DC] transition-colors cursor-pointer"
-              style={{ color: "#5A4A3A" }}
-            />
-            <div className="min-w-0">
-              <p className="text-sm font-bold tracking-tight truncate leading-tight" style={{ color: "#2F2925" }}>
-                {user?.role === "Admin"
-                  ? `${getGreeting()}, Administrator`
-                  : `${getGreeting()}, ${user?.name?.split(" ")?.[0] || "Resident"}`}
-              </p>
-              <p className="text-[11px] font-medium hidden sm:block leading-tight mt-0.5" style={{ color: "#8B7355" }}>
-                {user?.role === "Admin"
-                  ? "Here's what's happening across KIET Hostel today."
-                  : today}
-              </p>
-            </div>
+            <HamburgerButton />
+            {user?.role === "Admin" ? (
+              <div className="min-w-0">
+                <p className="text-sm font-bold tracking-tight truncate leading-tight" style={{ color: "#2F2925" }}>
+                  {`${getGreeting()}, Administrator`}
+                </p>
+                <p className="text-[11px] font-medium hidden sm:block leading-tight mt-0.5" style={{ color: "#8B7355" }}>
+                  Here's what's happening across KIET Hostel today.
+                </p>
+              </div>
+            ) : (
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm font-bold tracking-tight text-[#2F2925] leading-tight truncate">
+                  {today}
+                </p>
+                <p className="text-[10px] sm:text-[11px] font-medium text-[#8B7355] leading-tight mt-0.5 truncate">
+                  Academic Year · {user?.student?.Year ? `${user.student.Year} Year` : "3rd Year"}
+                </p>
+              </div>
+            )}
           </div>
 
-          <div className="flex items-center gap-2.5 shrink-0">
+          <div className="flex items-center gap-3 shrink-0">
             {/* Notification Bell (Residents only; Admin manages notifications from sidebar) */}
             {user?.role !== "Admin" && (
               <div className="relative" ref={notifRef}>
                 <button
                   type="button"
-                  onClick={() => setNotificationsOpen(!notificationsOpen)}
+                  onClick={() => {
+                    setPopupNotification(null);
+                    setNotificationsOpen(!notificationsOpen);
+                  }}
                   className="relative p-2 rounded-lg transition-colors cursor-pointer hover:bg-[#FDF0DC]"
                   style={{ color: "#5A4A3A" }}
                 >
@@ -289,24 +388,84 @@ export default function Layout() {
               </div>
             )}
 
+            {/* Small Notification Preview Popup */}
+            {user?.role !== "Admin" && popupNotification && !notificationsOpen && (
+              <div
+                onClick={() => {
+                  setPopupNotification(null);
+                  setNotificationsOpen(true);
+                }}
+                className="fixed top-16 right-4 sm:right-6 z-50 max-w-xs sm:max-w-sm w-full bg-white/95 backdrop-blur-md rounded-2xl p-3.5 cursor-pointer transition-all duration-300 hover:shadow-xl border"
+                style={{
+                  borderColor: "#E8D8C4",
+                  boxShadow: "0 10px 25px -5px rgba(235, 128, 85, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.05)",
+                }}
+                role="alert"
+              >
+                <div className="flex items-start gap-3">
+                  <div
+                    className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-xs mt-0.5"
+                    style={{ background: "#FDF0DC", color: "#EB8055" }}
+                  >
+                    <Bell className="w-4 h-4 animate-bounce" />
+                  </div>
+                  <div className="flex-1 min-w-0 pr-1">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[11px] font-extrabold uppercase tracking-wider" style={{ color: "#EB8055" }}>
+                        New Notification
+                      </span>
+                      <span className="inline-block w-1.5 h-1.5 rounded-full" style={{ background: "#EB8055" }}></span>
+                    </div>
+                    <p className="text-xs font-bold truncate mt-0.5" style={{ color: "#2F2925" }}>
+                      {popupNotification.title}
+                    </p>
+                    <p className="text-[11px] line-clamp-2 mt-0.5 leading-relaxed" style={{ color: "#5A4A3A" }}>
+                      {popupNotification.message}
+                    </p>
+                    <p className="text-[10px] font-semibold mt-1.5 flex items-center gap-1" style={{ color: "#8B7355" }}>
+                      <span>Click to view in panel</span>
+                      <span>→</span>
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setPopupNotification(null);
+                    }}
+                    className="text-[#8B7355] hover:text-[#2F2925] p-1 rounded-md hover:bg-[#FDF0DC] transition-colors cursor-pointer shrink-0"
+                    title="Dismiss"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div className="w-px h-6 bg-[#E8D8C4] hidden sm:block"></div>
+
             {/* User Dropdown */}
             <div className="relative" ref={dropdownRef}>
               <button
                 type="button"
                 onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                className="flex items-center gap-2 p-1.5 rounded-lg transition-colors cursor-pointer hover:bg-[#FDF0DC]"
-                style={{ border: "1px solid #E8D8C4" }}
+                className="flex items-center gap-2.5 p-1 rounded-xl transition-colors cursor-pointer hover:bg-[#FDF0DC]/60"
               >
-                <Avatar className="w-6 h-6 shrink-0">
-                  <AvatarFallback className="text-white text-[10px] font-bold" style={{ background: "#EB8055" }}>
-                    {user?.name?.charAt(0)?.toUpperCase() || "U"}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="hidden sm:block text-left max-w-[100px] truncate">
-                  <p className="text-xs font-bold leading-tight truncate" style={{ color: "#2F2925" }}>{user?.name}</p>
-                  <p className="text-[10px] leading-tight truncate" style={{ color: "#8B7355" }}>{user?.role}</p>
+                <div
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-white font-extrabold text-xs shadow-2xs shrink-0"
+                  style={{ background: "#EB8055" }}
+                >
+                  {user?.name?.charAt(0)?.toUpperCase() || "R"}
                 </div>
-                <ChevronDown className="w-3 h-3" style={{ color: "#8B7355" }} />
+                <div className="hidden sm:block text-left min-w-0 max-w-[120px]">
+                  <p className="text-xs font-bold leading-tight truncate" style={{ color: "#2F2925" }}>
+                    {user?.name || "Rahul Sharma"}
+                  </p>
+                  <p className="text-[10px] font-medium leading-tight truncate text-[#8B7355]">
+                    {user?.role === "Student" ? "Student" : user?.role || "Student"}
+                  </p>
+                </div>
+                <ChevronDown className="w-3.5 h-3.5 text-[#8B7355] hidden sm:block" />
               </button>
 
               {userDropdownOpen && (
@@ -358,7 +517,7 @@ export default function Layout() {
         </header>
 
         {/* ── Main Content ── */}
-        <main className="p-4 md:p-6 min-h-[calc(100vh-56px)]" style={{ background: "#F9EFDE" }}>
+        <main className="p-4 md:p-6 lg:p-7 min-h-[calc(100vh-56px)]" style={{ background: "#FAF4EC" }}>
           <Outlet />
         </main>
       </SidebarInset>

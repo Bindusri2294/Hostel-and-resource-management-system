@@ -64,7 +64,7 @@ export default function Rooms() {
       setError("");
     } catch (err) {
       setError(getErrorMessage(err));
-    } fontFinally: {
+    } finally {
       setLoading(false);
     }
   };
