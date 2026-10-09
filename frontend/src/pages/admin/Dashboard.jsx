@@ -357,7 +357,6 @@ export default function AdminDashboard({ data: propData }) {
             </table>
           </div>
         </div>
-
       </div>
 
       {/* ── 4. PENDING PASSWORD RESETS ── */}

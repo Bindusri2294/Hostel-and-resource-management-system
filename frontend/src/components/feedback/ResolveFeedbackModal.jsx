@@ -3,7 +3,7 @@ import { feedbackService } from '../../services/feedbackService';
 import { useTheme } from '../../context/ThemeContext';
 import { X, ShieldCheck, Send, Star, CheckCircle2, Clock } from 'lucide-react';
 
-export default function ResolveFeedbackModal({ feedback, onClose, onSuccess }) {
+export default function ResolveFeedbackModal({ feedback, onClose, onSuccess, onEscalate }) {
 
   const [status, setStatus] = useState(feedback?.status || 'Pending');
   const [loading, setLoading] = useState(false);
@@ -69,7 +69,7 @@ export default function ResolveFeedbackModal({ feedback, onClose, onSuccess }) {
           {/* Feedback Snapshot */}
           <div className="p-3.5 rounded-xl border space-y-2 text-xs bg-[#FDF0DC]/20 border-[#E8D8C4]">
             <div className="flex items-center justify-between flex-wrap gap-2 text-[#8B7355]">
-              <span className="font-bold text-[#EB8055]">Student ID: {feedback.studentId}</span>
+              <span className="font-bold text-[#EB8055]">ID: {feedback._id ? feedback._id.slice(-8).toUpperCase() : "UNKNOWN"}</span>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border bg-[#FDF0DC] text-[#B85228] border-[#E8D8C4]">
                   {feedback.category || 'Overall Experience'}
@@ -119,6 +119,27 @@ export default function ResolveFeedbackModal({ feedback, onClose, onSuccess }) {
             </div>
           </div>
 
+          {/* Authority Remarks (if escalated) */}
+          {feedback.isEscalated && (
+            <div className="p-3.5 rounded-xl border bg-rose-50/50 border-rose-200">
+              <div className="flex items-center gap-1.5 mb-1">
+                <ShieldCheck className="w-3.5 h-3.5 text-rose-500" />
+                <p className="text-[10px] uppercase tracking-wider font-extrabold text-rose-800">
+                  Escalated to {feedback.escalationAuthority}
+                </p>
+              </div>
+              {feedback.remarks ? (
+                <p className="p-2.5 rounded-lg border text-xs leading-relaxed font-semibold bg-white border-rose-100 text-rose-950 mt-1">
+                  {feedback.remarks}
+                </p>
+              ) : (
+                <p className="text-[11px] text-rose-600/70 font-semibold mt-1 italic">
+                  Awaiting action or remarks from authority...
+                </p>
+              )}
+            </div>
+          )}
+
           {/* Status Select */}
           <div>
             <label className="block text-xs font-semibold mb-1.5 text-[#2F2925]">
@@ -144,6 +165,18 @@ export default function ResolveFeedbackModal({ feedback, onClose, onSuccess }) {
             >
               Cancel
             </button>
+            {feedback.status !== 'Completed' && onEscalate && (
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onEscalate(feedback);
+                }}
+                className="flex-1 py-2.5 bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold rounded-xl shadow-xs transition-all cursor-pointer"
+              >
+                Escalate
+              </button>
+            )}
             <button
               type="submit"
               disabled={loading}

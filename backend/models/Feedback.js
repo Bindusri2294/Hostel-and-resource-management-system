@@ -56,6 +56,27 @@ const feedbackSchema = new mongoose.Schema(
       ],
       default: "Overall Experience",
     },
+
+    isEscalated: {
+      type: Boolean,
+      default: false,
+    },
+    escalationAuthority: {
+      type: String,
+      default: null, // "DEAN", "HOD", "PRINCIPAL"
+    },
+    escalationReason: {
+      type: String,
+      default: null,
+    },
+    escalationToken: {
+      type: String,
+      default: null,
+    },
+    remarks: {
+      type: String,
+      default: null,
+    },
   },
   {
     timestamps: true,

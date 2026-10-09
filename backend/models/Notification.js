@@ -6,7 +6,7 @@ const notificationSchema = new mongoose.Schema(
     message: { type: String, required: true, trim: true },
     targetType: {
       type: String,
-      enum: ["ALL", "BLOCK", "COURSE", "SINGLE_STUDENT"],
+      enum: ["ALL", "BLOCK", "COURSE", "SINGLE_STUDENT", "MULTIPLE_STUDENTS"],
       required: true,
     },
     targetValue: {
