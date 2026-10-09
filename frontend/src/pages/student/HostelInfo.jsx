@@ -1,28 +1,19 @@
-import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ShieldCheck, Utensils, Wifi, PhoneCall, BookOpen, Clock } from "lucide-react";
+import { Building, ShieldCheck, Utensils, Wifi, PhoneCall, BookOpen, Clock } from "lucide-react";
 
 export default function HostelInfo() {
-  const navigate = useNavigate();
-
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
       {/* Hero */}
-      <div className="bg-gradient-to-r from-[#2F2925] via-[#43372F] to-[#2F2925] text-white p-6 sm:p-8 rounded-3xl shadow-xl border border-[#E8D8C4]/20 flex flex-wrap items-center justify-between gap-4">
+      <div className="bg-gradient-to-r from-[#2F2925] via-[#43372F] to-[#2F2925] text-white p-6 sm:p-8 rounded-3xl shadow-xl border border-[#E8D8C4]/20 flex flex-wrap items-center justify-between gap-6 max-md:flex-col max-md:text-center">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-black tracking-tight">KIET Hostel Facilities</h2>
+          <h2 className="text-2xl sm:text-3xl font-black tracking-tight">KIET Residential Hostel Facilities</h2>
           <p className="text-xs sm:text-sm text-[#E8D8C4] font-medium mt-1 max-w-2xl">
             Everything you need to know about facilities, mess timings, safety regulations, and warden contacts.
           </p>
         </div>
-        <div>
-          <button
-            type="button"
-            onClick={() => navigate("/my-allocation")}
-            className="inline-flex items-center gap-2 bg-[#EB8055] hover:bg-[#D96F44] text-white px-4 py-2.5 rounded-2xl font-bold text-xs shadow-md transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Back to Allocation</span>
-          </button>
+        <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/20 max-md:w-full max-md:justify-center">
+          <ShieldCheck className="w-4 h-4 text-[#EB8055]" />
+          <span className="text-xs font-bold text-white">Residential Campus</span>
         </div>
       </div>
 

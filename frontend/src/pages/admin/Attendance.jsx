@@ -64,6 +64,7 @@ export default function Attendance() {
   const [attendanceMap, setAttendanceMap] = useState({});
 
   // Filters for daily roll call
+  const [query, setQuery] = useState("");
   const [selectedBlock, setSelectedBlock] = useState("");
   const [selectedRoom, setSelectedRoom] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -230,10 +231,6 @@ export default function Attendance() {
 
   // Export to CSV
   const handleExportCSV = () => {
-    if (!window.confirm(`Do you want to download the daily attendance log for ${selectedDate} as a CSV file?`)) {
-      return;
-    }
-
     const rows = [
       ["Date", "Student Name", "Roll Number", "Block", "Room Number", "Attendance Status"],
     ];
@@ -282,10 +279,26 @@ export default function Attendance() {
       (statusFilter === "Leave" && currentStatus === "Leave") ||
       (statusFilter === "Unmarked" && !currentStatus);
 
-    return matchesBlock && matchesRoom && matchesStatus;
+    if (!query.trim()) {
+      return matchesBlock && matchesRoom && matchesStatus;
+    }
+
+    const q = query.toLowerCase();
+    const matchName = String(s.Name || "").toLowerCase().includes(q);
+    const matchRoll = String(s.Rollno || "").toLowerCase().includes(q);
+    const matchRoom = String(s.Roomno || "").toLowerCase().includes(q);
+    const matchBlock = String(studentBlock || "").toLowerCase().includes(q);
+    const matchCourse = String(s.Course || s.Department || "").toLowerCase().includes(q);
+    const statusLabel = currentStatus || "unmarked";
+    const matchStatus = statusLabel.toLowerCase().includes(q);
+
+    const matchesQuery = matchName || matchRoll || matchRoom || matchBlock || matchCourse || matchStatus;
+
+    return matchesBlock && matchesRoom && matchesStatus && matchesQuery;
   });
 
   const clearFilters = () => {
+    setQuery("");
     setSelectedBlock("");
     setSelectedRoom("");
     setStatusFilter("all");
@@ -313,8 +326,7 @@ export default function Attendance() {
   // Monthly Calendar calculations
   const [calY, calM] = selectedMonth.split("-").map(Number);
   const calMonthObj = new Date(calY, calM - 1, 1);
-  const calMonthName = calMonthObj.toLocaleDateString("en-US", { month: "long" });
-  const calMonthWithYear = calMonthObj.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  const calMonthLabel = calMonthObj.toLocaleDateString("en-US", { month: "long", year: "numeric" });
   const daysInCalMonth = new Date(calY, calM, 0).getDate();
   const firstDayOfWeekCal = new Date(calY, calM - 1, 1).getDay();
 
@@ -333,10 +345,10 @@ export default function Attendance() {
             <div className="w-9 h-9 rounded-xl bg-[#FDF0DC] text-[#EB8055] flex items-center justify-center">
               <ClipboardCheck className="w-5 h-5" />
             </div>
-            <h2 className="text-2xl font-extrabold text-[#2F2925]">Hostel Attendance </h2>
+            <h2 className="text-2xl font-extrabold text-[#2F2925]">Hostel Attendance Center</h2>
           </div>
           <p className="text-xs text-[#8B7355] mt-1">
-            Track daily night attendance, verify absences across hostel blocks, and manage student leave applications.
+            Track daily night roll calls, verify absences across hostel blocks, and manage student leave applications.
           </p>
         </div>
 
@@ -346,10 +358,11 @@ export default function Attendance() {
             <button
               type="button"
               onClick={() => setActiveView("daily")}
-              className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${activeView === "daily"
-                ? "bg-[#EB8055] text-white shadow-xs font-extrabold"
-                : "text-[#8B7355] hover:text-[#2F2925]"
-                }`}
+              className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+                activeView === "daily"
+                  ? "bg-[#EB8055] text-white shadow-xs font-extrabold"
+                  : "text-[#8B7355] hover:text-[#2F2925]"
+              }`}
             >
               <ListFilter className="w-3.5 h-3.5" />
               <span>Daily Roll Call</span>
@@ -358,10 +371,11 @@ export default function Attendance() {
             <button
               type="button"
               onClick={() => setActiveView("calendar")}
-              className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${activeView === "calendar"
-                ? "bg-[#EB8055] text-white shadow-xs font-extrabold"
-                : "text-[#8B7355] hover:text-[#2F2925]"
-                }`}
+              className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+                activeView === "calendar"
+                  ? "bg-[#EB8055] text-white shadow-xs font-extrabold"
+                  : "text-[#8B7355] hover:text-[#2F2925]"
+              }`}
             >
               <CalendarIcon className="w-3.5 h-3.5" />
               <span>Monthly Calendar</span>
@@ -370,10 +384,11 @@ export default function Attendance() {
             <button
               type="button"
               onClick={() => setActiveView("leaves")}
-              className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${activeView === "leaves"
-                ? "bg-[#EB8055] text-white shadow-xs font-extrabold"
-                : "text-[#8B7355] hover:text-[#2F2925]"
-                }`}
+              className={`px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+                activeView === "leaves"
+                  ? "bg-[#EB8055] text-white shadow-xs font-extrabold"
+                  : "text-[#8B7355] hover:text-[#2F2925]"
+              }`}
             >
               <FileText className="w-3.5 h-3.5" />
               <span>Leave Requests</span>
@@ -417,36 +432,16 @@ export default function Attendance() {
       </div>
 
       {savedMsg && (
-        <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-800 text-xs font-bold flex items-center justify-between gap-2 shadow-xs">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-            <span>{savedMsg}</span>
-          </div>
-          <button
-            type="button"
-            onClick={() => setSavedMsg("")}
-            className="p-1 hover:bg-emerald-100 rounded-lg text-emerald-700 transition-colors cursor-pointer"
-            title="Dismiss notification"
-          >
-            <X className="w-4 h-4" />
-          </button>
+        <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-800 text-xs font-bold flex items-center gap-2 shadow-xs">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+          <span>{savedMsg}</span>
         </div>
       )}
 
       {error && (
-        <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-800 text-xs font-bold flex items-center justify-between gap-2 shadow-xs">
-          <div className="flex items-center gap-2">
-            <XCircle className="w-4 h-4 text-rose-600 shrink-0" />
-            <span>{error}</span>
-          </div>
-          <button
-            type="button"
-            onClick={() => setError("")}
-            className="p-1 hover:bg-rose-100 rounded-lg text-rose-700 transition-colors cursor-pointer"
-            title="Dismiss error"
-          >
-            <X className="w-4 h-4" />
-          </button>
+        <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-800 text-xs font-bold flex items-center gap-2 shadow-xs">
+          <XCircle className="w-4 h-4 text-rose-600 shrink-0" />
+          <span>{error}</span>
         </div>
       )}
 
@@ -485,7 +480,7 @@ export default function Attendance() {
 
             <div className="text-xs font-extrabold text-[#B85228] bg-[#FDF0DC] px-3.5 py-1.5 rounded-xl border border-[#E8D8C4] flex items-center gap-1.5">
               <CalendarIcon className="w-3.5 h-3.5 text-[#EB8055]" />
-              <span>Today: {new Date().toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" })}</span>
+              <span>{formattedSelectedDate}</span>
             </div>
           </div>
 
@@ -493,7 +488,7 @@ export default function Attendance() {
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 text-xs">
             <div className="p-4 bg-white rounded-2xl border border-[#E8D8C4] shadow-xs flex items-center justify-between">
               <div>
-                <p className="font-bold text-[#8B7355] uppercase tracking-wider text-[10px]">TOTAL STUDENTS</p>
+                <p className="font-bold text-[#8B7355] uppercase tracking-wider text-[10px]">Total Residents</p>
                 <p className="text-2xl font-extrabold text-[#2F2925] mt-0.5">{totalCount}</p>
               </div>
               <div className="w-10 h-10 rounded-xl bg-[#FDF0DC] text-[#EB8055] flex items-center justify-center">
@@ -503,7 +498,7 @@ export default function Attendance() {
 
             <div className="p-4 bg-white rounded-2xl border border-[#E8D8C4] shadow-xs flex items-center justify-between">
               <div>
-                <p className="font-bold text-[#8B7355] uppercase tracking-wider text-[10px]">TOTAL PRESENT</p>
+                <p className="font-bold text-[#8B7355] uppercase tracking-wider text-[10px]">Present Tonight</p>
                 <div className="flex items-baseline gap-2 mt-0.5">
                   <p className="text-2xl font-extrabold text-emerald-600">{presentCount}</p>
                   {markedCount > 0 && (
@@ -553,11 +548,32 @@ export default function Attendance() {
           <div className="bg-white rounded-2xl border border-[#E8D8C4] shadow-xs overflow-hidden">
             {/* Filter & Batch Action Header */}
             <div className="p-4 border-b border-[#E8D8C4] bg-[#FDF0DC]/30 space-y-3">
-              {/* FILTER TOOLBAR */}
-              <div className="w-full bg-white p-4 rounded-2xl border border-[#E8D8C4] shadow-sm">
-                <div className="flex flex-wrap items-end gap-3">
-                  <div className="flex-1 min-w-[140px]">
-                    <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-[#8B7355]">Block</label>
+              {/* FILTER & SEARCH TOOLBAR (Feedback style across all fields) */}
+              <div className="w-full bg-white p-4 rounded-2xl border border-[#E8D8C4] shadow-sm space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="relative flex-1 min-w-[240px]">
+                    <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8B7355]/60" />
+                    <input
+                      type="text"
+                      placeholder="Search by student name, roll no, room, block, status..."
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      className="w-full border rounded-xl pl-9 pr-3.5 py-2 text-xs font-medium focus:outline-none bg-[#FDF0DC]/40 border-[#E8D8C4] text-[#2F2925] placeholder-[#8B7355]/60 focus:border-[#EB8055] focus:bg-white shadow-sm"
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={clearFilters}
+                    className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer border bg-[#FDF0DC] hover:bg-[#F5E8D4] text-[#2F2925] border-[#E8D8C4]"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" /> Reset Filters
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-[#E8D8C4]">
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-[#8B7355]">Block Filter</label>
                     <select
                       aria-label="Select Block"
                       value={selectedBlock}
@@ -573,8 +589,8 @@ export default function Attendance() {
                     </select>
                   </div>
 
-                  <div className="flex-1 min-w-[140px]">
-                    <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-[#8B7355]">Room</label>
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-[#8B7355]">Room Filter</label>
                     <select
                       aria-label="Select Room"
                       value={selectedRoom}
@@ -590,8 +606,8 @@ export default function Attendance() {
                     </select>
                   </div>
 
-                  <div className="flex-1 min-w-[140px]">
-                    <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-[#8B7355]">Status</label>
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-[#8B7355]">Status Filter</label>
                     <select
                       aria-label="Filter by Status"
                       value={statusFilter}
@@ -605,15 +621,26 @@ export default function Attendance() {
                       <option value="Unmarked">Unmarked Only</option>
                     </select>
                   </div>
-
-                  <button
-                    type="button"
-                    onClick={clearFilters}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer border bg-[#FDF0DC] hover:bg-[#F5E8D4] text-[#2F2925] border-[#E8D8C4] shadow-xs shrink-0"
-                  >
-                    <RefreshCw className="w-3.5 h-3.5 text-[#EB8055]" /> Reset Filters
-                  </button>
                 </div>
+              </div>
+
+              {/* Batch Actions */}
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#E8D8C4]">
+                <span className="text-[10px] font-bold text-[#8B7355] uppercase tracking-wider">Batch:</span>
+                <button
+                  type="button"
+                  onClick={() => markAll("Present")}
+                  className="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Mark All Present
+                </button>
+                <button
+                  type="button"
+                  onClick={() => markAll("Absent")}
+                  className="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Mark All Absent
+                </button>
               </div>
             </div>
 
@@ -627,10 +654,10 @@ export default function Attendance() {
                 <table className="w-full text-left text-xs">
                   <thead className="bg-slate-50/80 border-b border-slate-100 text-[11px] font-extrabold uppercase text-slate-400 tracking-wider">
                     <tr>
-                      <th className="py-3 px-4">Student Name</th>
+                      <th className="py-3 px-4">Resident</th>
                       <th className="py-3 px-4">Roll Number</th>
                       <th className="py-3 px-4">Block & Room</th>
-                      <th className="py-3 px-4 text-center"> Verification</th>
+                      <th className="py-3 px-4 text-center">Night Verification</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
@@ -657,30 +684,33 @@ export default function Attendance() {
                                 <button
                                   type="button"
                                   onClick={() => setStudentStatus(s._id, "Present")}
-                                  className={`px-3 py-1 rounded-lg font-bold text-xs cursor-pointer transition-all ${status === "Present"
-                                    ? "bg-emerald-600 text-white shadow-xs font-black"
-                                    : "text-[#8B7355] hover:text-[#2F2925]"
-                                    }`}
+                                  className={`px-3 py-1 rounded-lg font-bold text-xs cursor-pointer transition-all ${
+                                    status === "Present"
+                                      ? "bg-emerald-600 text-white shadow-xs font-black"
+                                      : "text-[#8B7355] hover:text-[#2F2925]"
+                                  }`}
                                 >
                                   Present
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => setStudentStatus(s._id, "Absent")}
-                                  className={`px-3 py-1 rounded-lg font-bold text-xs cursor-pointer transition-all ${status === "Absent"
-                                    ? "bg-rose-600 text-white shadow-xs font-black"
-                                    : "text-[#8B7355] hover:text-[#2F2925]"
-                                    }`}
+                                  className={`px-3 py-1 rounded-lg font-bold text-xs cursor-pointer transition-all ${
+                                    status === "Absent"
+                                      ? "bg-rose-600 text-white shadow-xs font-black"
+                                      : "text-[#8B7355] hover:text-[#2F2925]"
+                                  }`}
                                 >
                                   Absent
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => setStudentStatus(s._id, "Leave")}
-                                  className={`px-3 py-1 rounded-lg font-bold text-xs cursor-pointer transition-all ${status === "Leave"
-                                    ? "bg-amber-500 text-white shadow-xs font-black"
-                                    : "text-[#8B7355] hover:text-[#2F2925]"
-                                    }`}
+                                  className={`px-3 py-1 rounded-lg font-bold text-xs cursor-pointer transition-all ${
+                                    status === "Leave"
+                                      ? "bg-amber-500 text-white shadow-xs font-black"
+                                      : "text-[#8B7355] hover:text-[#2F2925]"
+                                  }`}
                                 >
                                   Leave
                                 </button>
@@ -713,7 +743,7 @@ export default function Attendance() {
                 <CalendarIcon className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-lg font-extrabold text-[#2F2925]">{calMonthName} Overview</h3>
+                <h3 className="text-lg font-extrabold text-[#2F2925]">{calMonthLabel} Overview</h3>
                 <p className="text-xs text-[#8B7355]">
                   Hostel-wide attendance heatmap and verification rate per day.
                 </p>
@@ -732,10 +762,9 @@ export default function Attendance() {
               <button
                 type="button"
                 onClick={() => setSelectedMonth(getTodayStr().slice(0, 7))}
-                className="px-3.5 py-1.5 rounded-xl border border-[#E8D8C4] hover:bg-[#FDF0DC]/50 text-xs font-bold text-[#2F2925] transition-colors cursor-pointer"
-                title="Click to reset to current month"
+                className="px-3 py-1.5 rounded-xl border border-[#E8D8C4] hover:bg-[#FDF0DC]/50 text-xs font-bold text-[#2F2925] transition-colors cursor-pointer"
               >
-                {calMonthWithYear}
+                Current Month
               </button>
               <button
                 type="button"
@@ -812,8 +841,9 @@ export default function Attendance() {
                         setSelectedDate(dateStr);
                         setActiveView("daily");
                       }}
-                      className={`min-h-[90px] p-2.5 rounded-xl border text-left flex flex-col justify-between transition-all cursor-pointer shadow-xs ${cardBg} ${isToday ? "ring-2 ring-[#EB8055] font-bold" : ""
-                        }`}
+                      className={`min-h-[90px] p-2.5 rounded-xl border text-left flex flex-col justify-between transition-all cursor-pointer shadow-xs ${cardBg} ${
+                        isToday ? "ring-2 ring-[#EB8055] font-bold" : ""
+                      }`}
                       title={`Click to inspect or record attendance for ${dateStr}`}
                     >
                       <div className="flex items-center justify-between w-full">
@@ -931,10 +961,11 @@ export default function Attendance() {
                     key={st}
                     type="button"
                     onClick={() => setLeaveFilter(st)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${leaveFilter === st
-                      ? "bg-[#EB8055] text-white shadow-xs"
-                      : "bg-white border border-[#E8D8C4] text-[#8B7355] hover:text-[#2F2925]"
-                      }`}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      leaveFilter === st
+                        ? "bg-[#EB8055] text-white shadow-xs"
+                        : "bg-white border border-[#E8D8C4] text-[#8B7355] hover:text-[#2F2925]"
+                    }`}
                   >
                     {st} {st === "Pending" && leaveStats.pending > 0 && `(${leaveStats.pending})`}
                   </button>
@@ -1005,12 +1036,13 @@ export default function Attendance() {
                           </td>
                           <td className="py-3.5 px-4">
                             <span
-                              className={`px-2.5 py-0.5 rounded-full text-[11px] font-black ${isApproved
-                                ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
-                                : isPending
+                              className={`px-2.5 py-0.5 rounded-full text-[11px] font-black ${
+                                isApproved
+                                  ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                                  : isPending
                                   ? "bg-amber-100 text-amber-800 border border-amber-200"
                                   : "bg-rose-100 text-rose-800 border border-rose-200"
-                                }`}
+                              }`}
                             >
                               {l.status}
                             </span>

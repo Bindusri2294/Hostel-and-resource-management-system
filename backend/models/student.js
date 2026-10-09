@@ -54,4 +54,7 @@ const studentSchema = new mongoose.Schema(
   }
 );
 
+studentSchema.index({ Roomno: 1, Block: 1 });
+studentSchema.index({ Status: 1 });
+
 module.exports = mongoose.models.Student || mongoose.model("Student", studentSchema);

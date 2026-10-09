@@ -75,8 +75,70 @@ api.interceptors.response.use(
       }
     }
     return Promise.reject(error);
-  },
+  }
 );
+
+// Cache & in-flight request deduplication for GET requests
+const getCache = new Map();
+const inFlightRequests = new Map();
+const CACHE_TTL_MS = 10000; // 10 seconds
+
+export const clearApiCache = () => {
+  getCache.clear();
+};
+
+const originalGet = api.get.bind(api);
+api.get = (url, config = {}) => {
+  // Exclude notifications and auth checks so they are always 100% fresh and live
+  const bypass = config.bypassCache || url.includes("/notifications") || url.includes("/auth/me");
+  const cacheKey = `${url}_${JSON.stringify(config.params || {})}`;
+
+  if (!bypass) {
+    const cached = getCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+      return Promise.resolve(cached.response);
+    }
+
+    if (inFlightRequests.has(cacheKey)) {
+      return inFlightRequests.get(cacheKey);
+    }
+  }
+
+  const promise = originalGet(url, config)
+    .then((response) => {
+      if (!bypass) {
+        getCache.set(cacheKey, { timestamp: Date.now(), response });
+      }
+      return response;
+    })
+    .finally(() => {
+      inFlightRequests.delete(cacheKey);
+    });
+
+  if (!bypass) {
+    inFlightRequests.set(cacheKey, promise);
+  }
+
+  return promise;
+};
+
+const originalPost = api.post.bind(api);
+api.post = (url, data, config) => {
+  clearApiCache();
+  return originalPost(url, data, config);
+};
+
+const originalPut = api.put.bind(api);
+api.put = (url, data, config) => {
+  clearApiCache();
+  return originalPut(url, data, config);
+};
+
+const originalDelete = api.delete.bind(api);
+api.delete = (url, config) => {
+  clearApiCache();
+  return originalDelete(url, config);
+};
 
 export const authService = {
   login: (payload) => api.post("/auth/login", payload),
@@ -107,11 +169,6 @@ export const roomService = {
   create: (payload) => api.post("/rooms", payload),
   update: (id, payload) => api.put(`/rooms/${id}`, payload),
   remove: (id) => api.delete(`/rooms/${id}`),
-};
-
-export const blockService = {
-  list: () => api.get("/blocks"),
-  create: (payload) => api.post("/blocks", payload),
 };
 
 export const allocationService = {

@@ -36,4 +36,9 @@ const allocationSchema = new mongoose.Schema(
   }
 );
 
+allocationSchema.index({ status: 1 });
+allocationSchema.index({ studentId: 1, status: 1 });
+allocationSchema.index({ roomId: 1, status: 1 });
+allocationSchema.index({ allocatedDate: -1 });
+
 module.exports = mongoose.model("Allocation", allocationSchema);

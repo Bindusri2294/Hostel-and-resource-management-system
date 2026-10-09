@@ -72,7 +72,6 @@ export default function Analytics() {
   const [yearFilter, setYearFilter] = useState("All");
   const [blockFilter, setBlockFilter] = useState("All");
   const [query, setQuery] = useState("");
-  const [attendanceTimeframe, setAttendanceTimeframe] = useState("Daily");
 
   useEffect(() => {
     let cancelled = false;
@@ -115,8 +114,8 @@ export default function Analytics() {
     courseFilter === "B.Tech"
       ? ["1", "2", "3", "4"]
       : courseFilter === "Diploma"
-        ? ["1", "2", "3"]
-        : ["1", "2", "3", "4"];
+      ? ["1", "2", "3"]
+      : ["1", "2", "3", "4"];
 
   const filteredStudents = useMemo(() => {
     return students.filter((s) => {
@@ -143,16 +142,12 @@ export default function Analytics() {
 
   // Key Stats Calculations
   const totalCapacity = useMemo(() => rooms.reduce((sum, r) => sum + Number(r.Capacity || 0), 0), [rooms]);
-  const allocatedStudentsCount = useMemo(() => students.filter((s) => s.Roomno && s.Roomno !== "—" && s.Roomno !== "Unassigned").length, [students]);
-  const unallocatedStudentsCount = Math.max(0, students.length - allocatedStudentsCount);
-  const occupiedBeds = allocatedStudentsCount;
-  const vacatedBeds = useMemo(() => students.filter(s => s.Status === 'Inactive').length, [students]);
-  const availableBeds = Math.max(0, totalCapacity - occupiedBeds - vacatedBeds);
+  const occupiedBeds = useMemo(() => rooms.reduce((sum, r) => sum + Number(r.OccupiedCount || 0), 0), [rooms]);
+  const availableBeds = Math.max(0, totalCapacity - occupiedBeds);
   const occupancyPercentage = totalCapacity ? Math.round((occupiedBeds / totalCapacity) * 100) : 0;
   const activeAllocations = useMemo(() => allocations.filter((a) => a.status === "Active").length, [allocations]);
-
-  const fullyOccupiedRoomsCount = useMemo(() => rooms.filter(r => Number(r.OccupiedCount || 0) >= Number(r.Capacity || 0) && Number(r.Capacity || 0) > 0).length, [rooms]);
-  const completelyVacantRoomsCount = useMemo(() => rooms.filter(r => Number(r.OccupiedCount || 0) === 0).length, [rooms]);
+  const allocatedStudentsCount = useMemo(() => students.filter((s) => s.Roomno && s.Roomno !== "—").length, [students]);
+  const unallocatedStudentsCount = Math.max(0, students.length - allocatedStudentsCount);
 
   // --- RECHARTS DATA PREPARATION: ALLOCATION & CAPACITY ---
 
@@ -162,7 +157,7 @@ export default function Analytics() {
     return blocks.map((block) => {
       const blockRooms = rooms.filter((r) => r.Block === block);
       const cap = blockRooms.reduce((sum, r) => sum + Number(r.Capacity || 0), 0);
-      const occ = students.filter(s => s.Block === block && s.Roomno && s.Roomno !== "—" && s.Roomno !== "Unassigned").length;
+      const occ = blockRooms.reduce((sum, r) => sum + Number(r.OccupiedCount || 0), 0);
       const avail = Math.max(0, cap - occ);
       const blockAllocations = allocations.filter((a) => a.status === "Active" && a.room?.Block === block).length;
       return {
@@ -178,11 +173,10 @@ export default function Analytics() {
   // 2. Bed Occupancy Donut Chart
   const occupancyDonutData = useMemo(() => {
     return [
-      { name: "Existed", value: occupiedBeds, color: "#3B82F6" },
-      { name: "Vacated", value: vacatedBeds, color: "#EF4444" },
-      { name: "Available", value: availableBeds, color: "#10B981" },
+      { name: "Occupied Beds", value: occupiedBeds, color: PALETTE.primary },
+      { name: "Available Beds", value: availableBeds, color: PALETTE.success },
     ];
-  }, [occupiedBeds, vacatedBeds, availableBeds]);
+  }, [occupiedBeds, availableBeds]);
 
   // 3. Student Allocation Status Donut
   const studentAllocationDonut = useMemo(() => {
@@ -215,7 +209,7 @@ export default function Analytics() {
 
     rooms.forEach((r) => {
       const cap = Number(r.Capacity || 0);
-      const occ = students.filter(s => s.Block === r.Block && String(s.Roomno) === String(r.RoomNo) && s.Roomno !== "—" && s.Roomno !== "Unassigned").length;
+      const occ = Number(r.OccupiedCount || 0);
       if (occ >= cap && cap > 0) full++;
       else if (occ > 0) partial++;
       else vacant++;
@@ -230,54 +224,21 @@ export default function Analytics() {
 
   // --- RECHARTS DATA PREPARATION: ATTENDANCE ---
 
-  // 6. Attendance Daily/Weekly/Monthly Trend
-  const attendanceChartData = useMemo(() => {
+  // 6. Attendance Daily Trend Line / Area Chart
+  const dailyAttendanceData = useMemo(() => {
     if (!attendanceSummary?.daysList || attendanceSummary.daysList.length === 0) {
       return [];
     }
-    const days = attendanceSummary.daysList;
-
-    if (attendanceTimeframe === "Daily") {
-      return days.map((d) => ({
-        date: d.date.slice(8), // Just "DD"
-        fullDate: d.date,
-        Present: d.present || 0,
-        Absent: d.absent || 0,
-        Leave: d.leave || 0,
-      }));
-    }
-
-    if (attendanceTimeframe === "Weekly") {
-      const weeks = [
-        { date: "Week 1", Present: 0, Absent: 0, Leave: 0 },
-        { date: "Week 2", Present: 0, Absent: 0, Leave: 0 },
-        { date: "Week 3", Present: 0, Absent: 0, Leave: 0 },
-        { date: "Week 4", Present: 0, Absent: 0, Leave: 0 },
-      ];
-      days.forEach(d => {
-        const dayNum = parseInt(d.date.slice(8), 10);
-        let wIdx = 0;
-        if (dayNum > 21) wIdx = 3;
-        else if (dayNum > 14) wIdx = 2;
-        else if (dayNum > 7) wIdx = 1;
-        weeks[wIdx].Present += d.present || 0;
-        weeks[wIdx].Absent += d.absent || 0;
-        weeks[wIdx].Leave += d.leave || 0;
-      });
-      return weeks;
-    }
-
-    if (attendanceTimeframe === "Monthly") {
-      const total = { date: selectedMonth, Present: 0, Absent: 0, Leave: 0 };
-      days.forEach(d => {
-        total.Present += d.present || 0;
-        total.Absent += d.absent || 0;
-        total.Leave += d.leave || 0;
-      });
-      return [total];
-    }
-    return [];
-  }, [attendanceSummary, attendanceTimeframe, selectedMonth]);
+    return attendanceSummary.daysList.map((d) => ({
+      date: d.date.slice(8), // Just "DD"
+      fullDate: d.date,
+      Present: d.present || 0,
+      Absent: d.absent || 0,
+      Leave: d.leave || 0,
+      Total: d.total || 0,
+      Rate: d.percentage || 0,
+    }));
+  }, [attendanceSummary]);
 
   // 7. Aggregate Monthly Attendance Breakdown
   const aggregateAttendanceBreakdown = useMemo(() => {
@@ -313,13 +274,26 @@ export default function Analytics() {
       {/* Header */}
       <div className="bg-gradient-to-r from-[#2F2925] via-[#43372F] to-[#2F2925] text-white p-6 sm:p-8 rounded-3xl shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-6 border border-[#52453D]">
         <div>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-xs font-semibold text-[#FDF0DC] border border-white/15 mb-2">
+            <TrendingUp className="w-3.5 h-3.5 text-[#EB8055]" />
+            <span>Interactive Visual Analytics</span>
+          </div>
           <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-[#F9EFDE]">Hostel & Student Analytics</h2>
-          <p className="text-xs sm:text-sm text-[#F5E8D4]/90 font-medium mt-1.5">
-            Gain actionable insights into hostel operations, monitor bed capacities, and track student attendance trends.
+          <p className="text-xs sm:text-sm text-[#F5E8D4]/80 font-medium mt-1">
+            Real-time data visualization of room allocations, occupancy capacity, and monthly attendance records.
           </p>
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 py-2 rounded-2xl border border-white/20">
+            <Calendar className="w-4 h-4 text-[#F3C694]" />
+            <input
+              type="month"
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              className="bg-transparent text-xs font-bold text-white focus:outline-none cursor-pointer"
+            />
+          </div>
 
           <button
             onClick={downloadPDF}
@@ -345,259 +319,448 @@ export default function Analytics() {
           <div className="flex items-center gap-2 p-1 bg-[#FDF0DC] rounded-xl border border-[#E8D8C4]">
             <button
               onClick={() => setActiveSection("all")}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeSection === "all"
-                ? "bg-[#EB8055] text-white shadow-xs"
-                : "text-[#8B7355] hover:text-[#2F2925]"
-                }`}
+              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                activeSection === "all"
+                  ? "bg-[#EB8055] text-white shadow-xs"
+                  : "text-[#8B7355] hover:text-[#2F2925]"
+              }`}
             >
               All Analytics
             </button>
             <button
               onClick={() => setActiveSection("allocation")}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${activeSection === "allocation"
-                ? "bg-[#EB8055] text-white shadow-xs"
-                : "text-[#8B7355] hover:text-[#2F2925]"
-                }`}
+              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                activeSection === "allocation"
+                  ? "bg-[#EB8055] text-white shadow-xs"
+                  : "text-[#8B7355] hover:text-[#2F2925]"
+              }`}
             >
               <DoorOpen className="w-3.5 h-3.5" />
               Allocation & Capacity
             </button>
             <button
               onClick={() => setActiveSection("attendance")}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${activeSection === "attendance"
-                ? "bg-[#EB8055] text-white shadow-xs"
-                : "text-[#8B7355] hover:text-[#2F2925]"
-                }`}
+              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                activeSection === "attendance"
+                  ? "bg-[#EB8055] text-white shadow-xs"
+                  : "text-[#8B7355] hover:text-[#2F2925]"
+              }`}
             >
               <CalendarCheck2 className="w-3.5 h-3.5" />
               Attendance Trends
             </button>
           </div>
+
+          <div className="text-xs font-bold text-[#8B7355]">
+            Showing <span className="text-[#EB8055] font-extrabold">{filteredStudents.length}</span> students in scope
+          </div>
+        </div>
+
+        {/* Search & Filter Dropdowns */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="relative">
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8B7355]" />
+            <input
+              type="text"
+              placeholder="Search student, roll no, room..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="w-full border rounded-xl pl-9 pr-3.5 py-2 text-xs font-medium focus:outline-none bg-white border-[#E8D8C4] text-[#2F2925] placeholder-[#8B7355]/60 focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 shadow-xs"
+            />
+          </div>
+
+          <div>
+            <select
+              value={courseFilter}
+              onChange={(e) => {
+                setCourseFilter(e.target.value);
+                setYearFilter("All");
+              }}
+              className="w-full border rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none bg-white border-[#E8D8C4] text-[#2F2925] focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 shadow-xs cursor-pointer"
+            >
+              <option value="All">All Courses</option>
+              <option value="B.Tech">B.Tech</option>
+              <option value="Diploma">Diploma</option>
+            </select>
+          </div>
+
+          <div>
+            <select
+              value={yearFilter}
+              onChange={(e) => setYearFilter(e.target.value)}
+              className="w-full border rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none bg-white border-[#E8D8C4] text-[#2F2925] focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 shadow-xs cursor-pointer"
+            >
+              <option value="All">All Years</option>
+              {yearOptions.map((year) => (
+                <option key={year} value={year}>
+                  {year}{year === "1" ? "st" : year === "2" ? "nd" : year === "3" ? "rd" : "th"} Year
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <select
+              value={blockFilter}
+              onChange={(e) => setBlockFilter(e.target.value)}
+              className="w-full border rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none bg-white border-[#E8D8C4] text-[#2F2925] focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 shadow-xs cursor-pointer"
+            >
+              <option value="All">All Blocks</option>
+              <option value="D">Block D</option>
+              <option value="E">Block E</option>
+              <option value="KW">Block KW</option>
+              <option value="Executive">Executive Block</option>
+            </select>
+          </div>
         </div>
       </div>
 
-
       {/* KPI Metric Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <div className="p-5 rounded-2xl border border-orange-100 shadow-sm flex flex-col justify-center bg-gradient-to-br from-orange-50 to-orange-100 hover:-translate-y-1 hover:shadow-md transition-all cursor-pointer">
-          <p className="text-[11px] font-bold text-orange-700 uppercase tracking-wider">Occupancy Rate</p>
-          <h3 className="text-2xl font-black text-orange-950 mt-1">{occupancyPercentage}%</h3>
-          <p className="text-[11px] font-semibold text-orange-800 mt-0.5">
-            {occupiedBeds} / {totalCapacity} Beds Occupied
-          </p>
+        <div className="bg-white p-5 rounded-2xl border border-[#E8D8C4] shadow-xs flex items-center justify-between">
+          <div>
+            <p className="text-[11px] font-bold text-[#8B7355] uppercase tracking-wider">Occupancy Rate</p>
+            <h3 className="text-2xl font-black text-[#2F2925] mt-1">{occupancyPercentage}%</h3>
+            <p className="text-[11px] font-semibold text-[#B85228] mt-0.5">
+              {occupiedBeds} / {totalCapacity} Beds Occupied
+            </p>
+          </div>
+          <div className="w-12 h-12 bg-[#FDF0DC] text-[#EB8055] rounded-2xl flex items-center justify-center">
+            <DoorOpen className="w-6 h-6" />
+          </div>
         </div>
 
-        <div className="p-5 rounded-2xl border border-blue-100 shadow-sm flex flex-col justify-center bg-gradient-to-br from-blue-50 to-blue-100 hover:-translate-y-1 hover:shadow-md transition-all cursor-pointer">
-          <p className="text-[11px] font-bold text-blue-700 uppercase tracking-wider">Vacated Students</p>
-          <h3 className="text-2xl font-black text-blue-950 mt-1">{vacatedBeds}</h3>
-          <p className="text-[11px] font-semibold text-blue-800 mt-0.5">
-            Students who left the hostel
-          </p>
+        <div className="bg-white p-5 rounded-2xl border border-[#E8D8C4] shadow-xs flex items-center justify-between">
+          <div>
+            <p className="text-[11px] font-bold text-[#8B7355] uppercase tracking-wider">Active Allocations</p>
+            <h3 className="text-2xl font-black text-[#2F2925] mt-1">{activeAllocations}</h3>
+            <p className="text-[11px] font-semibold text-[#D96B3A] mt-0.5">
+              {availableBeds} Available Beds
+            </p>
+          </div>
+          <div className="w-12 h-12 bg-[#F5E8D4] text-[#D96B3A] rounded-2xl flex items-center justify-center">
+            <ClipboardList className="w-6 h-6" />
+          </div>
         </div>
 
-        <div className="p-5 rounded-2xl border border-emerald-100 shadow-sm flex flex-col justify-center bg-gradient-to-br from-emerald-50 to-emerald-100 hover:-translate-y-1 hover:shadow-md transition-all cursor-pointer">
-          <p className="text-[11px] font-bold text-emerald-700 uppercase tracking-wider">Attendance Rate</p>
-          <h3 className="text-2xl font-black text-emerald-950 mt-1">
-            {totalMonthlyLogs > 0 ? `${overallAttendanceRate}%` : "No Logs"}
-          </h3>
-          <p className="text-[11px] font-semibold text-emerald-800 mt-0.5">
-            {totalMonthlyLogs} monthly log entries
-          </p>
+        <div className="bg-white p-5 rounded-2xl border border-[#E8D8C4] shadow-xs flex items-center justify-between">
+          <div>
+            <p className="text-[11px] font-bold text-[#8B7355] uppercase tracking-wider">Attendance Rate</p>
+            <h3 className="text-2xl font-black text-[#2F2925] mt-1">
+              {totalMonthlyLogs > 0 ? `${overallAttendanceRate}%` : "No Logs"}
+            </h3>
+            <p className="text-[11px] font-semibold text-emerald-600 mt-0.5">
+              {totalMonthlyLogs} monthly log entries
+            </p>
+          </div>
+          <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center">
+            <CalendarCheck2 className="w-6 h-6" />
+          </div>
         </div>
 
-        <div className="p-5 rounded-2xl border border-purple-100 shadow-sm flex flex-col justify-center bg-gradient-to-br from-purple-50 to-purple-100 hover:-translate-y-1 hover:shadow-md transition-all cursor-pointer">
-          <p className="text-[11px] font-bold text-purple-700 uppercase tracking-wider">Student Census</p>
-          <h3 className="text-2xl font-black text-purple-950 mt-1">{filteredStudents.length}</h3>
-          <p className="text-[11px] font-semibold text-purple-800 mt-0.5">
-            {allocatedStudentsCount} Allocated · {unallocatedStudentsCount} Unassigned
-          </p>
+        <div className="bg-white p-5 rounded-2xl border border-[#E8D8C4] shadow-xs flex items-center justify-between">
+          <div>
+            <p className="text-[11px] font-bold text-[#8B7355] uppercase tracking-wider">Student Census</p>
+            <h3 className="text-2xl font-black text-[#2F2925] mt-1">{filteredStudents.length}</h3>
+            <p className="text-[11px] font-semibold text-[#B85228] mt-0.5">
+              {allocatedStudentsCount} Allocated · {unallocatedStudentsCount} Unassigned
+            </p>
+          </div>
+          <div className="w-12 h-12 bg-[#FDF0DC] text-[#B85228] rounded-2xl flex items-center justify-center">
+            <Users className="w-6 h-6" />
+          </div>
         </div>
       </div>
 
       {/* ========================================================================= */}
       {/* SECTION 1: ALLOCATION & CAPACITY RECHARTS                                */}
       {/* ========================================================================= */}
-      {
-        (activeSection === "all" || activeSection === "allocation") && (
-          <div className="space-y-6">
-            <div className="flex items-center gap-2 pt-2">
-              <DoorOpen className="w-5 h-5 text-[#EB8055]" />
-              <h3 className="text-lg font-black text-[#2F2925]">Allocation & Capacity Visualizations</h3>
-            </div>
+      {(activeSection === "all" || activeSection === "allocation") && (
+        <div className="space-y-6">
+          <div className="flex items-center gap-2 pt-2">
+            <DoorOpen className="w-5 h-5 text-[#EB8055]" />
+            <h3 className="text-lg font-black text-[#2F2925]">Allocation & Capacity Visualizations</h3>
+          </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-              {/* Chart 1: Block-wise Capacity vs Occupancy Bar Chart (8 cols) */}
-              <div className="lg:col-span-8 bg-white p-6 rounded-2xl border border-[#E8D8C4] shadow-xs space-y-4">
-                <div className="flex items-center justify-between border-b border-[#E8D8C4]/60 pb-3">
-                  <div>
-                    <h4 className="text-base font-extrabold text-[#2F2925]">Block-wise Capacity vs Occupancy</h4>
-                    <p className="text-xs text-[#8B7355]">Comparison of total beds, active occupancies, and available slots across blocks.</p>
-                  </div>
-                </div>
-
-                <div className="h-72 w-full pt-2">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={blockData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#F5E8D4" />
-                      <XAxis dataKey="name" tick={{ fill: "#8B7355", fontSize: 12, fontWeight: 600 }} />
-                      <YAxis tick={{ fill: "#8B7355", fontSize: 11 }} />
-                      <Tooltip
-                        contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #E8D8C4", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.05)" }}
-                        formatter={(val, name) => [`${val} Beds`, name]}
-                      />
-                      <Legend wrapperStyle={{ fontSize: 12, paddingTop: 10 }} />
-                      <Bar dataKey="Capacity" fill="#D9C4A8" radius={[6, 6, 0, 0]} />
-                      <Bar dataKey="Occupied" fill="#EB8055" radius={[6, 6, 0, 0]} />
-                      <Bar dataKey="Available" fill="#10B981" radius={[6, 6, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Chart 1: Block-wise Capacity vs Occupancy Bar Chart (8 cols) */}
+            <div className="lg:col-span-8 bg-white p-6 rounded-2xl border border-[#E8D8C4] shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-[#E8D8C4]/60 pb-3">
+                <div>
+                  <h4 className="text-base font-extrabold text-[#2F2925]">Block-wise Capacity vs Occupancy</h4>
+                  <p className="text-xs text-[#8B7355]">Comparison of total beds, active occupancies, and available slots across blocks.</p>
                 </div>
               </div>
 
-              {/* Chart 2: Bed Occupancy Donut Chart (4 cols) */}
-              <div className="lg:col-span-4 bg-white p-6 rounded-2xl border border-[#E8D8C4] shadow-xs space-y-4 flex flex-col justify-between">
-                <div className="border-b border-[#E8D8C4]/60 pb-3">
-                  <h4 className="text-base font-extrabold text-[#2F2925]">Bed Availability</h4>
-                  <p className="text-xs text-[#8B7355]">Occupied vs Available beds</p>
-                </div>
+              <div className="h-72 w-full pt-2">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={blockData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#F5E8D4" />
+                    <XAxis dataKey="name" tick={{ fill: "#8B7355", fontSize: 12, fontWeight: 600 }} />
+                    <YAxis tick={{ fill: "#8B7355", fontSize: 11 }} />
+                    <Tooltip
+                      contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #E8D8C4", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.05)" }}
+                      formatter={(val, name) => [`${val} Beds`, name]}
+                    />
+                    <Legend wrapperStyle={{ fontSize: 12, paddingTop: 10 }} />
+                    <Bar dataKey="Capacity" fill="#D9C4A8" radius={[6, 6, 0, 0]} />
+                    <Bar dataKey="Occupied" fill="#EB8055" radius={[6, 6, 0, 0]} />
+                    <Bar dataKey="Available" fill="#10B981" radius={[6, 6, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
 
+            {/* Chart 2: Bed Occupancy Donut Chart (4 cols) */}
+            <div className="lg:col-span-4 bg-white p-6 rounded-2xl border border-[#E8D8C4] shadow-xs space-y-4 flex flex-col justify-between">
+              <div className="border-b border-[#E8D8C4]/60 pb-3">
+                <h4 className="text-base font-extrabold text-[#2F2925]">Bed Occupancy Ratio</h4>
+                <p className="text-xs text-[#8B7355]">Total bed inventory distribution</p>
+              </div>
+
+              <div className="h-60 w-full flex items-center justify-center">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={occupancyDonutData}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={85}
+                      paddingAngle={4}
+                    >
+                      {occupancyDonutData.map((entry, idx) => (
+                        <Cell key={`cell-${idx}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #E8D8C4" }}
+                      formatter={(val, name) => [`${val} Beds (${totalCapacity ? Math.round((val/totalCapacity)*100) : 0}%)`, name]}
+                    />
+                    <Legend wrapperStyle={{ fontSize: 12 }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#E8D8C4]/60 text-center">
+                <div className="bg-[#FDF0DC] p-2 rounded-xl">
+                  <p className="text-[10px] uppercase font-bold text-[#B85228]">Occupied</p>
+                  <p className="text-sm font-black text-[#2F2925]">{occupiedBeds}</p>
+                </div>
+                <div className="bg-emerald-50 p-2 rounded-xl">
+                  <p className="text-[10px] uppercase font-bold text-emerald-700">Available</p>
+                  <p className="text-sm font-black text-emerald-900">{availableBeds}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Chart 3: Course & Year Allocation Breakdown (7 cols) */}
+            <div className="lg:col-span-7 bg-white p-6 rounded-2xl border border-[#E8D8C4] shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-[#E8D8C4]/60 pb-3">
+                <div>
+                  <h4 className="text-base font-extrabold text-[#2F2925]">Student Census by Year & Course</h4>
+                  <p className="text-xs text-[#8B7355]">Distribution of hostelites across academic years and programs.</p>
+                </div>
+              </div>
+
+              <div className="h-64 w-full pt-2">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={courseYearData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#F5E8D4" />
+                    <XAxis dataKey="year" tick={{ fill: "#8B7355", fontSize: 12, fontWeight: 600 }} />
+                    <YAxis tick={{ fill: "#8B7355", fontSize: 11 }} />
+                    <Tooltip
+                      contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #E8D8C4" }}
+                      formatter={(val, name) => [`${val} Students`, name]}
+                    />
+                    <Legend wrapperStyle={{ fontSize: 12 }} />
+                    <Bar dataKey="B.Tech" fill="#EB8055" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Diploma" fill="#D96B3A" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Chart 4: Room Status Breakdown Donut (5 cols) */}
+            <div className="lg:col-span-5 bg-white p-6 rounded-2xl border border-[#E8D8C4] shadow-xs space-y-4 flex flex-col justify-between">
+              <div className="border-b border-[#E8D8C4]/60 pb-3">
+                <h4 className="text-base font-extrabold text-[#2F2925]">Room Status Distribution</h4>
+                <p className="text-xs text-[#8B7355]">Breakdown of {rooms.length} residential rooms</p>
+              </div>
+
+              <div className="h-56 w-full flex items-center justify-center">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={roomStatusData}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={50}
+                      outerRadius={75}
+                      paddingAngle={4}
+                    >
+                      {roomStatusData.map((entry, idx) => (
+                        <Cell key={`cell-room-${idx}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #E8D8C4" }}
+                      formatter={(val, name) => [`${val} Rooms`, name]}
+                    />
+                    <Legend wrapperStyle={{ fontSize: 11 }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-[#E8D8C4]/60 text-center text-[10px]">
+                <div className="bg-rose-50 p-2 rounded-xl">
+                  <p className="font-bold text-rose-700">Full</p>
+                  <p className="text-xs font-black text-rose-900">{roomStatusData[0]?.value || 0}</p>
+                </div>
+                <div className="bg-amber-50 p-2 rounded-xl">
+                  <p className="font-bold text-amber-700">Partial</p>
+                  <p className="text-xs font-black text-amber-900">{roomStatusData[1]?.value || 0}</p>
+                </div>
+                <div className="bg-emerald-50 p-2 rounded-xl">
+                  <p className="font-bold text-emerald-700">Vacant</p>
+                  <p className="text-xs font-black text-emerald-900">{roomStatusData[2]?.value || 0}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* SECTION 2: ATTENDANCE RECHARTS                                            */}
+      {/* ========================================================================= */}
+      {(activeSection === "all" || activeSection === "attendance") && (
+        <div className="space-y-6 pt-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <CalendarCheck2 className="w-5 h-5 text-[#EB8055]" />
+              <h3 className="text-lg font-black text-[#2F2925]">Attendance Analytics ({selectedMonth})</h3>
+            </div>
+            {dailyAttendanceData.length === 0 && (
+              <span className="text-xs font-bold text-[#8B7355] italic">No attendance records logged for {selectedMonth}</span>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Chart 5: Daily Attendance Trend Area Chart (8 cols) */}
+            <div className="lg:col-span-8 bg-white p-6 rounded-2xl border border-[#E8D8C4] shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-[#E8D8C4]/60 pb-3">
+                <div>
+                  <h4 className="text-base font-extrabold text-[#2F2925]">Daily Attendance Flow</h4>
+                  <p className="text-xs text-[#8B7355]">Day-by-day count of present, absent, and on-leave students.</p>
+                </div>
+              </div>
+
+              {dailyAttendanceData.length > 0 ? (
+                <div className="h-72 w-full pt-2">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={dailyAttendanceData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="presentGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#10B981" stopOpacity={0.4} />
+                          <stop offset="95%" stopColor="#10B981" stopOpacity={0.0} />
+                        </linearGradient>
+                        <linearGradient id="absentGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#EF4444" stopOpacity={0.4} />
+                          <stop offset="95%" stopColor="#EF4444" stopOpacity={0.0} />
+                        </linearGradient>
+                        <linearGradient id="leaveGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#EB8055" stopOpacity={0.4} />
+                          <stop offset="95%" stopColor="#EB8055" stopOpacity={0.0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#F5E8D4" />
+                      <XAxis dataKey="date" tick={{ fill: "#8B7355", fontSize: 11 }} />
+                      <YAxis tick={{ fill: "#8B7355", fontSize: 11 }} />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #E8D8C4" }}
+                        labelFormatter={(lbl) => `Date: ${selectedMonth}-${String(lbl).padStart(2, "0")}`}
+                      />
+                      <Legend wrapperStyle={{ fontSize: 12, paddingTop: 10 }} />
+                      <Area type="monotone" dataKey="Present" stroke="#10B981" fillOpacity={1} fill="url(#presentGrad)" strokeWidth={2} />
+                      <Area type="monotone" dataKey="Absent" stroke="#EF4444" fillOpacity={1} fill="url(#absentGrad)" strokeWidth={2} />
+                      <Area type="monotone" dataKey="Leave" stroke="#EB8055" fillOpacity={1} fill="url(#leaveGrad)" strokeWidth={2} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              ) : (
+                <div className="h-72 w-full flex flex-col items-center justify-center text-[#8B7355] bg-[#FDF0DC]/30 rounded-xl border border-dashed border-[#E8D8C4]">
+                  <CalendarCheck2 className="w-10 h-10 text-[#D9C4A8] mb-2" />
+                  <p className="text-xs font-bold">No daily attendance records found for {selectedMonth}.</p>
+                  <p className="text-[11px] text-[#8B7355] mt-1">Mark attendance in the Attendance module to populate this trend.</p>
+                </div>
+              )}
+            </div>
+
+            {/* Chart 6: Monthly Attendance Proportion Donut Chart (4 cols) */}
+            <div className="lg:col-span-4 bg-white p-6 rounded-2xl border border-[#E8D8C4] shadow-xs space-y-4 flex flex-col justify-between">
+              <div className="border-b border-[#E8D8C4]/60 pb-3">
+                <h4 className="text-base font-extrabold text-[#2F2925]">Monthly Attendance Split</h4>
+                <p className="text-xs text-[#8B7355]">Overall ratio of present, absent, and leave</p>
+              </div>
+
+              {totalMonthlyLogs > 0 ? (
                 <div className="h-60 w-full flex items-center justify-center">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
-                        data={occupancyDonutData}
+                        data={aggregateAttendanceBreakdown}
                         dataKey="value"
                         nameKey="name"
                         cx="50%"
                         cy="50%"
-                        innerRadius={60}
-                        outerRadius={85}
+                        innerRadius={55}
+                        outerRadius={80}
                         paddingAngle={4}
-                        minAngle={15}
                       >
-                        {occupancyDonutData.map((entry, idx) => (
-                          <Cell key={`cell-${idx}`} fill={entry.color} />
+                        {aggregateAttendanceBreakdown.map((entry, idx) => (
+                          <Cell key={`cell-att-${idx}`} fill={entry.color} />
                         ))}
                       </Pie>
                       <Tooltip
                         contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #E8D8C4" }}
-                        formatter={(val, name) => [`${val} Beds (${totalCapacity ? Math.round((val / totalCapacity) * 100) : 0}%)`, name]}
+                        formatter={(val, name) => [`${val} records (${Math.round((val/totalMonthlyLogs)*100)}%)`, name]}
                       />
                       <Legend wrapperStyle={{ fontSize: 12 }} />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
-
-                <div className="grid grid-cols-3 gap-2 pt-2 border-t border-[#E8D8C4]/60 text-center">
-                  <div className="bg-blue-50 p-2 rounded-xl">
-                    <p className="text-[10px] uppercase font-bold text-blue-700">Existed</p>
-                    <p className="text-sm font-black text-blue-900">{occupiedBeds}</p>
-                  </div>
-                  <div className="bg-red-50 p-2 rounded-xl">
-                    <p className="text-[10px] uppercase font-bold text-red-700">Vacated</p>
-                    <p className="text-sm font-black text-red-900">{vacatedBeds}</p>
-                  </div>
-                  <div className="bg-emerald-50 p-2 rounded-xl">
-                    <p className="text-[10px] uppercase font-bold text-emerald-700">Available</p>
-                    <p className="text-sm font-black text-emerald-900">{availableBeds}</p>
-                  </div>
+              ) : (
+                <div className="h-60 w-full flex flex-col items-center justify-center text-[#8B7355] bg-[#FDF0DC]/30 rounded-xl border border-dashed border-[#E8D8C4]">
+                  <PieIcon className="w-8 h-8 text-[#D9C4A8] mb-2" />
+                  <p className="text-xs font-bold">No Attendance Logs</p>
                 </div>
-              </div>
-            </div>
-
-
-          </div>
-        )
-      }
-
-      {/* ========================================================================= */}
-      {/* SECTION 2: ATTENDANCE RECHARTS                                            */}
-      {/* ========================================================================= */}
-      {
-        (activeSection === "all" || activeSection === "attendance") && (
-          <div className="space-y-6 pt-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <CalendarCheck2 className="w-5 h-5 text-[#EB8055]" />
-                <h3 className="text-lg font-black text-[#2F2925]">Attendance Analytics ({selectedMonth})</h3>
-              </div>
-              {attendanceChartData.length === 0 && (
-                <span className="text-xs font-bold text-[#8B7355] italic">No attendance records logged for {selectedMonth}</span>
               )}
-            </div>
 
-            <div className="grid grid-cols-1 gap-6">
-              {/* Chart 3: Attendance Trend Area Chart (Full Width) */}
-              <div className="bg-white p-6 rounded-2xl border border-[#E8D8C4] shadow-xs space-y-4">
-                <div className="flex items-center justify-between border-b border-[#E8D8C4]/60 pb-3">
-                  <div>
-                    <h4 className="text-base font-extrabold text-[#2F2925]">Attendance Flow</h4>
-                    <p className="text-xs text-[#8B7355]">Dynamic visualization tracking daily, weekly, and monthly student attendance patterns.</p>
-                  </div>
-                  <div className="flex items-center gap-1 bg-[#FDF0DC] p-1 rounded-xl border border-[#E8D8C4]">
-                    {["Daily", "Weekly", "Monthly"].map((tf) => (
-                      <button
-                        key={tf}
-                        onClick={() => setAttendanceTimeframe(tf)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${attendanceTimeframe === tf
-                          ? "bg-[#EB8055] text-white shadow-xs"
-                          : "text-[#8B7355] hover:text-[#2F2925]"
-                          }`}
-                      >
-                        {tf}
-                      </button>
-                    ))}
-                  </div>
+              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-[#E8D8C4]/60 text-center text-[10px]">
+                <div className="bg-emerald-50 p-2 rounded-xl">
+                  <p className="font-bold text-emerald-700">Present</p>
+                  <p className="text-xs font-black text-emerald-900">{aggregateAttendanceBreakdown[0]?.value || 0}</p>
                 </div>
-
-                {attendanceChartData.length > 0 ? (
-                  <div className="h-72 w-full pt-2">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={attendanceChartData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
-                        <defs>
-                          <linearGradient id="presentGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#10B981" stopOpacity={0.4} />
-                            <stop offset="95%" stopColor="#10B981" stopOpacity={0.0} />
-                          </linearGradient>
-                          <linearGradient id="absentGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#EF4444" stopOpacity={0.4} />
-                            <stop offset="95%" stopColor="#EF4444" stopOpacity={0.0} />
-                          </linearGradient>
-                          <linearGradient id="leaveGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#EB8055" stopOpacity={0.4} />
-                            <stop offset="95%" stopColor="#EB8055" stopOpacity={0.0} />
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#F5E8D4" />
-                        <XAxis dataKey="date" tick={{ fill: "#8B7355", fontSize: 11 }} />
-                        <YAxis tick={{ fill: "#8B7355", fontSize: 11 }} />
-                        <Tooltip
-                          contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #E8D8C4" }}
-                          labelFormatter={(lbl) => {
-                            if (attendanceTimeframe === "Daily") return `Date: ${selectedMonth}-${String(lbl).padStart(2, "0")}`;
-                            if (attendanceTimeframe === "Weekly") return `${lbl}, ${selectedMonth}`;
-                            return `Month: ${lbl}`;
-                          }}
-                        />
-                        <Legend wrapperStyle={{ fontSize: 12, paddingTop: 10 }} />
-                        <Area type="monotone" dataKey="Present" stroke="#10B981" fillOpacity={1} fill="url(#presentGrad)" strokeWidth={2} />
-                        <Area type="monotone" dataKey="Absent" stroke="#EF4444" fillOpacity={1} fill="url(#absentGrad)" strokeWidth={2} />
-                        <Area type="monotone" dataKey="Leave" stroke="#EB8055" fillOpacity={1} fill="url(#leaveGrad)" strokeWidth={2} />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
-                ) : (
-                  <div className="h-72 w-full flex flex-col items-center justify-center text-[#8B7355] bg-[#FDF0DC]/30 rounded-xl border border-dashed border-[#E8D8C4]">
-                    <CalendarCheck2 className="w-10 h-10 text-[#D9C4A8] mb-2" />
-                    <p className="text-xs font-bold">No attendance records found for {selectedMonth}.</p>
-                    <p className="text-[11px] text-[#8B7355] mt-1">Mark attendance in the Attendance module to populate this trend.</p>
-                  </div>
-                )}
+                <div className="bg-rose-50 p-2 rounded-xl">
+                  <p className="font-bold text-rose-700">Absent</p>
+                  <p className="text-xs font-black text-rose-900">{aggregateAttendanceBreakdown[1]?.value || 0}</p>
+                </div>
+                <div className="bg-[#FDF0DC] p-2 rounded-xl">
+                  <p className="font-bold text-[#B85228]">Leave</p>
+                  <p className="text-xs font-black text-[#2F2925]">{aggregateAttendanceBreakdown[2]?.value || 0}</p>
+                </div>
               </div>
             </div>
           </div>
-        )
-      }
-    </div >
+        </div>
+      )}
+    </div>
   );
 }

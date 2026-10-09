@@ -9,6 +9,7 @@ import {
   AlertCircle,
   RefreshCw,
   LayoutGrid,
+  Table,
 } from "lucide-react";
 
 export default function RoomInfo() {
@@ -17,7 +18,7 @@ export default function RoomInfo() {
   const [selectedBlock, setSelectedBlock] = useState("All");
   const [selectedStatus, setSelectedStatus] = useState("All");
   const [selectedFloor, setSelectedFloor] = useState("All");
-  const [viewMode, setViewMode] = useState("grid");
+  const [viewMode, setViewMode] = useState("table"); // 'table' | 'grid'
 
   const [selected, setSelected] = useState(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -126,6 +127,18 @@ export default function RoomInfo() {
           <div className="flex items-center gap-2">
             {/* View Switcher */}
             <div className="flex items-center bg-[#FDF0DC]/60 p-1 rounded-xl border border-[#E8D8C4]">
+              <button
+                type="button"
+                onClick={() => setViewMode("table")}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  viewMode === "table"
+                    ? "bg-white text-[#B85228] shadow-2xs border border-[#E8D8C4]"
+                    : "text-[#8B7355] hover:text-[#2F2925]"
+                }`}
+                title="Table View"
+              >
+                <Table className="w-3.5 h-3.5" /> Table
+              </button>
               <button
                 type="button"
                 onClick={() => setViewMode("grid")}

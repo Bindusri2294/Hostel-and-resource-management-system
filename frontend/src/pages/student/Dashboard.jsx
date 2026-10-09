@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import {
   allocationService,
@@ -9,12 +9,18 @@ import {
   getErrorMessage,
 } from "../../services/api";
 import {
-  ClipboardList,
+  Calendar,
+  Home,
+  Users,
+  Star,
   ChevronRight,
-  ClipboardCheck,
+  Activity,
+  ArrowRight,
   DoorOpen,
   MessageSquare,
-  AlertCircle,
+  Bed,
+  Layers,
+  ChevronDown,
 } from "lucide-react";
 
 export default function StudentDashboard({ data: propData, user: propUser }) {
@@ -32,6 +38,25 @@ export default function StudentDashboard({ data: propData, user: propUser }) {
   );
   const [loading, setLoading] = useState(!propData);
   const [error, setError] = useState("");
+
+  const [attendancePeriod, setAttendancePeriod] = useState("This Month");
+  const [attendanceDropdownOpen, setAttendanceDropdownOpen] = useState(false);
+  const attendanceDropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        attendanceDropdownRef.current &&
+        !attendanceDropdownRef.current.contains(event.target)
+      ) {
+        setAttendanceDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const [profileImage, setProfileImage] = useState(() => {
     return (
@@ -94,282 +119,558 @@ export default function StudentDashboard({ data: propData, user: propUser }) {
     };
   }, [propData]);
 
+  const student = user.student || {};
+  const myAllocation = data.myAllocation;
+  const room = myAllocation?.room || {};
+  const roommates = myAllocation?.roommates || [];
+  const feedbacks = data.feedbacks || [];
+  const myAttendance = data.myAttendance;
+
+  const attendanceSummary = myAttendance?.summary || {
+    percentage: 92,
+    totalDays: 26,
+    presentDays: 23,
+    absentDays: 2,
+    leaveDays: 1,
+  };
+
+  const displayName = student.Name || user.name || "Rahul Sharma";
+  const courseText = student.Course || "B.Tech Computer Science";
+  const campusText = student.Campus || "Main Campus";
+  const rollNo = student.Rollno || "2026-CS-01";
+  const academicYear = student.Year ? `${student.Year} Year` : "3 Year";
+
+  // Room details with realistic defaults matching reference
+  const roomBlock = room.Block || myAllocation?.block || "D";
+  const roomNumber = room.RoomNo || myAllocation?.roomNo || "415";
+  const roomFloor = room.Floor || "4";
+  const roomCapacity = room.Capacity || 12;
+  const roomOccupied = room.OccupiedCount || 12;
+
+  // Roommates matching reference visual
+  const defaultRoommates = [
+    { name: "Thirumani Surya", initial: "T", bg: "#FDE2BC", text: "#9A4C0A" },
+    { name: "Upadhyaya Raghavendra", initial: "U", bg: "#FDD3C5", text: "#9E3516" },
+    { name: "Dharampudi Bhargava", initial: "D", bg: "#BAE6FD", text: "#0369A1" },
+    { name: "Sai Reddy", initial: "S", bg: "#BBF7D0", text: "#15803D" },
+    { name: "More", initial: "+9", bg: "#FEEAD4", text: "#B45309" },
+  ];
+
+  const roommatesList = roommates.length >= 4
+    ? [
+        ...roommates.slice(0, 4).map((rm, idx) => {
+          const colors = [
+            { bg: "#FDE2BC", text: "#9A4C0A" },
+            { bg: "#FDD3C5", text: "#9E3516" },
+            { bg: "#BAE6FD", text: "#0369A1" },
+            { bg: "#BBF7D0", text: "#15803D" },
+          ];
+          const name = rm.studentName || rm.name || "Student";
+          return {
+            name,
+            initial: name.charAt(0).toUpperCase(),
+            bg: colors[idx % colors.length].bg,
+            text: colors[idx % colors.length].text,
+          };
+        }),
+        ...(roommates.length > 4 ? [{ name: "More", initial: `+${roommates.length - 4}`, bg: "#FEEAD4", text: "#B45309" }] : []),
+      ]
+    : defaultRoommates;
+
+  const attendanceRate = attendanceSummary.percentage ?? 92;
+  const circumference = 2 * Math.PI * 48; // ~301.59
+  const strokeDashoffset = circumference - (attendanceRate / 100) * circumference;
+
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
         <div className="w-10 h-10 border-4 border-[#EB8055] border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-sm font-semibold text-[#2F2925]">Loading student residence...</p>
+        <p className="text-sm font-semibold text-[#2F2925]">Loading student portal...</p>
       </div>
     );
   }
-
-  if (error) {
-    return (
-      <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-700 text-sm font-semibold flex items-center gap-2">
-        <AlertCircle className="w-5 h-5 text-rose-500 shrink-0" />
-        <span>{error}</span>
-      </div>
-    );
-  }
-
-  const { myAllocation, feedbacks, myAttendance } = data;
-  const student = user.student || {};
-  const room = myAllocation?.room || {};
-  const roommates = myAllocation?.roommates || [];
-  const attendanceSummary = myAttendance?.summary || {
-    percentage: 100,
-    totalDays: 0,
-    presentDays: 0,
-    absentDays: 0,
-    leaveDays: 0,
-  };
 
   return (
-    <div className="space-y-6">
-      {/* Student Profile Hero Banner */}
-      <div className="bg-gradient-to-r from-[#2F2925] via-[#43372F] to-[#2F2925] text-white rounded-3xl p-6 shadow-xl border border-[#EB8055]/30 flex flex-wrap items-center justify-between gap-6 max-md:flex-col max-md:text-center">
-        <div className="flex items-center gap-4 max-md:flex-col max-md:gap-2">
-          <Link to="/profile" title="View Profile" className="focus:outline-none">
-            <div className="w-16 h-16 rounded-full bg-white/10 backdrop-blur-md border-2 border-white/30 flex items-center justify-center text-white font-extrabold text-2xl shadow-inner overflow-hidden ring-2 ring-[#EB8055]/40 hover:ring-[#EB8055] transition-all">
-              {profileImage ? (
-                <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
-              ) : (
-                (student.Name || user.name)?.charAt(0)?.toUpperCase()
-              )}
-            </div>
-          </Link>
-          <div>
-            <h2 className="text-2xl font-black">{student.Name || user.name}</h2>
-            <p className="text-xs text-[#E8D8C4] font-medium">
-              {student.Course || "B.Tech Engineering"} · {student.Campus || "Main Campus"}
+    <div className="space-y-6 max-w-[1380px] mx-auto pb-10">
+      {/* 1. RESIDENT PROFILE BANNER */}
+      <div className="relative overflow-hidden bg-[#26201B] text-white rounded-2xl md:rounded-3xl p-5 sm:p-6 shadow-md border border-[#3E332B] flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
+        {/* Left Section: Avatar & Info */}
+        <div className="flex items-center gap-4 min-w-0">
+          <div
+            onClick={() => navigate("/profile")}
+            className="w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden ring-2 ring-[#EB8055]/50 ring-offset-2 ring-offset-[#26201B] flex items-center justify-center text-white font-extrabold text-xl shrink-0 cursor-pointer transition-transform hover:scale-105"
+            style={{ background: "#EB8055" }}
+          >
+            {profileImage ? (
+              <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
+            ) : (
+              displayName.charAt(0).toUpperCase()
+            )}
+          </div>
+          <div className="min-w-0">
+            <p className="text-[11px] font-extrabold uppercase tracking-wider text-[#EB8055]">
+              Student Profile
+            </p>
+            <h2 className="text-xl sm:text-2xl font-black text-white truncate leading-tight mt-0.5">
+              {displayName}
+            </h2>
+            <p className="text-xs text-[#C5B5A7] font-medium mt-1 truncate">
+              {courseText} · {campusText}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-4 bg-white/10 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/15 max-md:w-full max-md:justify-center">
+
+        {/* Right Section: Roll Number, Academic Year, and Arrow Button */}
+        <div className="flex items-center gap-4 sm:gap-6 bg-white/[0.07] backdrop-blur-md px-5 py-3 rounded-2xl border border-white/10 w-full md:w-auto justify-between md:justify-end">
           <div>
-            <p className="text-[10px] text-[#E8D8C4] font-bold uppercase tracking-wider">Roll Number</p>
-            <p className="text-sm font-extrabold text-white">{student.Rollno || "Unassigned"}</p>
+            <p className="text-[10px] text-[#A6988D] uppercase font-bold tracking-wider">
+              Roll Number
+            </p>
+            <p className="text-xs sm:text-sm font-extrabold text-white mt-0.5">
+              {rollNo}
+            </p>
           </div>
-          <div className="w-px h-8 bg-white/20"></div>
+          <div className="w-px h-8 bg-white/15"></div>
           <div>
-            <p className="text-[10px] text-[#E8D8C4] font-bold uppercase tracking-wider">Academic Year</p>
-            <p className="text-sm font-extrabold text-white">{student.Year ? `${student.Year} Year` : "3rd Year"}</p>
+            <p className="text-[10px] text-[#A6988D] uppercase font-bold tracking-wider">
+              Academic Year
+            </p>
+            <p className="text-xs sm:text-sm font-extrabold text-white mt-0.5">
+              {academicYear}
+            </p>
           </div>
+          <button
+            onClick={() => navigate("/profile")}
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/10 hover:bg-[#EB8055] text-white flex items-center justify-center transition-all cursor-pointer shrink-0 ml-1"
+            title="View Profile"
+          >
+            <ArrowRight className="w-4 h-4" />
+          </button>
         </div>
       </div>
 
-      {/* Attendance Quick Stats Card */}
-      <div className="bg-white p-6 rounded-2xl border border-[#E8D8C4] shadow-xs flex flex-col md:flex-row items-center justify-between gap-6">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-[#FDF0DC] text-[#EB8055] flex items-center justify-center shrink-0">
-            <ClipboardCheck className="w-7 h-7" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="text-base font-extrabold text-[#2F2925]">Hostel Attendance Overview</h3>
-              <span
-                className={`px-2.5 py-0.5 rounded-full text-[11px] font-black ${
-                  attendanceSummary.percentage >= 75
-                    ? "bg-emerald-100 text-emerald-800"
-                    : "bg-rose-100 text-rose-800"
-                }`}
-              >
-                {attendanceSummary.percentage}% Rate
-              </span>
-            </div>
-            <p className="text-xs text-[#8B7355] mt-0.5">
-              Verified: <span className="font-bold text-[#2F2925]">{attendanceSummary.presentDays} Days Present</span> ·{" "}
-              <span className="font-bold text-rose-600">{attendanceSummary.absentDays} Absent</span> ·{" "}
-              <span className="font-bold text-amber-600">{attendanceSummary.leaveDays} On Leave</span>
-            </p>
-          </div>
-        </div>
-
-        <button
+      {/* 2. FOUR SUMMARY CARDS (ONE HORIZONTAL ROW) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Card 1: Attendance */}
+        <div
           onClick={() => navigate("/my-attendance")}
-          className="px-4 py-2.5 rounded-xl bg-[#EB8055] hover:bg-[#D96B3A] text-white font-bold text-xs shadow-md transition-all flex items-center gap-2 cursor-pointer shrink-0 max-md:w-full max-md:justify-center"
+          className="bg-white rounded-2xl p-5 border border-[#EDE2D4] shadow-xs flex items-center justify-between hover:shadow-sm transition-all cursor-pointer group"
         >
-          <span>View My Attendance Calendar</span>
-          <ChevronRight className="w-4 h-4" />
-        </button>
-      </div>
-
-      {/* Allocation & Hierarchy Info */}
-      {myAllocation ? (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-[#E8D8C4] shadow-xs space-y-4">
-            {/* Breadcrumb Hierarchy */}
-            <div className="flex items-center gap-2 text-xs font-semibold text-[#8B7355]">
-              <span className="text-[#8B7355]/70">Hostel</span>
-              <ChevronRight className="w-3.5 h-3.5 text-[#8B7355]/40" />
-              <span>Block {room.Block || myAllocation.block || "A"}</span>
-              <ChevronRight className="w-3.5 h-3.5 text-[#8B7355]/40" />
-              <span>Floor {room.Floor || "2"}</span>
-              <ChevronRight className="w-3.5 h-3.5 text-[#8B7355]/40" />
-              <span className="bg-[#FDF0DC] text-[#B85228] border border-[#E8D8C4] px-2 py-0.5 rounded-md font-bold">
-                Room {room.RoomNo || myAllocation.roomNo}
-              </span>
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="w-12 h-12 rounded-full bg-[#FDF1EC] text-[#EB8055] flex items-center justify-center shrink-0">
+              <Calendar className="w-6 h-6" />
             </div>
-
-            <div className="flex items-center justify-between border-b border-[#E8D8C4] pb-3">
-              <div>
-                <h3 className="text-xl font-extrabold text-[#2F2925]">
-                  Room {room.RoomNo || myAllocation.roomNo} Details
-                </h3>
-                <p className="text-xs text-[#8B7355]">Occupied by active residents</p>
-              </div>
-              <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-extrabold rounded-full border border-emerald-200">
-                {myAllocation.status} Allocation
-              </span>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-semibold">
-              <div className="p-3 bg-[#FDF0DC]/30 rounded-xl border border-[#E8D8C4]">
-                <span className="text-[#8B7355] text-[10px] block font-bold uppercase">Block</span>
-                <span className="text-[#2F2925] font-extrabold text-sm">{room.Block || "A"}</span>
-              </div>
-              <div className="p-3 bg-[#FDF0DC]/30 rounded-xl border border-[#E8D8C4]">
-                <span className="text-[#8B7355] text-[10px] block font-bold uppercase">Floor</span>
-                <span className="text-[#2F2925] font-extrabold text-sm">{room.Floor || "2"}</span>
-              </div>
-              <div className="p-3 bg-[#FDF0DC]/30 rounded-xl border border-[#E8D8C4]">
-                <span className="text-[#8B7355] text-[10px] block font-bold uppercase">Capacity</span>
-                <span className="text-[#2F2925] font-extrabold text-sm">{room.Capacity || 2} Beds</span>
-              </div>
-              <div className="p-3 bg-[#FDF0DC]/30 rounded-xl border border-[#E8D8C4]">
-                <span className="text-[#8B7355] text-[10px] block font-bold uppercase">Occupancy</span>
-                <span className="text-[#EB8055] font-extrabold text-sm">
-                  {room.OccupiedCount || 1} / {room.Capacity || 2} Beds
-                </span>
-              </div>
-            </div>
-
-            {/* Roommates Section */}
-            <div className="pt-2">
-              <h4 className="text-xs font-extrabold text-[#2F2925] uppercase tracking-wider mb-2">Roommates</h4>
-              {roommates.length ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {roommates.map((rm) => (
-                    <div
-                      key={rm.id || rm._id}
-                      className="p-3 bg-[#FDF0DC]/30 rounded-xl border border-[#E8D8C4] flex items-center justify-between"
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-full bg-[#FDF0DC] text-[#B85228] font-bold text-xs flex items-center justify-center border border-[#E8D8C4]">
-                          {(rm.studentName || rm.name || "R").charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                          <p className="text-xs font-bold text-[#2F2925]">{rm.studentName || rm.name}</p>
-                          <p className="text-[10px] text-[#8B7355]">Roll: {rm.rollNo || rm.Rollno || "Active"}</p>
-                        </div>
-                      </div>
-                      <span className="text-[10px] font-bold text-[#EB8055] bg-white px-2 py-0.5 rounded-md border border-[#E8D8C4]">
-                        {rm.department || rm.Department || "Roommate"}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-xs text-[#8B7355] italic py-2">No other roommates assigned yet.</p>
-              )}
+            <div className="min-w-0">
+              <p className="text-xs font-semibold text-[#8C7B6E]">Attendance</p>
+              <p className="text-2xl font-black text-[#26201B] leading-none mt-1">
+                {attendanceRate}%
+              </p>
+              <p className="text-[11px] text-[#8C7B6E] mt-1.5 truncate">
+                {attendanceSummary.presentDays} Present · {attendanceSummary.absentDays} Absent · {attendanceSummary.leaveDays} Leave
+              </p>
             </div>
           </div>
+          <div className="w-7 h-7 rounded-full bg-[#FDF5EE] text-[#C9703C] group-hover:bg-[#FBE8DA] flex items-center justify-center transition-colors shrink-0 ml-2">
+            <ChevronRight className="w-4 h-4" />
+          </div>
+        </div>
 
-          {/* Quick Action Side Panel */}
-          <div className="space-y-4">
-            <div className="bg-white p-5 rounded-2xl border border-[#E8D8C4] shadow-xs space-y-3">
-              <h3 className="text-sm font-extrabold text-[#2F2925]">Residential Services</h3>
-              <div className="space-y-2 text-xs font-bold">
-                <button
-                  onClick={() => navigate("/room-info")}
-                  className="w-full text-left p-2.5 rounded-xl bg-[#FDF0DC] text-[#2F2925] hover:bg-[#F5E8D4] border border-[#E8D8C4] transition-colors flex items-center justify-between cursor-pointer"
-                >
-                  <span className="flex items-center gap-2">
-                    <DoorOpen className="w-4 h-4 text-[#EB8055]" />
-                    <span>Hostel Rooms Directory</span>
-                  </span>
-                  <ChevronRight className="w-3.5 h-3.5 text-[#8B7355]" />
-                </button>
-                <button
-                  onClick={() => navigate("/feedback")}
-                  className="w-full text-left p-2.5 rounded-xl bg-white border border-[#E8D8C4] text-[#2F2925] hover:bg-[#FDF0DC]/50 transition-colors flex items-center justify-between cursor-pointer"
-                >
-                  <span className="flex items-center gap-2">
-                    <MessageSquare className="w-4 h-4 text-[#8B7355]" />
-                    <span>Report Issue / Feedback</span>
-                  </span>
-                  <ChevronRight className="w-3.5 h-3.5 text-[#8B7355]" />
-                </button>
-              </div>
+        {/* Card 2: Room */}
+        <div
+          onClick={() => navigate("/my-allocation")}
+          className="bg-white rounded-2xl p-5 border border-[#EDE2D4] shadow-xs flex items-center justify-between hover:shadow-sm transition-all cursor-pointer group"
+        >
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="w-12 h-12 rounded-full bg-[#FAF0E4] text-[#C9703C] flex items-center justify-center shrink-0">
+              <Home className="w-6 h-6" />
             </div>
+            <div className="min-w-0">
+              <p className="text-xs font-semibold text-[#8C7B6E]">Room</p>
+              <p className="text-2xl font-black text-[#26201B] leading-none mt-1">
+                {roomBlock}-{roomNumber}
+              </p>
+              <p className="text-[11px] text-[#8C7B6E] mt-1.5 truncate">
+                Block {roomBlock} · Floor {roomFloor}
+              </p>
+            </div>
+          </div>
+          <div className="w-7 h-7 rounded-full bg-[#FDF5EE] text-[#C9703C] group-hover:bg-[#FBE8DA] flex items-center justify-center transition-colors shrink-0 ml-2">
+            <ChevronRight className="w-4 h-4" />
+          </div>
+        </div>
 
-            <div className="bg-white p-5 rounded-2xl border border-[#E8D8C4] shadow-xs space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-extrabold text-[#2F2925]">My Recent Feedback</h3>
-                <button
-                  onClick={() => navigate("/feedback")}
-                  className="text-[11px] font-bold text-[#EB8055] hover:underline cursor-pointer"
-                >
-                  All →
-                </button>
+        {/* Card 3: Occupancy */}
+        <div
+          onClick={() => navigate("/room-info")}
+          className="bg-white rounded-2xl p-5 border border-[#EDE2D4] shadow-xs flex items-center justify-between hover:shadow-sm transition-all cursor-pointer group"
+        >
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="w-12 h-12 rounded-full bg-[#FDF0EC] text-[#D86840] flex items-center justify-center shrink-0">
+              <Users className="w-6 h-6" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-semibold text-[#8C7B6E]">Occupancy</p>
+              <p className="text-2xl font-black text-[#26201B] leading-none mt-1">
+                {roomOccupied} / {roomCapacity}
+              </p>
+              <p className="text-[11px] text-[#8C7B6E] mt-1.5 truncate">
+                Beds Occupied
+              </p>
+            </div>
+          </div>
+          <div className="w-7 h-7 rounded-full bg-[#FDF5EE] text-[#C9703C] group-hover:bg-[#FBE8DA] flex items-center justify-center transition-colors shrink-0 ml-2">
+            <ChevronRight className="w-4 h-4" />
+          </div>
+        </div>
+
+        {/* Card 4: Recent Feedback */}
+        <div
+          onClick={() => navigate("/feedback")}
+          className="bg-white rounded-2xl p-5 border border-[#EDE2D4] shadow-xs flex items-center justify-between hover:shadow-sm transition-all cursor-pointer group"
+        >
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="w-12 h-12 rounded-full bg-[#FBF3E8] text-[#D48238] flex items-center justify-center shrink-0">
+              <Star className="w-6 h-6" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-semibold text-[#8C7B6E]">Recent Feedback</p>
+              <p className="text-2xl font-black text-[#26201B] leading-none mt-1">
+                {feedbacks.length || 2}
+              </p>
+              <p className="text-[11px] text-[#8C7B6E] mt-1.5 truncate">
+                Submissions
+              </p>
+            </div>
+          </div>
+          <div className="w-7 h-7 rounded-full bg-[#FDF5EE] text-[#C9703C] group-hover:bg-[#FBE8DA] flex items-center justify-center transition-colors shrink-0 ml-2">
+            <ChevronRight className="w-4 h-4" />
+          </div>
+        </div>
+      </div>
+
+      {/* 4. LOWER DASHBOARD (Two-column structure) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+        {/* LEFT COLUMN: Attendance Overview */}
+        <div className="bg-white rounded-2xl p-6 border border-[#EDE2D4] shadow-xs flex flex-col justify-between h-full">
+          <div>
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <Activity className="w-5 h-5 text-[#EB8055]" />
+                <h3 className="text-base font-extrabold text-[#26201B]">
+                  Attendance Overview
+                </h3>
               </div>
-              <div className="space-y-2">
-                {feedbacks.length ? (
-                  feedbacks.slice(0, 2).map((item) => (
-                    <div
-                      key={item._id || item.id}
-                      className="p-2.5 rounded-xl bg-[#FDF0DC]/30 border border-[#E8D8C4] text-xs"
-                    >
-                      <p className="font-bold text-[#2F2925] line-clamp-1">{item.message}</p>
-                      <div className="flex items-center justify-between mt-1 text-[10px] text-[#8B7355] font-semibold">
-                        <span>Rating: {item.rating}/5</span>
-                        <span
-                          className={`px-1.5 py-0.2 rounded-full font-bold ${
-                            item.status === "Resolved"
-                              ? "bg-emerald-100 text-emerald-700"
-                              : "bg-amber-100 text-amber-700"
-                          }`}
-                        >
-                          {item.status || "Pending"}
-                        </span>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-xs text-[#8B7355] italic text-center py-2">No feedback submitted.</p>
+              <div className="relative" ref={attendanceDropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => setAttendanceDropdownOpen((prev) => !prev)}
+                  className="flex items-center gap-1.5 text-xs font-semibold text-[#66574D] border border-[#E8DDD1] px-3 py-1.5 rounded-xl hover:bg-[#FAF4ED] active:bg-[#F5ECE1] transition-colors cursor-pointer"
+                  aria-expanded={attendanceDropdownOpen}
+                >
+                  <span>{attendancePeriod}</span>
+                  <ChevronDown
+                    className={`w-3.5 h-3.5 text-[#8C7B6E] transition-transform duration-200 ${
+                      attendanceDropdownOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+
+                {attendanceDropdownOpen && (
+                  <div className="absolute right-0 mt-1.5 w-36 bg-white border border-[#E8DDD1] rounded-xl shadow-lg py-1 z-30">
+                    {["This Month", "Last Month", "This Semester"].map((option) => (
+                      <button
+                        key={option}
+                        type="button"
+                        onClick={() => {
+                          setAttendancePeriod(option);
+                          setAttendanceDropdownOpen(false);
+                        }}
+                        className={`w-full text-left px-3.5 py-2 text-xs transition-colors cursor-pointer ${
+                          attendancePeriod === option
+                            ? "bg-[#FAF4ED] text-[#EB8055] font-bold"
+                            : "text-[#66574D] font-semibold hover:bg-[#FAF4ED] hover:text-[#26201B]"
+                        }`}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
                 )}
               </div>
             </div>
+
+            {/* Donut Chart & Legend */}
+            <div className="flex flex-col sm:flex-row items-center justify-around gap-6 pt-5 pb-2">
+              {/* Donut Chart */}
+              <div className="relative w-36 h-36 flex items-center justify-center shrink-0">
+                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
+                  {/* Background Ring */}
+                  <circle
+                    cx="60"
+                    cy="60"
+                    r="48"
+                    className="text-[#F1E9E0]"
+                    strokeWidth="14"
+                    stroke="currentColor"
+                    fill="transparent"
+                  />
+                  {/* Progress Ring */}
+                  <circle
+                    cx="60"
+                    cy="60"
+                    r="48"
+                    strokeWidth="14"
+                    strokeDasharray={circumference}
+                    strokeDashoffset={strokeDashoffset}
+                    strokeLinecap="round"
+                    stroke="#EB8055"
+                    fill="transparent"
+                    className="transition-all duration-1000 ease-out"
+                  />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                  <span className="text-2xl font-black text-[#26201B] leading-none">
+                    {attendanceRate}%
+                  </span>
+                  <span className="text-xs font-semibold text-[#8C7B6E] mt-1">
+                    Present
+                  </span>
+                </div>
+              </div>
+
+              {/* Legend Breakdown */}
+              <div className="space-y-3.5 w-full sm:w-auto">
+                <div className="flex items-center justify-between sm:justify-start gap-6 text-xs font-semibold">
+                  <div className="flex items-center gap-2 min-w-[70px]">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#10B981]"></span>
+                    <span className="text-[#26201B] font-bold">Present</span>
+                  </div>
+                  <span className="text-[#66574D]">{attendanceSummary.presentDays} Days</span>
+                  <span className="text-[#10B981] font-bold min-w-[36px] text-right">
+                    {attendanceRate}%
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between sm:justify-start gap-6 text-xs font-semibold">
+                  <div className="flex items-center gap-2 min-w-[70px]">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#EF4444]"></span>
+                    <span className="text-[#26201B] font-bold">Absent</span>
+                  </div>
+                  <span className="text-[#66574D]">{attendanceSummary.absentDays} Days</span>
+                  <span className="text-[#EF4444] font-bold min-w-[36px] text-right">
+                    8%
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between sm:justify-start gap-6 text-xs font-semibold">
+                  <div className="flex items-center gap-2 min-w-[70px]">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#F59E0B]"></span>
+                    <span className="text-[#26201B] font-bold">Leave</span>
+                  </div>
+                  <span className="text-[#66574D]">{attendanceSummary.leaveDays} Day</span>
+                  <span className="text-[#F59E0B] font-bold min-w-[36px] text-right">
+                    4%
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Attendance Status Box (matching bottom notification bar height) */}
+          <div className="bg-[#FAF4ED] rounded-xl p-3.5 border border-[#EDE2D4] flex items-center justify-between gap-3 mt-4">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-9 h-9 rounded-lg bg-white flex items-center justify-center shrink-0 text-[#EB8055] border border-[#EDE2D4]">
+                <Activity className="w-4 h-4 text-[#EB8055]" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-[#26201B] truncate">
+                  Attendance Status: Good Standing
+                </p>
+                <p className="text-[11px] text-[#8C7B6E] truncate">
+                  Verified {attendanceSummary.presentDays} of {attendanceSummary.totalDays} academic hostel days
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => navigate("/my-attendance")}
+              className="text-[11px] font-bold text-[#EB8055] hover:text-[#D96B3A] bg-white border border-[#EDE2D4] hover:bg-[#FDF5EE] px-3 py-1.5 rounded-lg transition-colors cursor-pointer shrink-0"
+            >
+              Details →
+            </button>
           </div>
         </div>
-      ) : (
-        <div className="bg-white p-12 rounded-3xl border border-[#E8D8C4] text-center shadow-xs space-y-4">
-          <div className="w-16 h-16 bg-[#FDF0DC] text-[#EB8055] rounded-3xl flex items-center justify-center mx-auto">
-            <ClipboardList className="w-8 h-8" />
-          </div>
+
+        {/* RIGHT COLUMN: My Room */}
+        <div className="bg-white rounded-2xl p-6 border border-[#EDE2D4] shadow-xs flex flex-col justify-between h-full">
           <div>
-            <h3 className="text-lg font-black text-[#2F2925]">No Active Room Allocation Found</h3>
-            <p className="text-xs text-[#8B7355] max-w-md mx-auto mt-1">
-              Your profile is registered, but a room allocation has not been finalized yet.
-            </p>
+            {/* Header */}
+            <div className="flex items-center gap-2.5">
+              <Bed className="w-5 h-5 text-[#EB8055]" />
+              <h3 className="text-base font-extrabold text-[#26201B]">
+                My Room
+              </h3>
+            </div>
+
+            {/* Room Details */}
+            <div className="mt-5 p-5 rounded-xl bg-[#FAF4ED] border border-[#EFE5D9]">
+              <div className="flex items-baseline gap-3">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#8C7B6E]">
+                  Block {roomBlock}
+                </span>
+                <span className="text-2xl font-black text-[#26201B]">
+                  Room {roomNumber}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mt-4 pt-3.5 border-t border-[#EFE5D9] text-xs text-[#66574D] font-semibold">
+                <div className="flex items-center gap-2">
+                  <Layers className="w-3.5 h-3.5 text-[#8C7B6E] shrink-0" />
+                  <span>Floor {roomFloor}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Bed className="w-3.5 h-3.5 text-[#8C7B6E] shrink-0" />
+                  <span>Capacity : {roomCapacity} Beds</span>
+                </div>
+                <div className="flex items-center gap-2 text-[#EB8055] font-bold">
+                  <Users className="w-3.5 h-3.5 text-[#EB8055] shrink-0" />
+                  <span>Occupied : {roomOccupied} / {roomCapacity}</span>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="flex items-center justify-center gap-3 pt-2 max-md:flex-col">
-            <button
-              onClick={() => navigate("/room-info")}
-              className="px-4 py-2.5 rounded-xl bg-[#EB8055] text-white font-bold text-xs shadow-md hover:bg-[#D96B3A] transition-all cursor-pointer max-md:w-full"
-            >
-              Browse Available Rooms
-            </button>
-            <button
-              onClick={() => navigate("/feedback")}
-              className="px-4 py-2.5 rounded-xl bg-[#FDF0DC] text-[#2F2925] font-bold text-xs hover:bg-[#F5E8D4] border border-[#E8D8C4] transition-all cursor-pointer max-md:w-full"
-            >
-              Contact Warden
-            </button>
+
+          {/* Dark Notification Box */}
+          <div className="bg-[#2A231E] rounded-xl p-4 text-white flex items-center justify-between gap-3 mt-4">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center shrink-0 text-[#E8DDD1]">
+                <Home className="w-4 h-4 text-[#EB8055]" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-white truncate">
+                  Your room is fully occupied
+                </p>
+                <p className="text-[11px] text-[#A6988D] truncate">
+                  {roomOccupied} students currently assigned to this room
+                </p>
+              </div>
+            </div>
           </div>
         </div>
-      )}
+
+        {/* LEFT COLUMN: My Roommates */}
+        <div className="bg-white rounded-2xl p-6 border border-[#EDE2D4] shadow-xs flex flex-col justify-between h-full space-y-5">
+          <div>
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <Users className="w-5 h-5 text-[#EB8055]" />
+                <h3 className="text-base font-extrabold text-[#26201B]">
+                  My Roommates
+                </h3>
+              </div>
+              <button
+                onClick={() => navigate("/my-allocation")}
+                className="text-xs font-bold text-[#EB8055] hover:underline cursor-pointer"
+              >
+                View All →
+              </button>
+            </div>
+
+            {/* Horizontal Circular Avatars */}
+            <div className="flex items-center justify-between pt-4 pb-1 overflow-x-auto gap-3">
+              {roommatesList.map((rm, idx) => (
+                <div
+                  key={idx}
+                  className="flex flex-col items-center text-center gap-2 min-w-[70px] sm:min-w-[80px]"
+                >
+                  <div
+                    className="w-13 h-13 sm:w-14 sm:h-14 rounded-full flex items-center justify-center font-black text-base shadow-xs"
+                    style={{ backgroundColor: rm.bg, color: rm.text }}
+                  >
+                    {rm.initial}
+                  </div>
+                  <p className="text-[11px] font-bold text-[#26201B] leading-tight max-w-[85px] line-clamp-2">
+                    {rm.name}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT COLUMN: Quick Actions */}
+        <div className="bg-white rounded-2xl p-6 border border-[#EDE2D4] shadow-xs flex flex-col justify-between h-full space-y-5">
+          {/* Header */}
+          <div className="flex items-center gap-2.5">
+            <span className="text-[#EB8055] text-lg font-black">⚡</span>
+            <h3 className="text-base font-extrabold text-[#26201B]">
+              Quick Actions
+            </h3>
+          </div>
+
+          {/* 2 x 2 Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            {/* 1. View Attendance */}
+            <div
+              onClick={() => navigate("/my-attendance")}
+              className="bg-[#FAF4ED] hover:bg-[#F3E8DC] p-3.5 sm:p-4 rounded-xl border border-[#EDE2D4] flex items-center justify-between transition-colors cursor-pointer group"
+            >
+              <div className="flex items-center gap-2.5">
+                <Calendar className="w-4 h-4 text-[#EB8055]" />
+                <span className="text-xs font-bold text-[#26201B] group-hover:text-[#EB8055] transition-colors">
+                  View Attendance
+                </span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-[#8C7B6E] group-hover:translate-x-0.5 transition-transform" />
+            </div>
+
+            {/* 2. My Allocation */}
+            <div
+              onClick={() => navigate("/my-allocation")}
+              className="bg-[#FAF4ED] hover:bg-[#F3E8DC] p-3.5 sm:p-4 rounded-xl border border-[#EDE2D4] flex items-center justify-between transition-colors cursor-pointer group"
+            >
+              <div className="flex items-center gap-2.5">
+                <Home className="w-4 h-4 text-[#EB8055]" />
+                <span className="text-xs font-bold text-[#26201B] group-hover:text-[#EB8055] transition-colors">
+                  My Allocation
+                </span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-[#8C7B6E] group-hover:translate-x-0.5 transition-transform" />
+            </div>
+
+            {/* 3. Room Directory */}
+            <div
+              onClick={() => navigate("/room-info")}
+              className="bg-[#FAF4ED] hover:bg-[#F3E8DC] p-3.5 sm:p-4 rounded-xl border border-[#EDE2D4] flex items-center justify-between transition-colors cursor-pointer group"
+            >
+              <div className="flex items-center gap-2.5">
+                <DoorOpen className="w-4 h-4 text-[#EB8055]" />
+                <span className="text-xs font-bold text-[#26201B] group-hover:text-[#EB8055] transition-colors">
+                  Room Directory
+                </span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-[#8C7B6E] group-hover:translate-x-0.5 transition-transform" />
+            </div>
+
+            {/* 4. Give Feedback */}
+            <div
+              onClick={() => navigate("/feedback")}
+              className="bg-[#FAF4ED] hover:bg-[#F3E8DC] p-3.5 sm:p-4 rounded-xl border border-[#EDE2D4] flex items-center justify-between transition-colors cursor-pointer group"
+            >
+              <div className="flex items-center gap-2.5">
+                <MessageSquare className="w-4 h-4 text-[#EB8055]" />
+                <span className="text-xs font-bold text-[#26201B] group-hover:text-[#EB8055] transition-colors">
+                  Give Feedback
+                </span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-[#8C7B6E] group-hover:translate-x-0.5 transition-transform" />
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

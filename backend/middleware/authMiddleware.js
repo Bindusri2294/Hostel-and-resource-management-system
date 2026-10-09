@@ -1,6 +1,14 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
+// Lightweight in-memory auth cache to eliminate redundant Atlas lookups during bursts
+const userCache = new Map();
+const USER_CACHE_TTL = 30 * 1000; // 30 seconds
+
+const invalidateUserCache = (userId) => {
+  if (userId) userCache.delete(String(userId));
+};
+
 const protect = async (req, res, next) => {
   let token;
 
@@ -12,13 +20,26 @@ const protect = async (req, res, next) => {
       token = req.headers.authorization.split(" ")[1];
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-      req.user = await User.findById(decoded.id)
-        .select("-password")
-        .populate("student");
+      const cached = userCache.get(String(decoded.id));
+      if (cached && Date.now() - cached.timestamp < USER_CACHE_TTL) {
+        req.user = cached.user;
+        return next();
+      }
 
-      if (!req.user) {
+      let query = User.findById(decoded.id).select("-password").lean();
+      // Admin users do not have a linked student profile — skip redundant population
+      if (decoded.role === "Student") {
+        query = query.populate("student");
+      }
+
+      const user = await query;
+
+      if (!user) {
         return res.status(401).json({ message: "User not found" });
       }
+
+      userCache.set(String(decoded.id), { user, timestamp: Date.now() });
+      req.user = user;
 
       next();
     } catch (error) {
@@ -43,4 +64,4 @@ const authorize = (...roles) => {
   };
 };
 
-module.exports = { protect, authorize };
+module.exports = { protect, authorize, invalidateUserCache };
