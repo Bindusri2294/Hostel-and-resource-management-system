@@ -19,19 +19,34 @@ const studentSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    Department: {
+      type: String,
+      trim: true,
+      default: "CSM",
+    },
     Campus: {
       type: String,
       required: true,
       trim: true,
+      default: "Main Campus",
     },
     Year: {
       type: Number,
       required: true,
     },
+    Block: {
+      type: String,
+      trim: true,
+      default: "D",
+    },
     Roomno: {
       type: String,
       required: true,
       trim: true,
+    },
+    Status: {
+      type: String,
+      default: "Active",
     },
   },
   {
@@ -39,4 +54,4 @@ const studentSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model("Student", studentSchema);
+module.exports = mongoose.models.Student || mongoose.model("Student", studentSchema);

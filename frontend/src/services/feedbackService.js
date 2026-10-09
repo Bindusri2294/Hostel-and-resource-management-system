@@ -9,3 +9,13 @@ export const createFeedback = (data) => api.post("/feedback", data);
 export const updateFeedback = (id, data) => api.put(`/feedback/${id}`, data);
 
 export const deleteFeedback = (id) => api.delete(`/feedback/${id}`);
+
+export const feedbackService = {
+  getFeedbacks,
+  getFeedbackById,
+  createFeedback,
+  updateFeedback,
+  deleteFeedback,
+};
+
+export default feedbackService;

@@ -1,44 +1,56 @@
-import { createContext, useContext, useState, useEffect } from "react";
-import { getMe } from "../services/authService";
+import { createContext, useContext, useEffect, useState } from "react";
+import { authService } from "../services/api";
 
-const AuthContext = createContext();
+const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(() => JSON.parse(localStorage.getItem("hostel_user") || "null"));
+  const [loading, setLoading] = useState(Boolean(localStorage.getItem("hostel_token")));
 
-    useEffect(() => {
-        const token = localStorage.getItem("token");
-        if (token) {
-            getMe()
-                .then((res) => setUser(res.data))
-                .catch(() => {
-                    localStorage.removeItem("token");
-                    setUser(null);
-                })
-                .finally(() => setLoading(false));
-        } else {
-            setLoading(false);
-        }
-    }, []);
-
-    const login = (token, userData) => {
-        localStorage.setItem("token", token);
-        setUser(userData);
+  useEffect(() => {
+    const handleExpired = () => {
+      setUser(null);
+      setLoading(false);
     };
-
-    const logout = () => {
-        localStorage.removeItem("token");
+    window.addEventListener("auth-expired", handleExpired);
+    if (localStorage.getItem("hostel_token")) {
+      authService.me().then(({ data }) => {
+        setUser((current) => ({ ...current, ...data }));
+        localStorage.setItem("hostel_user", JSON.stringify({ ...user, ...data }));
+      }).catch(() => {
+        localStorage.removeItem("hostel_token");
+        localStorage.removeItem("hostel_user");
         setUser(null);
-    };
+      }).finally(() => setLoading(false));
+    }
+    return () => window.removeEventListener("auth-expired", handleExpired);
+  }, []);
 
-    return (
-        <AuthContext.Provider value={{ user, login, logout, loading }}>
-            {children}
-        </AuthContext.Provider>
-    );
+  const login = async (identifierOrCredentials, password) => {
+    const payload =
+      typeof identifierOrCredentials === "string"
+        ? { userId: identifierOrCredentials, email: identifierOrCredentials, password }
+        : identifierOrCredentials;
+
+    const { data } = await authService.login(payload);
+    localStorage.setItem("hostel_token", data.token);
+    localStorage.setItem("hostel_user", JSON.stringify(data));
+    setUser(data);
+    return data;
+  };
+
+  const logout = async () => {
+    try {
+      await authService.logout();
+    } catch (e) {
+      console.error("Logout failed on backend", e);
+    }
+    localStorage.removeItem("hostel_token");
+    localStorage.removeItem("hostel_user");
+    setUser(null);
+  };
+
+  return <AuthContext.Provider value={{ user, setUser, loading, login, logout }}>{children}</AuthContext.Provider>;
 }
 
-export function useAuth() {
-    return useContext(AuthContext);
-}
+export const useAuth = () => useContext(AuthContext);

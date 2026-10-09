@@ -1,15 +1,157 @@
 import axios from "axios";
 
 const api = axios.create({
-    baseURL: "http://localhost:5000/api",
+  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api",
+  headers: { "Content-Type": "application/json" },
+  withCredentials: true,
+  timeout: 30000, // 30 seconds timeout to handle slow DB connection latency
 });
 
 api.interceptors.request.use((config) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
+  const token = localStorage.getItem("hostel_token");
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+
+  if (config.data instanceof FormData) {
+    delete config.headers["Content-Type"];
+  }
+
+  return config;
 });
+
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    
+    const url = originalRequest.url || "";
+    if (url.includes("/auth/refresh") || url.includes("/auth/login") || url.includes("/auth/register")) {
+      return Promise.reject(error);
+    }
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        return new Promise(function(resolve, reject) {
+          failedQueue.push({resolve, reject});
+        }).then(token => {
+          originalRequest.headers.Authorization = `Bearer ${token}`;
+          return api(originalRequest);
+        }).catch(err => {
+          return Promise.reject(err);
+        });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        const { data } = await axios.post(`${api.defaults.baseURL}/auth/refresh`, {}, { withCredentials: true });
+        const newToken = data.token;
+        localStorage.setItem("hostel_token", newToken);
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        processQueue(null, newToken);
+        return api(originalRequest);
+      } catch (err) {
+        processQueue(err, null);
+        localStorage.removeItem("hostel_token");
+        localStorage.removeItem("hostel_user");
+        window.dispatchEvent(new Event("auth-expired"));
+        return Promise.reject(err);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+    return Promise.reject(error);
+  },
+);
+
+export const authService = {
+  login: (payload) => api.post("/auth/login", payload),
+  register: (payload) => api.post("/auth/register", payload),
+  me: () => api.get("/auth/me"),
+  updateProfile: (payload) => api.put("/auth/profile", payload),
+  logout: () => api.post("/auth/logout"),
+  updateContact: (payload) => api.put("/auth/contact", payload),
+  forgotPassword: (payload) => api.post("/auth/forgot-password", payload),
+  verifyOTP: (payload) => api.post("/auth/verify-otp", payload),
+  resetPassword: (payload) => api.post("/auth/reset-password", payload),
+  requestManualReset: (payload) => api.post("/auth/request-manual-reset", payload),
+  getResetRequests: () => api.get("/auth/reset-requests"),
+  resolveResetRequest: (id) => api.post(`/auth/reset-requests/${id}/resolve`),
+};
+
+export const studentService = {
+  list: () => api.get("/students"),
+  get: (id) => api.get(`/students/${id}`),
+  create: (payload) => api.post("/students", payload),
+  update: (id, payload) => api.put(`/students/${id}`, payload),
+  remove: (id) => api.delete(`/students/${id}`),
+};
+
+export const roomService = {
+  list: () => api.get("/rooms"),
+  get: (id) => api.get(`/rooms/${id}`),
+  create: (payload) => api.post("/rooms", payload),
+  update: (id, payload) => api.put(`/rooms/${id}`, payload),
+  remove: (id) => api.delete(`/rooms/${id}`),
+};
+
+export const blockService = {
+  list: () => api.get("/blocks"),
+  create: (payload) => api.post("/blocks", payload),
+};
+
+export const allocationService = {
+  list: () => api.get("/allocations"),
+  mine: () => api.get("/allocations/mine"),
+  get: (id) => api.get(`/allocations/${id}`),
+  create: (payload) => api.post("/allocations", payload),
+  update: (id, payload) => api.put(`/allocations/${id}`, payload),
+  remove: (id) => api.delete(`/allocations/${id}`),
+};
+
+export const feedbackService = {
+  list: () => api.get("/feedback"),
+  create: (payload) => api.post("/feedback", payload),
+  update: (id, payload) => api.put(`/feedback/${id}`, payload),
+  remove: (id) => api.delete(`/feedback/${id}`),
+};
+
+export const attendanceService = {
+  mine: (params) => api.get("/attendance/mine", { params }),
+  getByDate: (date) => api.get("/attendance/date", { params: { date } }),
+  getMonthSummary: (month) => api.get("/attendance/month-summary", { params: { month } }),
+  saveDaily: (payload) => api.post("/attendance/save", payload),
+};
+
+export const leaveService = {
+  apply: (payload) => api.post("/leave/apply", payload),
+  mine: () => api.get("/leave/mine"),
+  listAll: (params) => api.get("/leave/all", { params }),
+  updateStatus: (id, payload) => api.put(`/leave/${id}/status`, payload),
+};
+
+export const notificationService = {
+  list: () => api.get("/notifications"),
+  create: (payload) => api.post("/notifications", payload),
+  markRead: (id) => api.put(`/notifications/${id}/read`),
+  remove: (id) => api.delete(`/notifications/${id}`),
+};
+
+export const getErrorMessage = (error, fallback = "Something went wrong") =>
+  error.response?.data?.message || (error.code === "ERR_NETWORK" ? "The server is unavailable." : fallback);
 
 export default api;

@@ -9,9 +9,15 @@ const userSchema = new mongoose.Schema(
     },
     email: {
       type: String,
-      required: true,
+      required: false,
       unique: true,
+      sparse: true,
       lowercase: true,
+      trim: true,
+    },
+    phone: {
+      type: String,
+      required: false,
       trim: true,
     },
     password: {
@@ -27,6 +33,9 @@ const userSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Student",
     },
+    resetPasswordOTP: String,
+    resetPasswordExpires: Date,
+    refreshTokens: [String],
   },
   {
     timestamps: true,

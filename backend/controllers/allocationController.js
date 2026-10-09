@@ -6,6 +6,10 @@ const Student = require("../models/student");
 const formatAllocation = (allocation) => {
   return {
     id: allocation._id,
+    studentId: allocation.studentId?._id || allocation.studentId || null,
+    roomId: allocation.roomId?._id || allocation.roomId || null,
+    studentName: allocation.studentId?.Name || null,
+    roomNo: allocation.roomId?.RoomNo || null,
     student: allocation.studentId,
     room: allocation.roomId,
     allocationDate: allocation.allocatedDate,
@@ -17,14 +21,16 @@ const formatAllocation = (allocation) => {
 // Create an allocation
 const createAllocation = async (req, res, next) => {
   try {
-    const { studentId, roomNo, block, allocatedDate } = req.body;
+    const { studentId, roomId, roomNo, block, allocatedDate } = req.body || {};
 
-    const student = await Student.findOne({ Rollno: studentId });
+    const student = await Student.findById(studentId).catch(() => null) || await Student.findOne({ Rollno: studentId });
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
     }
 
-    const room = await Room.findOne({ RoomNo: roomNo, Block: block });
+    const room = roomId
+      ? await Room.findById(roomId).catch(() => null)
+      : await Room.findOne({ RoomNo: roomNo, Block: block });
     if (!room) {
       return res.status(404).json({ message: "Room not found" });
     }
@@ -57,6 +63,8 @@ const createAllocation = async (req, res, next) => {
     await room.save();
 
     student.Roomno = room.RoomNo;
+    student.Block = room.Block;
+    student.Status = "Active";
     await student.save();
 
     const populatedAllocation = await Allocation.findById(allocation._id)
@@ -75,7 +83,8 @@ const getAllocations = async (req, res, next) => {
     const allocations = await Allocation.find()
       .populate("studentId")
       .populate("roomId")
-      .sort({ allocatedDate: -1 });
+      .sort({ allocatedDate: -1 })
+      .lean();
 
     const formattedAllocations = allocations.map(formatAllocation);
 
@@ -97,6 +106,62 @@ const getAllocationById = async (req, res, next) => {
     }
 
     res.status(200).json(formatAllocation(allocation));
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Get allocation for the logged-in student
+const getMyAllocation = async (req, res, next) => {
+  try {
+    const rollno = req.user.student?.Rollno;
+
+    if (!rollno) {
+      return res.status(400).json({ message: "No student record linked to this account" });
+    }
+
+    const student = await Student.findOne({ Rollno: rollno });
+    if (!student) {
+      return res.status(404).json({ message: "Student record not found" });
+    }
+
+    const myAllocation = await Allocation.findOne({
+      studentId: student._id,
+      status: "Active",
+    })
+      .populate("studentId")
+      .populate("roomId");
+
+    if (!myAllocation) {
+      return res.status(404).json({ message: "No allocation found for this student" });
+    }
+
+    const roommates = await Allocation.find({
+      roomId: myAllocation.roomId._id,
+      status: "Active",
+      _id: { $ne: myAllocation._id },
+    })
+      .populate("studentId")
+      .populate("roomId");
+
+    // Live count of active occupants for this room based directly on database
+    const liveOccupiedCount = await Allocation.countDocuments({
+      roomId: myAllocation.roomId._id,
+      status: "Active",
+    });
+
+    const formatted = formatAllocation(myAllocation);
+    const roomObj = myAllocation.roomId
+      ? (myAllocation.roomId.toObject ? myAllocation.roomId.toObject() : { ...myAllocation.roomId._doc || myAllocation.roomId })
+      : {};
+    roomObj.OccupiedCount = liveOccupiedCount;
+    roomObj.Status = liveOccupiedCount >= (roomObj.Capacity || 0) ? "Full" : "Available";
+
+    res.status(200).json({
+      ...formatted,
+      room: roomObj,
+      roommates: roommates.map(formatAllocation),
+    });
   } catch (error) {
     next(error);
   }
@@ -138,6 +203,7 @@ const updateAllocation = async (req, res, next) => {
         const student = await Student.findById(allocation.studentId);
         if (student) {
           student.Roomno = "Unassigned";
+          student.Status = "Inactive";
           await student.save();
         }
       }
@@ -174,6 +240,8 @@ const updateAllocation = async (req, res, next) => {
         const student = await Student.findById(allocation.studentId);
         if (student) {
           student.Roomno = room.RoomNo;
+          student.Block = room.Block;
+          student.Status = "Active";
           await student.save();
         }
       }
@@ -218,6 +286,7 @@ const deleteAllocation = async (req, res, next) => {
       const student = await Student.findById(allocation.studentId);
       if (student) {
         student.Roomno = "Unassigned";
+        student.Status = "Inactive";
         await student.save();
       }
     }
@@ -241,6 +310,7 @@ module.exports = {
   createAllocation,
   getAllocations,
   getAllocationById,
+  getMyAllocation,
   updateAllocation,
   deleteAllocation,
 };
