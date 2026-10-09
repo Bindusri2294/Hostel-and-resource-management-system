@@ -10,6 +10,7 @@ const connectDB = require("./config/db");
 const seedAdminAndDemoUsers = require("./config/seed");
 const studentRoutes = require("./routes/studentRoutes");
 const roomRoutes = require("./routes/roomRoutes");
+const blockRoutes = require("./routes/blockRoutes");
 const allocationRoutes = require("./routes/allocationRoutes");
 const feedbackRoutes = require("./routes/feedbackRoutes");
 const authRoutes = require("./routes/authRoutes");
@@ -77,6 +78,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/students", studentRoutes);
 app.use("/api/rooms", roomRoutes);
+app.use("/api/blocks", blockRoutes);
 app.use("/api/allocations", allocationRoutes);
 app.use("/api/feedback", feedbackRoutes);
 app.use("/api/auth", authRoutes);

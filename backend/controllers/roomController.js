@@ -8,10 +8,14 @@ const createRoom = async (req, res, next) => {
     try {
         const { RoomNo, Block, Floor, Capacity, OccupiedCount } = req.body;
 
-        if (!RoomNo || !Block || !Floor || Capacity === undefined) {
+        if (!RoomNo || !Block || Floor === undefined || Floor === null || Floor === "" || Capacity === undefined) {
             return res.status(400).json({
                 message: "Please provide RoomNo, Block, Floor, and Capacity fields",
             });
+        }
+
+        if (!Number.isInteger(Number(Floor)) || Number(Floor) < 0) {
+            return res.status(400).json({ message: "Floor must be a non-negative whole number" });
         }
 
         if (Capacity < 1) {
@@ -182,6 +186,10 @@ const updateRoom = async (req, res, next) => {
             return res.status(400).json({ message: "Capacity must be at least 1" });
         }
 
+        if (Floor !== undefined && (!Number.isInteger(Number(Floor)) || Number(Floor) < 0)) {
+            return res.status(400).json({ message: "Floor must be a non-negative whole number" });
+        }
+
         const newCapacity = Capacity !== undefined ? Capacity : existingRoom.Capacity;
         const newOccupied = OccupiedCount !== undefined ? OccupiedCount : existingRoom.OccupiedCount;
 
@@ -196,7 +204,7 @@ const updateRoom = async (req, res, next) => {
             {
                 RoomNo: RoomNo || existingRoom.RoomNo,
                 Block: Block || existingRoom.Block,
-                Floor: Floor || existingRoom.Floor,
+                Floor: Floor !== undefined ? Floor : existingRoom.Floor,
                 Capacity: newCapacity,
                 OccupiedCount: newOccupied,
             },
