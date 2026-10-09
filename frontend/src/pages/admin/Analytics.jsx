@@ -40,7 +40,6 @@ import {
   PieChart as PieIcon,
   BarChart3,
   CalendarCheck2,
-  X,
 } from "lucide-react";
 
 // Theme color palette
@@ -144,12 +143,14 @@ export default function Analytics() {
 
   // Key Stats Calculations
   const totalCapacity = useMemo(() => rooms.reduce((sum, r) => sum + Number(r.Capacity || 0), 0), [rooms]);
-  const occupiedBeds = useMemo(() => rooms.reduce((sum, r) => sum + Number(r.OccupiedCount || 0), 0), [rooms]);
-  const availableBeds = Math.max(0, totalCapacity - occupiedBeds);
+  const allocatedStudentsCount = useMemo(() => students.filter((s) => s.Roomno && s.Roomno !== "—" && s.Roomno !== "Unassigned").length, [students]);
+  const unallocatedStudentsCount = Math.max(0, students.length - allocatedStudentsCount);
+  const occupiedBeds = allocatedStudentsCount;
+  const vacatedBeds = useMemo(() => students.filter(s => s.Status === 'Inactive').length, [students]);
+  const availableBeds = Math.max(0, totalCapacity - occupiedBeds - vacatedBeds);
   const occupancyPercentage = totalCapacity ? Math.round((occupiedBeds / totalCapacity) * 100) : 0;
   const activeAllocations = useMemo(() => allocations.filter((a) => a.status === "Active").length, [allocations]);
-  const allocatedStudentsCount = useMemo(() => students.filter((s) => s.Roomno && s.Roomno !== "—").length, [students]);
-  const unallocatedStudentsCount = Math.max(0, students.length - allocatedStudentsCount);
+
   const fullyOccupiedRoomsCount = useMemo(() => rooms.filter(r => Number(r.OccupiedCount || 0) >= Number(r.Capacity || 0) && Number(r.Capacity || 0) > 0).length, [rooms]);
   const completelyVacantRoomsCount = useMemo(() => rooms.filter(r => Number(r.OccupiedCount || 0) === 0).length, [rooms]);
 
@@ -161,7 +162,7 @@ export default function Analytics() {
     return blocks.map((block) => {
       const blockRooms = rooms.filter((r) => r.Block === block);
       const cap = blockRooms.reduce((sum, r) => sum + Number(r.Capacity || 0), 0);
-      const occ = blockRooms.reduce((sum, r) => sum + Number(r.OccupiedCount || 0), 0);
+      const occ = students.filter(s => s.Block === block && s.Roomno && s.Roomno !== "—" && s.Roomno !== "Unassigned").length;
       const avail = Math.max(0, cap - occ);
       const blockAllocations = allocations.filter((a) => a.status === "Active" && a.room?.Block === block).length;
       return {
@@ -177,10 +178,11 @@ export default function Analytics() {
   // 2. Bed Occupancy Donut Chart
   const occupancyDonutData = useMemo(() => {
     return [
-      { name: "Occupied Beds", value: occupiedBeds, color: PALETTE.primary },
-      { name: "Available Beds", value: availableBeds, color: PALETTE.success },
+      { name: "Existed", value: occupiedBeds, color: "#3B82F6" },
+      { name: "Vacated", value: vacatedBeds, color: "#EF4444" },
+      { name: "Available", value: availableBeds, color: "#10B981" },
     ];
-  }, [occupiedBeds, availableBeds]);
+  }, [occupiedBeds, vacatedBeds, availableBeds]);
 
   // 3. Student Allocation Status Donut
   const studentAllocationDonut = useMemo(() => {
@@ -213,7 +215,7 @@ export default function Analytics() {
 
     rooms.forEach((r) => {
       const cap = Number(r.Capacity || 0);
-      const occ = Number(r.OccupiedCount || 0);
+      const occ = students.filter(s => s.Block === r.Block && String(s.Roomno) === String(r.RoomNo) && s.Roomno !== "—" && s.Roomno !== "Unassigned").length;
       if (occ >= cap && cap > 0) full++;
       else if (occ > 0) partial++;
       else vacant++;
@@ -318,15 +320,6 @@ export default function Analytics() {
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
-          <div className="flex items-center bg-white px-3 py-2 rounded-2xl border border-[#E8D8C4] shadow-sm">
-            <input
-              type="month"
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
-              className="bg-transparent text-xs font-bold text-[#2F2925] focus:outline-none cursor-pointer"
-              style={{ colorScheme: 'light' }}
-            />
-          </div>
 
           <button
             onClick={downloadPDF}
@@ -339,19 +332,9 @@ export default function Analytics() {
       </div>
 
       {error && (
-        <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-700 text-xs font-semibold flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
-            <span>{error}</span>
-          </div>
-          <button
-            type="button"
-            onClick={() => setError("")}
-            className="p-1 hover:bg-rose-100 rounded-lg text-rose-700 transition-colors cursor-pointer"
-            title="Dismiss error"
-          >
-            <X className="w-4 h-4" />
-          </button>
+        <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-700 text-xs font-semibold flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
+          <span>{error}</span>
         </div>
       )}
 
@@ -363,8 +346,8 @@ export default function Analytics() {
             <button
               onClick={() => setActiveSection("all")}
               className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeSection === "all"
-                  ? "bg-[#EB8055] text-white shadow-xs"
-                  : "text-[#8B7355] hover:text-[#2F2925]"
+                ? "bg-[#EB8055] text-white shadow-xs"
+                : "text-[#8B7355] hover:text-[#2F2925]"
                 }`}
             >
               All Analytics
@@ -372,8 +355,8 @@ export default function Analytics() {
             <button
               onClick={() => setActiveSection("allocation")}
               className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${activeSection === "allocation"
-                  ? "bg-[#EB8055] text-white shadow-xs"
-                  : "text-[#8B7355] hover:text-[#2F2925]"
+                ? "bg-[#EB8055] text-white shadow-xs"
+                : "text-[#8B7355] hover:text-[#2F2925]"
                 }`}
             >
               <DoorOpen className="w-3.5 h-3.5" />
@@ -382,78 +365,17 @@ export default function Analytics() {
             <button
               onClick={() => setActiveSection("attendance")}
               className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${activeSection === "attendance"
-                  ? "bg-[#EB8055] text-white shadow-xs"
-                  : "text-[#8B7355] hover:text-[#2F2925]"
+                ? "bg-[#EB8055] text-white shadow-xs"
+                : "text-[#8B7355] hover:text-[#2F2925]"
                 }`}
             >
               <CalendarCheck2 className="w-3.5 h-3.5" />
               Attendance Trends
             </button>
           </div>
-
-          <div className="text-xs font-bold text-[#8B7355]">
-            Showing <span className="text-[#EB8055] font-extrabold">{filteredStudents.length}</span> students in scope
-          </div>
-        </div>
-
-        {/* Search & Filter Dropdowns */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <div className="relative">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8B7355]" />
-            <input
-              type="text"
-              placeholder="Search student, roll no, room..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="w-full border rounded-xl pl-9 pr-3.5 py-2 text-xs font-medium focus:outline-none bg-white border-[#E8D8C4] text-[#2F2925] placeholder-[#8B7355]/60 focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 shadow-xs"
-            />
-          </div>
-
-          <div>
-            <select
-              value={courseFilter}
-              onChange={(e) => {
-                setCourseFilter(e.target.value);
-                setYearFilter("All");
-              }}
-              className="w-full border rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none bg-white border-[#E8D8C4] text-[#2F2925] focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 shadow-xs cursor-pointer"
-            >
-              <option value="All">All Courses</option>
-              <option value="B.Tech">B.Tech</option>
-              <option value="Diploma">Diploma</option>
-            </select>
-          </div>
-
-          <div>
-            <select
-              value={yearFilter}
-              onChange={(e) => setYearFilter(e.target.value)}
-              className="w-full border rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none bg-white border-[#E8D8C4] text-[#2F2925] focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 shadow-xs cursor-pointer"
-            >
-              <option value="All">All Years</option>
-              {yearOptions.map((year) => (
-                <option key={year} value={year}>
-                  {year}{year === "1" ? "st" : year === "2" ? "nd" : year === "3" ? "rd" : "th"} Year
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <select
-              value={blockFilter}
-              onChange={(e) => setBlockFilter(e.target.value)}
-              className="w-full border rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none bg-white border-[#E8D8C4] text-[#2F2925] focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 shadow-xs cursor-pointer"
-            >
-              <option value="All">All Blocks</option>
-              <option value="D">Block D</option>
-              <option value="E">Block E</option>
-              <option value="KW">Block KW</option>
-              <option value="Executive">Executive Block</option>
-            </select>
-          </div>
         </div>
       </div>
+
 
       {/* KPI Metric Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -466,10 +388,10 @@ export default function Analytics() {
         </div>
 
         <div className="p-5 rounded-2xl border border-blue-100 shadow-sm flex flex-col justify-center bg-gradient-to-br from-blue-50 to-blue-100 hover:-translate-y-1 hover:shadow-md transition-all cursor-pointer">
-          <p className="text-[11px] font-bold text-blue-700 uppercase tracking-wider">Room Utilization</p>
-          <h3 className="text-2xl font-black text-blue-950 mt-1">{fullyOccupiedRoomsCount} <span className="text-base text-blue-800 font-semibold">/ {rooms.length}</span></h3>
+          <p className="text-[11px] font-bold text-blue-700 uppercase tracking-wider">Vacated Students</p>
+          <h3 className="text-2xl font-black text-blue-950 mt-1">{vacatedBeds}</h3>
           <p className="text-[11px] font-semibold text-blue-800 mt-0.5">
-            Fully Booked · {completelyVacantRoomsCount} Vacant
+            Students who left the hostel
           </p>
         </div>
 
@@ -495,178 +417,187 @@ export default function Analytics() {
       {/* ========================================================================= */}
       {/* SECTION 1: ALLOCATION & CAPACITY RECHARTS                                */}
       {/* ========================================================================= */}
-      {(activeSection === "all" || activeSection === "allocation") && (
-        <div className="space-y-6">
-          <div className="flex items-center gap-2 pt-2">
-            <DoorOpen className="w-5 h-5 text-[#EB8055]" />
-            <h3 className="text-lg font-black text-[#2F2925]">Allocation & Capacity Visualizations</h3>
-          </div>
+      {
+        (activeSection === "all" || activeSection === "allocation") && (
+          <div className="space-y-6">
+            <div className="flex items-center gap-2 pt-2">
+              <DoorOpen className="w-5 h-5 text-[#EB8055]" />
+              <h3 className="text-lg font-black text-[#2F2925]">Allocation & Capacity Visualizations</h3>
+            </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Chart 1: Block-wise Capacity vs Occupancy Bar Chart (8 cols) */}
-            <div className="lg:col-span-8 bg-white p-6 rounded-2xl border border-[#E8D8C4] shadow-xs space-y-4">
-              <div className="flex items-center justify-between border-b border-[#E8D8C4]/60 pb-3">
-                <div>
-                  <h4 className="text-base font-extrabold text-[#2F2925]">Block-wise Capacity vs Occupancy</h4>
-                  <p className="text-xs text-[#8B7355]">Comparison of total beds, active occupancies, and available slots across blocks.</p>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              {/* Chart 1: Block-wise Capacity vs Occupancy Bar Chart (8 cols) */}
+              <div className="lg:col-span-8 bg-white p-6 rounded-2xl border border-[#E8D8C4] shadow-xs space-y-4">
+                <div className="flex items-center justify-between border-b border-[#E8D8C4]/60 pb-3">
+                  <div>
+                    <h4 className="text-base font-extrabold text-[#2F2925]">Block-wise Capacity vs Occupancy</h4>
+                    <p className="text-xs text-[#8B7355]">Comparison of total beds, active occupancies, and available slots across blocks.</p>
+                  </div>
+                </div>
+
+                <div className="h-72 w-full pt-2">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={blockData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#F5E8D4" />
+                      <XAxis dataKey="name" tick={{ fill: "#8B7355", fontSize: 12, fontWeight: 600 }} />
+                      <YAxis tick={{ fill: "#8B7355", fontSize: 11 }} />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #E8D8C4", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.05)" }}
+                        formatter={(val, name) => [`${val} Beds`, name]}
+                      />
+                      <Legend wrapperStyle={{ fontSize: 12, paddingTop: 10 }} />
+                      <Bar dataKey="Capacity" fill="#D9C4A8" radius={[6, 6, 0, 0]} />
+                      <Bar dataKey="Occupied" fill="#EB8055" radius={[6, 6, 0, 0]} />
+                      <Bar dataKey="Available" fill="#10B981" radius={[6, 6, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
                 </div>
               </div>
 
-              <div className="h-72 w-full pt-2">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={blockData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#F5E8D4" />
-                    <XAxis dataKey="name" tick={{ fill: "#8B7355", fontSize: 12, fontWeight: 600 }} />
-                    <YAxis tick={{ fill: "#8B7355", fontSize: 11 }} />
-                    <Tooltip
-                      contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #E8D8C4", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.05)" }}
-                      formatter={(val, name) => [`${val} Beds`, name]}
-                    />
-                    <Legend wrapperStyle={{ fontSize: 12, paddingTop: 10 }} />
-                    <Bar dataKey="Capacity" fill="#D9C4A8" radius={[6, 6, 0, 0]} />
-                    <Bar dataKey="Occupied" fill="#EB8055" radius={[6, 6, 0, 0]} />
-                    <Bar dataKey="Available" fill="#10B981" radius={[6, 6, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
+              {/* Chart 2: Bed Occupancy Donut Chart (4 cols) */}
+              <div className="lg:col-span-4 bg-white p-6 rounded-2xl border border-[#E8D8C4] shadow-xs space-y-4 flex flex-col justify-between">
+                <div className="border-b border-[#E8D8C4]/60 pb-3">
+                  <h4 className="text-base font-extrabold text-[#2F2925]">Bed Availability</h4>
+                  <p className="text-xs text-[#8B7355]">Occupied vs Available beds</p>
+                </div>
+
+                <div className="h-60 w-full flex items-center justify-center">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={occupancyDonutData}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={85}
+                        paddingAngle={4}
+                        minAngle={15}
+                      >
+                        {occupancyDonutData.map((entry, idx) => (
+                          <Cell key={`cell-${idx}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #E8D8C4" }}
+                        formatter={(val, name) => [`${val} Beds (${totalCapacity ? Math.round((val / totalCapacity) * 100) : 0}%)`, name]}
+                      />
+                      <Legend wrapperStyle={{ fontSize: 12 }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 pt-2 border-t border-[#E8D8C4]/60 text-center">
+                  <div className="bg-blue-50 p-2 rounded-xl">
+                    <p className="text-[10px] uppercase font-bold text-blue-700">Existed</p>
+                    <p className="text-sm font-black text-blue-900">{occupiedBeds}</p>
+                  </div>
+                  <div className="bg-red-50 p-2 rounded-xl">
+                    <p className="text-[10px] uppercase font-bold text-red-700">Vacated</p>
+                    <p className="text-sm font-black text-red-900">{vacatedBeds}</p>
+                  </div>
+                  <div className="bg-emerald-50 p-2 rounded-xl">
+                    <p className="text-[10px] uppercase font-bold text-emerald-700">Available</p>
+                    <p className="text-sm font-black text-emerald-900">{availableBeds}</p>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Chart 2: Bed Occupancy Donut Chart (4 cols) */}
-            <div className="lg:col-span-4 bg-white p-6 rounded-2xl border border-[#E8D8C4] shadow-xs space-y-4 flex flex-col justify-between">
-              <div className="border-b border-[#E8D8C4]/60 pb-3">
-                <h4 className="text-base font-extrabold text-[#2F2925]">Vacated vs Occupied Beds</h4>
-                <p className="text-xs text-[#8B7355]">Available vs allocated beds</p>
-              </div>
 
-              <div className="h-60 w-full flex items-center justify-center">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={occupancyDonutData}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={85}
-                      paddingAngle={4}
-                    >
-                      {occupancyDonutData.map((entry, idx) => (
-                        <Cell key={`cell-${idx}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #E8D8C4" }}
-                      formatter={(val, name) => [`${val} Beds (${totalCapacity ? Math.round((val / totalCapacity) * 100) : 0}%)`, name]}
-                    />
-                    <Legend wrapperStyle={{ fontSize: 12 }} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#E8D8C4]/60 text-center">
-                <div className="bg-[#FDF0DC] p-2 rounded-xl">
-                  <p className="text-[10px] uppercase font-bold text-[#B85228]">Occupied</p>
-                  <p className="text-sm font-black text-[#2F2925]">{occupiedBeds}</p>
-                </div>
-                <div className="bg-emerald-50 p-2 rounded-xl">
-                  <p className="text-[10px] uppercase font-bold text-emerald-700">Available</p>
-                  <p className="text-sm font-black text-emerald-900">{availableBeds}</p>
-                </div>
-              </div>
-            </div>
           </div>
-
-
-        </div>
-      )}
+        )
+      }
 
       {/* ========================================================================= */}
       {/* SECTION 2: ATTENDANCE RECHARTS                                            */}
       {/* ========================================================================= */}
-      {(activeSection === "all" || activeSection === "attendance") && (
-        <div className="space-y-6 pt-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <CalendarCheck2 className="w-5 h-5 text-[#EB8055]" />
-              <h3 className="text-lg font-black text-[#2F2925]">Attendance Analytics ({selectedMonth})</h3>
-            </div>
-            {attendanceChartData.length === 0 && (
-              <span className="text-xs font-bold text-[#8B7355] italic">No attendance records logged for {selectedMonth}</span>
-            )}
-          </div>
-
-          <div className="grid grid-cols-1 gap-6">
-            {/* Chart 3: Attendance Trend Area Chart (Full Width) */}
-            <div className="bg-white p-6 rounded-2xl border border-[#E8D8C4] shadow-xs space-y-4">
-              <div className="flex items-center justify-between border-b border-[#E8D8C4]/60 pb-3">
-                <div>
-                  <h4 className="text-base font-extrabold text-[#2F2925]">Attendance Flow</h4>
-                  <p className="text-xs text-[#8B7355]">Dynamic visualization tracking daily, weekly, and monthly student attendance patterns.</p>
-                </div>
-                <div className="flex items-center gap-1 bg-[#FDF0DC] p-1 rounded-xl border border-[#E8D8C4]">
-                  {["Daily", "Weekly", "Monthly"].map((tf) => (
-                    <button
-                      key={tf}
-                      onClick={() => setAttendanceTimeframe(tf)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${attendanceTimeframe === tf
-                          ? "bg-[#EB8055] text-white shadow-xs"
-                          : "text-[#8B7355] hover:text-[#2F2925]"
-                        }`}
-                    >
-                      {tf}
-                    </button>
-                  ))}
-                </div>
+      {
+        (activeSection === "all" || activeSection === "attendance") && (
+          <div className="space-y-6 pt-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <CalendarCheck2 className="w-5 h-5 text-[#EB8055]" />
+                <h3 className="text-lg font-black text-[#2F2925]">Attendance Analytics ({selectedMonth})</h3>
               </div>
-
-              {attendanceChartData.length > 0 ? (
-                <div className="h-72 w-full pt-2">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={attendanceChartData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
-                      <defs>
-                        <linearGradient id="presentGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#10B981" stopOpacity={0.4} />
-                          <stop offset="95%" stopColor="#10B981" stopOpacity={0.0} />
-                        </linearGradient>
-                        <linearGradient id="absentGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#EF4444" stopOpacity={0.4} />
-                          <stop offset="95%" stopColor="#EF4444" stopOpacity={0.0} />
-                        </linearGradient>
-                        <linearGradient id="leaveGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#EB8055" stopOpacity={0.4} />
-                          <stop offset="95%" stopColor="#EB8055" stopOpacity={0.0} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#F5E8D4" />
-                      <XAxis dataKey="date" tick={{ fill: "#8B7355", fontSize: 11 }} />
-                      <YAxis tick={{ fill: "#8B7355", fontSize: 11 }} />
-                      <Tooltip
-                        contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #E8D8C4" }}
-                        labelFormatter={(lbl) => {
-                          if (attendanceTimeframe === "Daily") return `Date: ${selectedMonth}-${String(lbl).padStart(2, "0")}`;
-                          if (attendanceTimeframe === "Weekly") return `${lbl}, ${selectedMonth}`;
-                          return `Month: ${lbl}`;
-                        }}
-                      />
-                      <Legend wrapperStyle={{ fontSize: 12, paddingTop: 10 }} />
-                      <Area type="monotone" dataKey="Present" stroke="#10B981" fillOpacity={1} fill="url(#presentGrad)" strokeWidth={2} />
-                      <Area type="monotone" dataKey="Absent" stroke="#EF4444" fillOpacity={1} fill="url(#absentGrad)" strokeWidth={2} />
-                      <Area type="monotone" dataKey="Leave" stroke="#EB8055" fillOpacity={1} fill="url(#leaveGrad)" strokeWidth={2} />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              ) : (
-                <div className="h-72 w-full flex flex-col items-center justify-center text-[#8B7355] bg-[#FDF0DC]/30 rounded-xl border border-dashed border-[#E8D8C4]">
-                  <CalendarCheck2 className="w-10 h-10 text-[#D9C4A8] mb-2" />
-                  <p className="text-xs font-bold">No attendance records found for {selectedMonth}.</p>
-                  <p className="text-[11px] text-[#8B7355] mt-1">Mark attendance in the Attendance module to populate this trend.</p>
-                </div>
+              {attendanceChartData.length === 0 && (
+                <span className="text-xs font-bold text-[#8B7355] italic">No attendance records logged for {selectedMonth}</span>
               )}
             </div>
+
+            <div className="grid grid-cols-1 gap-6">
+              {/* Chart 3: Attendance Trend Area Chart (Full Width) */}
+              <div className="bg-white p-6 rounded-2xl border border-[#E8D8C4] shadow-xs space-y-4">
+                <div className="flex items-center justify-between border-b border-[#E8D8C4]/60 pb-3">
+                  <div>
+                    <h4 className="text-base font-extrabold text-[#2F2925]">Attendance Flow</h4>
+                    <p className="text-xs text-[#8B7355]">Dynamic visualization tracking daily, weekly, and monthly student attendance patterns.</p>
+                  </div>
+                  <div className="flex items-center gap-1 bg-[#FDF0DC] p-1 rounded-xl border border-[#E8D8C4]">
+                    {["Daily", "Weekly", "Monthly"].map((tf) => (
+                      <button
+                        key={tf}
+                        onClick={() => setAttendanceTimeframe(tf)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${attendanceTimeframe === tf
+                          ? "bg-[#EB8055] text-white shadow-xs"
+                          : "text-[#8B7355] hover:text-[#2F2925]"
+                          }`}
+                      >
+                        {tf}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {attendanceChartData.length > 0 ? (
+                  <div className="h-72 w-full pt-2">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={attendanceChartData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
+                        <defs>
+                          <linearGradient id="presentGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#10B981" stopOpacity={0.4} />
+                            <stop offset="95%" stopColor="#10B981" stopOpacity={0.0} />
+                          </linearGradient>
+                          <linearGradient id="absentGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#EF4444" stopOpacity={0.4} />
+                            <stop offset="95%" stopColor="#EF4444" stopOpacity={0.0} />
+                          </linearGradient>
+                          <linearGradient id="leaveGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#EB8055" stopOpacity={0.4} />
+                            <stop offset="95%" stopColor="#EB8055" stopOpacity={0.0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#F5E8D4" />
+                        <XAxis dataKey="date" tick={{ fill: "#8B7355", fontSize: 11 }} />
+                        <YAxis tick={{ fill: "#8B7355", fontSize: 11 }} />
+                        <Tooltip
+                          contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #E8D8C4" }}
+                          labelFormatter={(lbl) => {
+                            if (attendanceTimeframe === "Daily") return `Date: ${selectedMonth}-${String(lbl).padStart(2, "0")}`;
+                            if (attendanceTimeframe === "Weekly") return `${lbl}, ${selectedMonth}`;
+                            return `Month: ${lbl}`;
+                          }}
+                        />
+                        <Legend wrapperStyle={{ fontSize: 12, paddingTop: 10 }} />
+                        <Area type="monotone" dataKey="Present" stroke="#10B981" fillOpacity={1} fill="url(#presentGrad)" strokeWidth={2} />
+                        <Area type="monotone" dataKey="Absent" stroke="#EF4444" fillOpacity={1} fill="url(#absentGrad)" strokeWidth={2} />
+                        <Area type="monotone" dataKey="Leave" stroke="#EB8055" fillOpacity={1} fill="url(#leaveGrad)" strokeWidth={2} />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <div className="h-72 w-full flex flex-col items-center justify-center text-[#8B7355] bg-[#FDF0DC]/30 rounded-xl border border-dashed border-[#E8D8C4]">
+                    <CalendarCheck2 className="w-10 h-10 text-[#D9C4A8] mb-2" />
+                    <p className="text-xs font-bold">No attendance records found for {selectedMonth}.</p>
+                    <p className="text-[11px] text-[#8B7355] mt-1">Mark attendance in the Attendance module to populate this trend.</p>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   );
 }

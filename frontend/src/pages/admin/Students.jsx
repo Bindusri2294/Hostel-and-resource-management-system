@@ -22,8 +22,9 @@ const blankStudent = {
   Department: "CSM",
   Campus: "KIET",
   Block: "D",
+  Floor: "",
   Roomno: "Unassigned",
-  Status: "Active",
+  Status: "Boys",
 };
 
 const getDeptFromRollNo = (rollno) => {
@@ -57,6 +58,12 @@ const getCampusFromRollNo = (rollno) => {
     case "JN": return "KIET W";
     default: return "KIET";
   }
+};
+
+const getHostelType = (student) => {
+  if (student.Status === "Boys" || student.Status === "Girls") return student.Status;
+  if (student.Block === "KW" || student.Campus === "KIET-W" || student.Campus === "KIET W") return "Girls";
+  return "Boys";
 };
 
 
@@ -117,7 +124,7 @@ export default function Students() {
     const matchesBlock =
       blockFilter === "All" || String(student.Block || "") === String(blockFilter);
     const matchesStatus =
-      statusFilter === "All" || (student.Status || "Active") === statusFilter;
+      statusFilter === "All" || getHostelType(student) === statusFilter;
 
     if (!query.trim()) {
       return matchesDept && matchesYear && matchesBlock && matchesStatus;
@@ -150,13 +157,13 @@ export default function Students() {
 
   const openForm = (student = null) => {
     setSelected(student);
-    setForm(student ? { ...student } : blankStudent);
+    setForm(student ? { ...student, Status: getHostelType(student) } : blankStudent);
     setFormOpen(true);
     setError("");
   };
 
   const openView = (student) => {
-    setSelected({ ...student });
+    setSelected({ ...student, Status: getHostelType(student) });
     setViewOpen(true);
   };
 
@@ -172,7 +179,7 @@ export default function Students() {
         Campus: form.Campus || getCampusFromRollNo(form.Rollno),
         Department: form.Department || getDeptFromRollNo(form.Rollno),
         Year: Number(form.Year),
-        Status: form.Status || "Active",
+        Status: form.Status || "Boys",
       };
 
       if (selected) {
@@ -228,7 +235,7 @@ export default function Students() {
         <div>
           <h2 className="text-2xl font-extrabold text-[#2F2925]">Student Management</h2>
           <p className="text-xs text-[#8B7355] mt-0.5">
-            Comprehensive directory to view, search, and manage individual student records and their statuses.
+            Manage student records, filter by hostel blocks, and easily update room allocations.
           </p>
         </div>
 
@@ -273,37 +280,9 @@ export default function Students() {
 
       {/* FILTER & SEARCH TOOLBAR (Feedback style across all fields) */}
       <div className="bg-white p-4 rounded-2xl border border-[#E8D8C4] shadow-sm space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="relative flex-1 min-w-[240px]">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8B7355]" />
-            <input
-              type="text"
-              placeholder="Search by student name, roll no, course, room, block, department, phone..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="w-full border rounded-xl pl-9 pr-3.5 py-2 text-xs font-medium focus:outline-none bg-white border-[#E8D8C4] text-[#2F2925] placeholder-[#8B7355]/60 focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 shadow-xs"
-            />
-          </div>
-
-          <button
-            onClick={() => {
-              setQuery("");
-              setDeptFilter("All");
-              setYearFilter("All");
-              setBlockFilter("All");
-              setStatusFilter("All");
-              loadStudents();
-              loadRooms();
-            }}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer border bg-[#FDF0DC] hover:bg-[#F5E8D4] text-[#2F2925] border-[#E8D8C4]"
-          >
-            <RefreshCw className="w-3.5 h-3.5 text-[#EB8055]" /> Refresh
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-3 border-t border-[#E8D8C4]/60">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <div>
-            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-[#8B7355]">Course Filter</label>
+            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-[#8B7355]">Course</label>
             <select
               value={deptFilter}
               onChange={(e) => setDeptFilter(e.target.value)}
@@ -316,7 +295,7 @@ export default function Students() {
           </div>
 
           <div>
-            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-[#8B7355]">Year Filter</label>
+            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-[#8B7355]">Year</label>
             <select
               value={yearFilter}
               onChange={(e) => setYearFilter(e.target.value)}
@@ -331,7 +310,7 @@ export default function Students() {
           </div>
 
           <div>
-            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-[#8B7355]">Block Filter</label>
+            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-[#8B7355]">Block</label>
             <select
               value={blockFilter}
               onChange={(e) => setBlockFilter(e.target.value)}
@@ -345,17 +324,34 @@ export default function Students() {
             </select>
           </div>
 
-          <div>
-            <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-[#8B7355]">Status Filter</label>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full border rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none bg-white border-[#E8D8C4] text-[#2F2925] focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 shadow-xs cursor-pointer"
+          <div className="flex items-end gap-2">
+            <div className="flex-1">
+              <label className="block text-[10px] uppercase tracking-wider font-bold mb-1 text-[#8B7355]">Hostel Type</label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full border rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none bg-white border-[#E8D8C4] text-[#2F2925] focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 shadow-xs cursor-pointer"
+              >
+                <option value="All">All Types</option>
+                <option value="Boys">Boys</option>
+                <option value="Girls">Girls</option>
+              </select>
+            </div>
+            <button
+              onClick={() => {
+                setQuery("");
+                setDeptFilter("All");
+                setYearFilter("All");
+                setBlockFilter("All");
+                setStatusFilter("All");
+                loadStudents();
+                loadRooms();
+              }}
+              className="flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer border bg-[#FDF0DC] hover:bg-[#F5E8D4] text-[#2F2925] border-[#E8D8C4] h-[30px]"
+              title="Refresh Data"
             >
-              <option value="All">All Statuses</option>
-              <option value="Active">Active</option>
-              <option value="Inactive">Inactive</option>
-            </select>
+              <RefreshCw className="w-3.5 h-3.5 text-[#EB8055]" />
+            </button>
           </div>
         </div>
       </div>
@@ -378,7 +374,7 @@ export default function Students() {
                   <th className="py-3 px-4">Year & Dept</th>
                   <th className="py-3 px-4">Block</th>
                   <th className="py-3 px-4">Room</th>
-                  <th className="py-3 px-4">Status</th>
+                  <th className="py-3 px-4">Hostel Type</th>
                   <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
@@ -411,12 +407,12 @@ export default function Students() {
                     </td>
                     <td className="py-3 px-4">
                       <span
-                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${(student.Status || "Active") === "Active"
-                            ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
-                            : "bg-[#FDF0DC] text-[#8B7355] border border-[#E8D8C4]"
+                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${getHostelType(student) === "Boys"
+                          ? "bg-blue-100 text-blue-800 border border-blue-200"
+                          : "bg-pink-100 text-pink-800 border border-pink-200"
                           }`}
                       >
-                        {student.Status || "Active"}
+                        {getHostelType(student)}
                       </span>
                     </td>
                     <td className="py-3 px-4 flex justify-end items-center gap-1">
@@ -535,18 +531,36 @@ export default function Students() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-[#2F2925] mb-1 font-bold">Block</label>
-                <select
-                  value={form.Block || "D"}
-                  onChange={(e) => setForm({ ...form, Block: e.target.value })}
-                  className="w-full bg-white border border-[#E8D8C4] rounded-xl p-2.5 outline-none focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 font-medium text-[#2F2925]"
-                >
-                  <option value="D">Block D</option>
-                  <option value="E">Block E</option>
-                  <option value="KW">Block KW</option>
-                  <option value="Executive">Executive Block</option>
-                </select>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-[#2F2925] mb-1 font-bold">Block</label>
+                  <select
+                    value={form.Block || "D"}
+                    onChange={(e) => setForm({ ...form, Block: e.target.value, Roomno: "Unassigned", Floor: "" })}
+                    className="w-full bg-white border border-[#E8D8C4] rounded-xl p-2.5 outline-none focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 font-medium text-[#2F2925]"
+                  >
+                    <option value="D">Block D</option>
+                    <option value="E">Block E</option>
+                    <option value="KW">Block KW</option>
+                    <option value="Executive">Executive Block</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[#2F2925] mb-1 font-bold">Floor</label>
+                  <select
+                    value={form.Floor || ""}
+                    onChange={(e) => setForm({ ...form, Floor: e.target.value, Roomno: "Unassigned" })}
+                    className="w-full bg-white border border-[#E8D8C4] rounded-xl p-2.5 outline-none focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 font-medium text-[#2F2925]"
+                  >
+                    <option value="" disabled>Select Floor</option>
+                    {Array.from(new Set(rooms.filter(r => r.Block === form.Block).map(r => r.Floor)))
+                      .filter(Boolean)
+                      .sort((a, b) => a - b)
+                      .map(floor => (
+                        <option key={floor} value={floor}>Floor {floor}</option>
+                      ))}
+                  </select>
+                </div>
               </div>
 
               <div>
@@ -561,6 +575,7 @@ export default function Students() {
                   className="w-full bg-white border border-[#E8D8C4] rounded-xl p-2.5 outline-none focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 font-medium text-[#2F2925]"
                 >
                   <option value="KIET">KIET</option>
+                  <option value="KIET+">KIET+</option>
                   <option value="KIET-W">KIET-W</option>
                 </select>
               </div>
@@ -570,11 +585,12 @@ export default function Students() {
                 <select
                   value={form.Roomno || "Unassigned"}
                   onChange={(e) => setForm({ ...form, Roomno: e.target.value })}
-                  className="w-full bg-white border border-[#E8D8C4] rounded-xl p-2.5 outline-none focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 font-medium text-[#2F2925]"
+                  disabled={!form.Floor}
+                  className="w-full bg-white border border-[#E8D8C4] rounded-xl p-2.5 outline-none focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 font-medium text-[#2F2925] disabled:opacity-50 disabled:bg-gray-50"
                 >
                   <option value="Unassigned">Unassigned</option>
                   {rooms
-                    .filter(room => !form.Block || room.Block === form.Block)
+                    .filter(room => room.Block === form.Block && String(room.Floor) === String(form.Floor))
                     .map((room) => (
                       <option key={room._id} value={room.RoomNo}>
                         {room.RoomNo}
@@ -584,14 +600,14 @@ export default function Students() {
               </div>
 
               <div>
-                <label className="block text-[#2F2925] mb-1 font-bold">Student Status</label>
+                <label className="block text-[#2F2925] mb-1 font-bold">Hostel Type</label>
                 <select
-                  value={form.Status || "Active"}
+                  value={form.Status || "Boys"}
                   onChange={(e) => setForm({ ...form, Status: e.target.value })}
                   className="w-full bg-white border border-[#E8D8C4] rounded-xl p-2.5 outline-none focus:border-[#EB8055] focus:ring-1 focus:ring-[#EB8055]/20 font-medium text-[#2F2925]"
                 >
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
+                  <option value="Boys">Boys</option>
+                  <option value="Girls">Girls</option>
                 </select>
               </div>
             </div>
@@ -651,28 +667,44 @@ export default function Students() {
                 <span className="font-extrabold text-[#2F2925]">{selected.Department || "CSM"}</span>
               </div>
               <div className="p-3 bg-[#F9EFDE]/50 rounded-xl border border-[#E8D8C4]">
-                <span className="text-[10px] text-[#8B7355] font-bold block mb-1">Hostel Block</span>
-                <select
-                  value={selected.Block || "D"}
-                  onChange={(e) => setSelected({ ...selected, Block: e.target.value, Roomno: "Unassigned" })}
-                  className="w-full bg-white border border-[#E8D8C4] rounded-lg px-2 py-1 outline-none focus:border-[#EB8055] font-extrabold text-[#B85228] text-xs"
-                >
-                  <option value="D">Block D</option>
-                  <option value="E">Block E</option>
-                  <option value="KW">Block KW</option>
-                  <option value="Executive">Executive Block</option>
-                </select>
+                <span className="text-[10px] text-[#8B7355] font-bold block mb-1">Hostel Block & Floor</span>
+                <div className="flex gap-2">
+                  <select
+                    value={selected.Block || "D"}
+                    onChange={(e) => setSelected({ ...selected, Block: e.target.value, Roomno: "Unassigned", Floor: "" })}
+                    className="w-1/2 bg-white border border-[#E8D8C4] rounded-lg px-2 py-1 outline-none focus:border-[#EB8055] font-extrabold text-[#B85228] text-xs"
+                  >
+                    <option value="D">Block D</option>
+                    <option value="E">Block E</option>
+                    <option value="KW">Block KW</option>
+                    <option value="Executive">Executive</option>
+                  </select>
+                  <select
+                    value={selected.Floor || ""}
+                    onChange={(e) => setSelected({ ...selected, Floor: e.target.value, Roomno: "Unassigned" })}
+                    className="w-1/2 bg-white border border-[#E8D8C4] rounded-lg px-2 py-1 outline-none focus:border-[#EB8055] font-extrabold text-[#B85228] text-xs"
+                  >
+                    <option value="" disabled>Select Floor</option>
+                    {Array.from(new Set(rooms.filter(r => r.Block === selected.Block).map(r => r.Floor)))
+                      .filter(Boolean)
+                      .sort((a, b) => a - b)
+                      .map(floor => (
+                        <option key={floor} value={floor}>Floor {floor}</option>
+                      ))}
+                  </select>
+                </div>
               </div>
               <div className="p-3 bg-[#F9EFDE]/50 rounded-xl border border-[#E8D8C4]">
                 <span className="text-[10px] text-[#8B7355] font-bold block mb-1">Allocated Room</span>
                 <select
                   value={selected.Roomno || "Unassigned"}
                   onChange={(e) => setSelected({ ...selected, Roomno: e.target.value })}
-                  className="w-full bg-white border border-[#E8D8C4] rounded-lg px-2 py-1 outline-none focus:border-[#EB8055] font-extrabold text-[#2F2925] text-xs"
+                  disabled={!selected.Floor}
+                  className="w-full bg-white border border-[#E8D8C4] rounded-lg px-2 py-1 outline-none focus:border-[#EB8055] font-extrabold text-[#2F2925] text-xs disabled:opacity-50 disabled:bg-gray-50"
                 >
                   <option value="Unassigned">Unassigned</option>
                   {rooms
-                    .filter(room => !selected.Block || room.Block === selected.Block)
+                    .filter(room => room.Block === selected.Block && String(room.Floor) === String(selected.Floor))
                     .map((room) => (
                       <option key={room._id} value={room.RoomNo}>
                         {room.RoomNo}
@@ -682,16 +714,16 @@ export default function Students() {
               </div>
               <div className="p-3 bg-[#F9EFDE]/50 rounded-xl border border-[#E8D8C4] col-span-2 flex items-center justify-between">
                 <div>
-                  <span className="text-[10px] text-[#8B7355] font-bold block">Student Status</span>
-                  <span className="text-[11px] text-[#8B7355] font-medium">Hostel Residency State</span>
+                  <span className="text-[10px] text-[#8B7355] font-bold block">Hostel Type</span>
+                  <span className="text-[11px] text-[#8B7355] font-medium">Boys or Girls Hostel</span>
                 </div>
                 <span
-                  className={`px-3 py-1 rounded-full text-xs font-extrabold ${(selected.Status || "Active") === "Active"
-                      ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
-                      : "bg-[#FDF0DC] text-[#8B7355] border border-[#E8D8C4]"
+                  className={`px-3 py-1 rounded-full text-xs font-extrabold ${getHostelType(selected) === "Boys"
+                    ? "bg-blue-100 text-blue-800 border border-blue-200"
+                    : "bg-pink-100 text-pink-800 border border-pink-200"
                     }`}
                 >
-                  {selected.Status || "Active"}
+                  {getHostelType(selected)}
                 </span>
               </div>
             </div>
