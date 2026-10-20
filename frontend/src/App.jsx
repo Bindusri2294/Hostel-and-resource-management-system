@@ -14,6 +14,7 @@ import MyAttendance from "./pages/student/MyAttendance";
 import MyAllocation from "./pages/student/MyAllocation";
 import RoomInfo from "./pages/student/RoomInfo";
 import HostelInfo from "./pages/student/HostelInfo";
+import MyFees from "./pages/student/MyFees";
 
 // Admin pages
 import Students from "./pages/admin/Students";
@@ -23,6 +24,7 @@ import Attendance from "./pages/admin/Attendance";
 import Analytics from "./pages/admin/Analytics";
 import Settings from "./pages/admin/Settings";
 import Notifications from "./pages/admin/Notifications";
+import Fees from "./pages/admin/Fees";
 
 import EscalationView from "./pages/EscalationView";
 
@@ -44,6 +46,7 @@ export default function App() {
           <Route path="my-allocation" element={<MyAllocation />} />
           <Route path="hostel-info" element={<HostelInfo />} />
           <Route path="my-attendance" element={<MyAttendance />} />
+          <Route path="my-fees" element={<MyFees />} />
         </Route>
       </Route>
 
@@ -54,6 +57,7 @@ export default function App() {
           <Route path="rooms" element={<Rooms />} />
           <Route path="allocations" element={<Allocations />} />
           <Route path="attendance" element={<Attendance />} />
+          <Route path="fees" element={<Fees />} />
           <Route path="analytics" element={<Analytics />} />
           <Route path="notifications" element={<Notifications />} />
           <Route path="settings" element={<Settings />} />

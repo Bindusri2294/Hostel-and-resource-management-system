@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api",
+  baseURL: import.meta.env?.VITE_API_BASE_URL || "http://localhost:5000/api",
   headers: { "Content-Type": "application/json" },
   withCredentials: true,
   timeout: 30000, // 30 seconds timeout to handle slow DB connection latency
@@ -211,7 +211,61 @@ export const notificationService = {
   remove: (id) => api.delete(`/notifications/${id}`),
 };
 
-export const getErrorMessage = (error, fallback = "Something went wrong") =>
-  error.response?.data?.message || (error.code === "ERR_NETWORK" ? "The server is unavailable." : fallback);
+export const feeService = {
+  list: (params) => api.get("/fees", { params, bypassCache: true }),
+  mine: () => api.get("/fees/mine", { bypassCache: true }),
+  create: (payload) => api.post("/fees", payload),
+  createBatch: (payload) => api.post("/fees/batch", payload),
+  bulkAdjust: (payload) => api.post("/fees/bulk-adjust", payload),
+  bulkDelete: (payload) => api.post("/fees/bulk-delete", payload),
+  studentPay: (id, payload) => api.post(`/fees/${id}/pay`, payload),
+  recordPayment: (id, payload) => api.post(`/fees/${id}/payments`, payload),
+  update: (id, payload) => api.put(`/fees/${id}`, payload),
+  remove: (id) => api.delete(`/fees/${id}`),
+};
+
+export const getErrorMessage = (error, fallback = "Something went wrong") => {
+  if (!error) return fallback;
+
+  // 1. Explicit message from backend response
+  if (error.response?.data?.message) {
+    return error.response.data.message;
+  }
+
+  // 2. Gateway / proxy error status codes when server is down or unreachable
+  const status = error.response?.status;
+  if (status === 502 || status === 503 || status === 504) {
+    return "The backend server is currently unavailable. Please try again shortly.";
+  }
+  if (status === 500) {
+    return "Internal server error. Please try again later.";
+  }
+
+  // 3. Network unreachable / connection refused / server offline (no HTTP response received)
+  const isNetworkDown =
+    error.code === "ERR_NETWORK" ||
+    error.code === "ECONNREFUSED" ||
+    error.code === "ENOTFOUND" ||
+    error.message === "Network Error" ||
+    (typeof error.message === "string" && error.message.toLowerCase().includes("network error")) ||
+    !error.response;
+
+  if (isNetworkDown) {
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      return "No internet connection detected. Please check your network.";
+    }
+    return "Cannot connect to the server. Please verify the backend server is running.";
+  }
+
+  // 4. Request timeout
+  if (
+    error.code === "ECONNABORTED" ||
+    (typeof error.message === "string" && error.message.toLowerCase().includes("timeout"))
+  ) {
+    return "Connection timed out while reaching the server. Please try again.";
+  }
+
+  return fallback;
+};
 
 export default api;

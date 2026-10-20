@@ -9,6 +9,7 @@ import {
     User,
     Home,
     BellRing,
+    Receipt,
 } from "lucide-react";
 
 export const adminNavItems = [
@@ -16,6 +17,7 @@ export const adminNavItems = [
     { label: "Students", icon: Users, path: "/students" },
     { label: "Rooms", icon: Building2, path: "/rooms" },
     { label: "Allocations", icon: ClipboardList, path: "/allocations" },
+    { label: "Fees", icon: Receipt, path: "/fees" },
     { label: "Feedback", icon: MessageSquare, path: "/feedback" },
     { label: "Attendance", icon: ClipboardCheck, path: "/attendance" },
     { label: "Analytics", icon: BarChart3, path: "/analytics" },
@@ -24,6 +26,7 @@ export const adminNavItems = [
 
 export const studentNavItems = [
     { label: "Dashboard", icon: LayoutDashboard, path: "/" },
+    { label: "My Fees", icon: Receipt, path: "/my-fees" },
     { label: "My Attendance", icon: ClipboardCheck, path: "/my-attendance" },
     { label: "My Allocation", icon: ClipboardList, path: "/my-allocation" },
     { label: "Hostel Info", icon: Home, path: "/hostel-info" },
