@@ -25,7 +25,7 @@ import {
 
 import kietLogo from '../../assets/kiet_logo.webp';
 import kietCollege from '../../assets/kiet_college_login_photo.jpeg';
-import { authService } from '../../services/api';
+import { authService, getErrorMessage } from '../../services/api';
 import hostelRoom1 from '../../assets/hostel_room1.jpeg';
 import hostelRoom2 from '../../assets/hostel_room2.jpeg';
 import hostelRoom3 from '../../assets/hostel_room3.jpeg';
@@ -168,7 +168,7 @@ export default function LoginView() {
       await login(userId, loginPassword);
       navigate('/', { replace: true });
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+      setError(getErrorMessage(err, 'Login failed. Please check your credentials.'));
     } finally {
       setLoading(false);
     }
@@ -186,7 +186,7 @@ export default function LoginView() {
       setForgotStep(2);
       setOtpCooldown(60);
     } catch (err) {
-      const msg = err.response?.data?.message || 'Failed to send OTP.';
+      const msg = getErrorMessage(err, 'Failed to send OTP.');
       setForgotError(msg);
       if (msg.includes('No email address found')) {
         setShowManualResetPrompt(true);
@@ -205,7 +205,7 @@ export default function LoginView() {
       setForgotSuccess(res.data.message);
       setShowManualResetPrompt(false);
     } catch (err) {
-      setForgotError(err.response?.data?.message || 'Failed to request manual reset.');
+      setForgotError(getErrorMessage(err, 'Failed to request manual reset.'));
       setShowManualResetPrompt(false);
     } finally {
       setForgotLoading(false);
@@ -223,7 +223,7 @@ export default function LoginView() {
       setForgotResetToken(res.data.resetToken);
       setForgotStep(3);
     } catch (err) {
-      setForgotError(err.response?.data?.message || 'Invalid or expired OTP.');
+      setForgotError(getErrorMessage(err, 'Invalid or expired OTP.'));
     } finally {
       setForgotLoading(false);
     }
@@ -246,7 +246,7 @@ export default function LoginView() {
         setForgotSuccess('');
       }, 2000);
     } catch (err) {
-      setForgotError(err.response?.data?.message || 'Failed to reset password.');
+      setForgotError(getErrorMessage(err, 'Failed to reset password.'));
     } finally {
       setForgotLoading(false);
     }

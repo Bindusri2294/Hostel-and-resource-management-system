@@ -17,6 +17,7 @@ const authRoutes = require("./routes/authRoutes");
 const attendanceRoutes = require("./routes/attendanceRoutes");
 const leaveRoutes = require("./routes/leaveRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const feeRoutes = require("./routes/feeRoutes");
 const errorHandler = require("./middleware/errorHandler");
 
 dotenv.config();
@@ -85,6 +86,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/leave", leaveRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/fees", feeRoutes);
 app.use(errorHandler);
 
 const startServer = async () => {
