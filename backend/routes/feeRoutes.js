@@ -1,32 +1,31 @@
 const express = require("express");
 const { protect, authorize } = require("../middleware/authMiddleware");
 const {
-  createFee,
-  createBatchFees,
   getAllFees,
   getMyFees,
-  recordPayment,
-  studentPayFee,
-  updateFee,
-  deleteFee,
-  bulkAdjustFees,
-  bulkDeleteFees,
 } = require("../controllers/feeController");
 
 const router = express.Router();
 
-// Student routes (accessible to authenticated students and admins)
-router.get("/mine", protect, authorize("Student", "Admin"), getMyFees);
-router.post("/:id/pay", protect, authorize("Student", "Admin"), studentPayFee);
+/**
+ * CONFIDENTIAL & READ-ONLY FEE MODULE
+ * All fee records are strictly locked. No creation, editing, deletion, or online payments allowed.
+ */
 
-// Admin-only management routes
+// Student & Admin read-only view of their own fee statements
+router.get("/mine", protect, authorize("Student", "Admin"), getMyFees);
+
+// Admin read-only view of all fee statements with filters and statistics
 router.get("/", protect, authorize("Admin"), getAllFees);
-router.post("/", protect, authorize("Admin"), createFee);
-router.post("/batch", protect, authorize("Admin"), createBatchFees);
-router.post("/bulk-adjust", protect, authorize("Admin"), bulkAdjustFees);
-router.post("/bulk-delete", protect, authorize("Admin"), bulkDeleteFees);
-router.post("/:id/payments", protect, authorize("Admin"), recordPayment);
-router.put("/:id", protect, authorize("Admin"), updateFee);
-router.delete("/:id", protect, authorize("Admin"), deleteFee);
+
+// Explicitly reject all mutation attempts (POST, PUT, PATCH, DELETE) with 403 Forbidden
+router.use((req, res, next) => {
+  if (req.method !== "GET") {
+    return res.status(403).json({
+      message: "Fee records are confidential and strictly read-only. Modifications, payments, and deletions are disabled.",
+    });
+  }
+  next();
+});
 
 module.exports = router;
