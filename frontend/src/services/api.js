@@ -214,14 +214,6 @@ export const notificationService = {
 export const feeService = {
   list: (params) => api.get("/fees", { params, bypassCache: true }),
   mine: () => api.get("/fees/mine", { bypassCache: true }),
-  create: (payload) => api.post("/fees", payload),
-  createBatch: (payload) => api.post("/fees/batch", payload),
-  bulkAdjust: (payload) => api.post("/fees/bulk-adjust", payload),
-  bulkDelete: (payload) => api.post("/fees/bulk-delete", payload),
-  studentPay: (id, payload) => api.post(`/fees/${id}/pay`, payload),
-  recordPayment: (id, payload) => api.post(`/fees/${id}/payments`, payload),
-  update: (id, payload) => api.put(`/fees/${id}`, payload),
-  remove: (id) => api.delete(`/fees/${id}`),
 };
 
 export const getErrorMessage = (error, fallback = "Something went wrong") => {
@@ -235,10 +227,10 @@ export const getErrorMessage = (error, fallback = "Something went wrong") => {
   // 2. Gateway / proxy error status codes when server is down or unreachable
   const status = error.response?.status;
   if (status === 502 || status === 503 || status === 504) {
-    return "The backend server is currently unavailable. Please try again shortly.";
+    return "The service is temporarily unavailable. Please try again shortly.";
   }
   if (status === 500) {
-    return "Internal server error. Please try again later.";
+    return "Something went wrong on the server. Please try again later.";
   }
 
   // 3. Network unreachable / connection refused / server offline (no HTTP response received)
@@ -254,7 +246,7 @@ export const getErrorMessage = (error, fallback = "Something went wrong") => {
     if (typeof navigator !== "undefined" && !navigator.onLine) {
       return "No internet connection detected. Please check your network.";
     }
-    return "Cannot connect to the server. Please verify the backend server is running.";
+    return "Unable to connect to the server. Please check your internet connection or try again in a moment.";
   }
 
   // 4. Request timeout
@@ -262,7 +254,7 @@ export const getErrorMessage = (error, fallback = "Something went wrong") => {
     error.code === "ECONNABORTED" ||
     (typeof error.message === "string" && error.message.toLowerCase().includes("timeout"))
   ) {
-    return "Connection timed out while reaching the server. Please try again.";
+    return "Connection timed out. Please check your network and try again.";
   }
 
   return fallback;
